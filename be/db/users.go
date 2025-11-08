@@ -53,6 +53,51 @@ func DeleteUser(id string) error {
 	return err
 }
 
+// Get all users
+func GetAllUsers(searchBy string, orderBy string) ([]models.DBUser, error) {
+	if orderBy == "" {
+		orderBy = "id"
+	}
+	query := "SELECT id, login, pwd, pwd_salt, fullname, group_id FROM " + tablePrefix + "users"
+	if searchBy != "" {
+		query += " WHERE login LIKE ? OR fullname LIKE ?"
+		searchPattern := "%" + searchBy + "%"
+		query += fmt.Sprintf(" ORDER BY %s", orderBy)
+		rows, err := DB.Query(query, searchPattern, searchPattern)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		var users []models.DBUser
+		for rows.Next() {
+			var u models.DBUser
+			if err := rows.Scan(&u.ID, &u.Login, &u.Pwd, &u.PwdSalt, &u.Fullname, &u.GroupID); err != nil {
+				return nil, err
+			}
+			users = append(users, u)
+		}
+		return users, nil
+	}
+
+	// Senza filtro di ricerca
+	rows, err := DB.Query("SELECT id, login, pwd, pwd_salt, fullname, group_id FROM " + tablePrefix + "users ORDER BY " + orderBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.DBUser
+	for rows.Next() {
+		var u models.DBUser
+		if err := rows.Scan(&u.ID, &u.Login, &u.Pwd, &u.PwdSalt, &u.Fullname, &u.GroupID); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
+}
+
 // EXTRA: Count
 func CountUsers() (int, error) {
 	var count int

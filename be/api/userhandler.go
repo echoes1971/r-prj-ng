@@ -10,6 +10,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// GET /users
+func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	searchBy := r.URL.Query().Get("search")
+	orderBy := r.URL.Query().Get("order_by")
+	users, err := db.GetAllUsers(searchBy, orderBy)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(users)
+}
+
 // GET /users/{id}
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

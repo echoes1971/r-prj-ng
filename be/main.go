@@ -11,6 +11,8 @@ curl -X POST http://localhost:1971/login \
 curl -X GET http://localhost:1971/users/316 \
   -H "Authorization: Bearer <access_token>"
 
+curl -X GET http://localhost:1971/users/ \
+  -H "Authorization: Bearer <access_token>"
 
 
 Test Suites:
@@ -80,6 +82,7 @@ func main() {
 	userRoutes.Use(api.AuthMiddleware) // applica il middleware
 
 	userRoutes.HandleFunc("/{id}", api.GetUserHandler).Methods("GET")
+	userRoutes.HandleFunc("", api.GetAllUsersHandler).Methods("GET")
 	userRoutes.HandleFunc("", api.CreateUserHandler).Methods("POST")
 	userRoutes.HandleFunc("/{id}", api.UpdateUserHandler).Methods("PUT")
 	userRoutes.HandleFunc("/{id}", api.DeleteUserHandler).Methods("DELETE")
