@@ -1,33 +1,40 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AppNavbar from "./Navbar";
+// import logo from './logo.svg';
 import './App.css';
-import { ThemeContext } from "./ThemeContext";
+// import { ThemeProvider, ThemeContext } from "./ThemeContext";
 
-class App extends Component {
-  render() {
-    return (
-      <ThemeContext.Consumer>
-        {({ toggleTheme, themeClass }) => (
-          <div className="App">
-            cippa
-            <div className="App-header">
-              <img src={logo} className="App-logo" alt="logo" />
-              <h2>Welcome to React</h2>
-            </div>
-            <p className="App-intro">
-              To get started, edit <code>src/App.js</code> and save to reload.
-            </p>
-            <div className={themeClass}>
-              <button className="btn btn-secondary" onClick={toggleTheme}>
-                Toggle Tema
-              </button>
-              {/* router e pagine */}
-            </div>
-          </div>
-        )}
-      </ThemeContext.Consumer>
-    );
-  }
+import Login from "./Login";
+import Users from "./Users";
+
+function App() {
+  const token = localStorage.getItem("token");
+  return (
+    <Router>
+      <AppNavbar />
+      <Routes>
+        {/* Rotta login sempre accessibile */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Rotta utenti protetta */}
+        <Route
+          path="/users"
+          element={token ? <Users /> : <Navigate to="/login" />}
+        />
+
+        {/* Rotta di default → redirect a /login */}
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
+  );
 }
+
+      // <div className={themeClass}>
+      //   <button className="btn btn-secondary" onClick={toggleTheme}>
+      //     Toggle Tema
+      //   </button>
+      //   {/* router e pagine */}
+      // </div>
 
 export default App;
