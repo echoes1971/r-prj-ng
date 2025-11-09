@@ -1,0 +1,23 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "create": "Create",
+    "new": "New",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "search": "Search"
+  },
+  "users": {
+    "newUser": "New User",
+    "user": "User",
+    "users": "Users"
+  },
+  "groups": {
+    "newGroup": "New Group",
+    "group": "Group",
+    "groups": "Groups"
+  }
+}
