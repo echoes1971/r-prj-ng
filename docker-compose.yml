@@ -1,0 +1,51 @@
+# Some commands:
+#
+# docker compose -p rprj-ng -f docker-compose.yml up
+# docker compose -p rprj-ng -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# docker container rm rprj-ng-fe-1 ; docker image rm rprj-ng-fe
+# docker container rm rprj-ng-be-1 ; docker image rm rprj-ng-be
+# docker exec -it rprj-ng-db-1 mariadb -u root --password=mysecret rproject
+
+services:
+  fe:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - be
+    environment:
+      - REACT_APP_API_URL=http://localhost:1971  # Per connettere FE a BE
+
+  be:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    ports:
+      - "1971:1971"
+    # environment:
+    #   - DB_URL=root:mysecret@tcp(mysql:3306)/rproject
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:12.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecret
+      MYSQL_DATABASE: rproject
+    ports:
+      - "3306:3306"  # Per accesso dall'host (opzionale)
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d  # Mount for init: executes the sql files sorted alphabetically
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pmysecret"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  mysql_data:  # Named volume per non perdere dati tra run

@@ -1,0 +1,16 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Copia package.json e installa deps
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps
+
+# Copia tutto il sorgente
+COPY . .
+
+# Espone porta per React dev server
+EXPOSE 3000
+
+# Comando per dev: npm start (assumendo script in package.json: "start": "react-scripts start")
+CMD ["npm", "start"]

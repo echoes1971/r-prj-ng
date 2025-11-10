@@ -1,0 +1,7 @@
+{
+  "server_port": 1971,
+  "db_url": "root:mysecret@tcp(db:3306)/rproject",
+  "table_prefix": "rprj_",
+  "jwt_secret": "mySecretJWTKeyForRProjectApp",
+  "log_level": "debug"
+}
