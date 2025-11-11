@@ -16,16 +16,15 @@ function App() {
       <AppNavbar />
       <Routes>
         <Route path="/" element={<DefaultPage />} />
-        {/* Rotta login sempre accessibile */}
         <Route path="/login" element={<Login />} />
 
-        {/* Rotta utenti protetta */}
+        {/* Protected route */}
         <Route
           path="/users"
-          element={token ? <Users /> : <Navigate to="/login" />}
+          element={token ? <Users /> : <Navigate to="/" />}
         />
 
-        {/* Rotta di default → redirect a / */}
+        {/* Default -> redirect to / */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

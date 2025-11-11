@@ -2,11 +2,10 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-# Copia package.json e installa deps
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
-# Copia tutto il sorgente
+# Copy the source code
 COPY . .
 
 # Espone porta per React dev server
