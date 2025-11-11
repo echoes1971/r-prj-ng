@@ -23,11 +23,7 @@ services:
     build:
       context: ./fe
       dockerfile: Dockerfile
-    ports:
-      - "80"
-    #   - "3000:80"
     expose:
-      # - "3000"
       - "80"
     depends_on:
       - be
@@ -39,8 +35,6 @@ services:
     build:
       context: ./be
       dockerfile: Dockerfile
-    ports:
-      - "1971:1971"
     expose:
       - "1971"
     # environment:
@@ -55,8 +49,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: mysecret
       MYSQL_DATABASE: rproject
-    ports:
-      - "3306:3306"  # Per accesso dall'host (opzionale)
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d  # Mount for init: executes the sql files sorted alphabetically
