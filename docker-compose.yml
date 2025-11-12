@@ -5,6 +5,7 @@
 #
 # docker container rm rprj-ng-fe-1 ; docker image rm rprj-ng-fe
 # docker container rm rprj-ng-be-1 ; docker image rm rprj-ng-be
+# docker image prune
 # docker exec -it rprj-ng-db-1 mariadb -u root --password=mysecret rproject
 
 services:

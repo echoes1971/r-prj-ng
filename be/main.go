@@ -74,7 +74,7 @@ func main() {
 	// Endpoint pubblico: hello
 	r.HandleFunc("/ping", api.PingHandler).Methods("GET")
 
-	// Endpoint protetti: CRUD utenti
+	// Endpoint protected: CRUD utenti
 	userRoutes := r.PathPrefix("/users").Subrouter()
 	userRoutes.Use(api.AuthMiddleware) // applica il middleware
 
@@ -83,6 +83,16 @@ func main() {
 	userRoutes.HandleFunc("", api.CreateUserHandler).Methods("POST")
 	userRoutes.HandleFunc("/{id}", api.UpdateUserHandler).Methods("PUT")
 	userRoutes.HandleFunc("/{id}", api.DeleteUserHandler).Methods("DELETE")
+
+	// Endpoint protected: CRUD gruppi
+	groupRoutes := r.PathPrefix("/groups").Subrouter()
+	groupRoutes.Use(api.AuthMiddleware) // applica il middleware
+
+	groupRoutes.HandleFunc("/{id}", api.GetGroupHandler).Methods("GET")
+	groupRoutes.HandleFunc("", api.GetAllGroupsHandler).Methods("GET")
+	groupRoutes.HandleFunc("", api.CreateGroupHandler).Methods("POST")
+	groupRoutes.HandleFunc("/{id}", api.UpdateGroupHandler).Methods("PUT")
+	groupRoutes.HandleFunc("/{id}", api.DeleteGroupHandler).Methods("DELETE")
 
 	log.Println("Server in ascolto su :", AppConfig.ServerPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", AppConfig.ServerPort), r))

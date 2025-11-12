@@ -8,9 +8,11 @@ import { app_cfg } from './app.cfg';
 import DefaultPage from "./DefaultPage";
 import Login from "./Login";
 import Users from "./Users";
+import Groups from './groups';
 
 function App() {
   const token = localStorage.getItem("token");
+  const group_ids = localStorage.getItem("group_ids") ? localStorage.getItem("group_ids").split(",") : [];
   return (
     <Router>
       <AppNavbar />
@@ -22,6 +24,11 @@ function App() {
         <Route
           path="/users"
           element={token ? <Users /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/groups"
+          element={token ? <Groups /> : <Navigate to="/" />}
         />
 
         {/* Default -> redirect to / */}

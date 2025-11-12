@@ -34,7 +34,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 			return JWTKey, nil
 		})
-		log.Printf("Claims estratti: %+v\n", claims)
+		log.Printf("Claims: %+v\n", claims)
 		log.Printf("err: %v\n", err)
 		if err != nil || !token.Valid {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
@@ -46,6 +46,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Retrieve user ID from claims
 		userID := claims["user_id"].(string)
 		log.Printf("User ID autenticato: %s\n", userID)
+
+		// Retrieve group ids from claims
+		groupIDs := []string{}
+		if g, ok := claims["groups"].(string); ok && g != "" {
+			groupIDs = strings.Split(g, ",")
+		}
+		log.Printf("Group IDs: %+v\n", groupIDs)
 
 		// Search the token in the database to ensure it's valid
 		if !db.IsTokenValid(tokenString, userID) {

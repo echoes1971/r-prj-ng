@@ -16,6 +16,7 @@ function Login() {
       localStorage.setItem("token", res.data.access_token);
       // store username for Navbar display
       localStorage.setItem("username", login);
+      localStorage.setItem("groups", JSON.stringify(res.data.groups));
       window.location.href = "/users";
     } catch (err) {
       alert("Login failed");

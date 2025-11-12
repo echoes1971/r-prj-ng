@@ -1,7 +1,9 @@
 package db
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"log"
 
@@ -58,4 +60,13 @@ func Init(url string, prefix string) {
 		log.Fatal("Errore ping DB:", err)
 	}
 	log.Println("Connessione a MariaDB riuscita!")
+}
+
+/* Generate a random UUID-like string of 16 hex characters */
+func uuid16HexGo() (string, error) {
+	b := make([]byte, 8) // 8 bytes = 16 hex chars
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }

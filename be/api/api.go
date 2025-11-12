@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 
 	"rprj/be/db"
@@ -28,8 +30,9 @@ type Credentials struct {
 }
 
 type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresAt   int64  `json:"expires_at"`
+	AccessToken string   `json:"access_token"`
+	ExpiresAt   int64    `json:"expires_at"`
+	Groups      []string `json:"groups"`
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +49,26 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve user groups
+	groups, err := db.GetUserGroupsByUserID(user.ID)
+	if err != nil {
+		http.Error(w, "could not retrieve user groups", http.StatusInternalServerError)
+		return
+	}
+	group_list := []string{}
+	for _, g := range groups {
+		group_list = append(group_list, g.GroupID)
+	}
+	if user.GroupID != "" && slices.Index(group_list, user.GroupID) < 0 {
+		group_list = append(group_list, user.GroupID)
+	}
+
 	// Genera JWT
 	expiration := time.Now().Add(1 * time.Hour)
 	claims := &jwt.MapClaims{
 		"user_id": user.ID,
 		"login":   user.Login,
+		"groups":  strings.Join(group_list, ","),
 		"exp":     expiration.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -70,6 +88,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	resp := TokenResponse{
 		AccessToken: tokenString,
 		ExpiresAt:   expiration.Unix(),
+		Groups:      group_list,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
