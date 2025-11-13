@@ -12,7 +12,9 @@ import Groups from './groups';
 
 function App() {
   const token = localStorage.getItem("token");
-  const group_ids = localStorage.getItem("group_ids") ? localStorage.getItem("group_ids").split(",") : [];
+  const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+  const isAdmin = groups.includes("-2");
+  
   return (
     <Router>
       <AppNavbar />
@@ -20,15 +22,15 @@ function App() {
         <Route path="/" element={<DefaultPage />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Protected route */}
+        {/* Protected routes - only for admins (group -2) */}
         <Route
           path="/users"
-          element={token ? <Users /> : <Navigate to="/" />}
+          element={token && isAdmin ? <Users /> : <Navigate to="/" />}
         />
 
         <Route
           path="/groups"
-          element={token ? <Groups /> : <Navigate to="/" />}
+          element={token && isAdmin ? <Groups /> : <Navigate to="/" />}
         />
 
         {/* Default -> redirect to / */}

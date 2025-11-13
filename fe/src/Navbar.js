@@ -11,6 +11,8 @@ function AppNavbar() {
   const { dark, toggleTheme } = useContext(ThemeContext);
   const { t, i18n } = useTranslation();
   const site_title = app_cfg.site_title;
+  const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+  const isAdmin = groups.includes("-2");
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -38,20 +40,18 @@ function AppNavbar() {
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            {username ? (
-              <Nav.Link as={Link} to="/users">{t("users.users")}</Nav.Link>
+            
+            {username && isAdmin ? (
+              <Dropdown className="me-2">
+                <Dropdown.Toggle variant="outline-secondary" size="sm">
+                  Admin ⚙️
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item as={Link} to="/users">{t("users.users")}</Dropdown.Item>
+                  <Dropdown.Item as={Link} to="/groups">{t("groups.groups")}</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             ) : null}
-            {username ? (
-              <Nav.Link as={Link} to="/groups">{t("groups.groups")}</Nav.Link>
-            ) : null}
-
-            {username ? (
-              <NavDropdown title={username} id="user-dropdown" align="end">
-                <NavDropdown.Item onClick={handleLogout}>{t("common.logout")}</NavDropdown.Item>
-              </NavDropdown>
-            ) : (
-              <Nav.Link as={Link} to="/login">{t("common.login")}</Nav.Link>
-            )}
           
             {/* Switch Language: */}
             <Dropdown className="me-2">
