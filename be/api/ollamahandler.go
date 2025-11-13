@@ -111,7 +111,7 @@ func UpdateOllamaDefaultPageResponse(languageTag string) {
 	case "de", "de-DE":
 		prompt += prompt + " in German."
 	}
-	prompt += " Use only <h2>, <p>, <b>, <br> tags. Output html code only."
+	prompt += " Use only <h2>, <p>, <b>, <br> tags. No links <a>. Output html code only."
 
 	log.Print("Prompt: ", prompt)
 
