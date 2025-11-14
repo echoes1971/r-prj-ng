@@ -42,6 +42,14 @@ function AppNavbar() {
           <Nav className="ms-auto">
             
 
+            {username && isAdmin ? (
+              <NavDropdown title="Admin ⚙️" id="admin-nav-dropdown" align="end">
+                <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
+              </NavDropdown>
+            ) : null}
+
+          
             {!username ? (
               <Button as={Link} to="/login" variant={dark ? "secondary" : "outline-secondary"}>
                 {t("common.login")}
@@ -54,18 +62,6 @@ function AppNavbar() {
               </NavDropdown>
             ) : null}
 
-            {username && isAdmin ? (
-              <Dropdown className="me-2">
-                <Dropdown.Toggle variant="outline-secondary" size="sm">
-                  Admin ⚙️
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/users">{t("users.users")}</Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/groups">{t("groups.groups")}</Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            ) : null}
-          
             {/* Switch Language: */}
             <Dropdown className="me-2">
               <Dropdown.Toggle variant="outline-secondary" size="sm">
