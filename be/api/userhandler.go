@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"rprj/be/db"
 	"rprj/be/models"
@@ -76,18 +77,23 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		GroupIDs []string `json:"group_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
 		return
 	}
 
-	// Create personal group for the user
-	personalGroup := models.DBGroup{
-		Name:        req.Login + "'s group",
-		Description: "Personal group for " + req.Login,
+	// Validate required fields
+	if req.Login == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Login is required"})
+		return
 	}
-	groupID, err := db.CreateGroup(personalGroup)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if req.Pwd == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Password is required"})
 		return
 	}
 
@@ -95,42 +101,26 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		Login:    req.Login,
 		Pwd:      req.Pwd,
 		Fullname: req.Fullname,
-		GroupID:  groupID, // Set the personal group as primary
 	}
 
-	userID, err := db.CreateUser(u)
+	// Create user with transaction (creates group, user, and associations atomically)
+	createdUser, _, err := db.CreateUser(u, req.Login, req.GroupIDs)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		// Check if it's a duplicate login error
+		if strings.Contains(err.Error(), "already exists") {
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user: " + err.Error()})
+		}
 		return
 	}
-	u.ID = userID
 
-	// Add user to the personal group
-	if err := db.CreateUserGroup(models.DBUserGroup{
-		UserID:  userID,
-		GroupID: groupID,
-	}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Add user to additional groups
-	for _, gID := range req.GroupIDs {
-		// Skip if it's the personal group (already added)
-		if gID == groupID {
-			continue
-		}
-		if err := db.CreateUserGroup(models.DBUserGroup{
-			UserID:  userID,
-			GroupID: gID,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(u)
+	json.NewEncoder(w).Encode(createdUser)
 }
 
 // PUT /users/{id}
@@ -138,7 +128,9 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Missing user ID"})
 		return
 	}
 
@@ -150,7 +142,17 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		GroupIDs []string `json:"group_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
+		return
+	}
+
+	// Validate required fields
+	if req.Login == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Login is required"})
 		return
 	}
 
@@ -162,29 +164,16 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		GroupID:  req.GroupID,
 	}
 
-	// Update password only if provided
+	// Update user with transaction (updates user and group associations atomically)
 	updatePwd := req.Pwd != ""
-	if err := db.UpdateUser(u, updatePwd); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := db.UpdateUser(u, updatePwd, req.GroupIDs); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update user: " + err.Error()})
 		return
 	}
 
-	// Update user groups: delete all and recreate
-	if err := db.DeleteUserGroupsByUserID(id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	for _, groupID := range req.GroupIDs {
-		if err := db.CreateUserGroup(models.DBUserGroup{
-			UserID:  id,
-			GroupID: groupID,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(u)
 }
 
@@ -193,12 +182,16 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Missing user ID"})
 		return
 	}
 
 	if err := db.DeleteUser(id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to delete user: " + err.Error()})
 		return
 	}
 

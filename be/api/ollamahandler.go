@@ -118,6 +118,13 @@ func UpdateOllamaDefaultPageResponse(languageTag string) {
 	prompt += " Use emojis."
 	prompt += " Use only <h2>, <p>, <b>, <br> tags. No links <a>. Output html code only."
 
+	prompt = "Créez un court message de bienvenue humoristique, "
+	prompt += "inspiré de animal crossing, "
+	prompt += "pour la page d'accueil d'une application web. "
+	prompt += "Rédigez ce message en français. "
+	prompt += "Utilisez des émojis. "
+	prompt += "Utilisez uniquement les tags <h2>, <p>, <b> et <br>. Pas de liens <a>. Générez uniquement du code HTML."
+
 	log.Print("Prompt: ", prompt)
 
 	respText, err := CallOllama(prompt)

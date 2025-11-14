@@ -12,6 +12,7 @@ function Users() {
   const [editingUser, setEditingUser] = useState(null); // utente in modifica
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pwdError, setPwdError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { dark, themeClass } = useContext(ThemeContext);
 
     // Carica tutti gli utenti all'inizio
@@ -20,13 +21,23 @@ function Users() {
     fetchGroups();
   }, []);
 
+  // Auto-dismiss error message after 5 seconds
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+
   const fetchUsers = async (search = "") => {
     const token = localStorage.getItem("token");
     try {
       const res = await api.get(
         search
-          ? `/users?search=${encodeURIComponent(search)}`
-          : "/users",
+          ? `/users?search=${encodeURIComponent(search)}&order_by=login`
+          : "/users?order_by=login",
         { headers: { Authorization: `Bearer ${token}` }, }
       );
       setUsers(res.data || []); // supponendo che l'API restituisca un array
@@ -68,12 +79,14 @@ function Users() {
       setEditingUser({ ...user, group_ids: res.data.group_ids || [], Pwd: "" });
       setConfirmPwd("");
       setPwdError("");
+      setErrorMessage("");
     } catch (err) {
       console.log("Error loading user details.");
       // Fallback ai dati base se la chiamata fallisce
       setEditingUser({ ...user, group_ids: [], Pwd: "" });
       setConfirmPwd("");
       setPwdError("");
+      setErrorMessage("");
     }
   };
 
@@ -133,7 +146,9 @@ function Users() {
       setConfirmPwd("");
       fetchUsers();
     } catch (err) {
-      alert("Errore salvataggio utente");
+      // Extract error message from response
+      const errorMsg = err.response?.data?.error || err.message || "Error saving user";
+      setErrorMessage(errorMsg);
     }
   };
 
@@ -173,6 +188,7 @@ function Users() {
             setEditingUser({ ID: "", Login: "", Fullname: "", GroupID: "", group_ids: [], Pwd: "" });
             setConfirmPwd("");
             setPwdError("");
+            setErrorMessage("");
           }}
         >
           {t("users.newUser")}
@@ -217,6 +233,15 @@ function Users() {
       {editingUser && (
         <div className={`card p-3 mt-3 ${dark ? "bg-dark text-light" : "bg-light text-dark" }`}>
           <h4>{editingUser.ID>'' ? t("common.edit") : t("common.create")} {t("users.user")}</h4>
+          
+          {/* Error message at the top */}
+          {errorMessage && (
+            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+              {errorMessage}
+              <button type="button" className="btn-close" onClick={() => setErrorMessage("")} aria-label="Close"></button>
+            </div>
+          )}
+          
           <input
             className={`form-control mb-2 ${dark ? "bg-secondary text-light" : ""}`}
             name="ID"
