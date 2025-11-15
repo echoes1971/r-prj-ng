@@ -2,7 +2,7 @@ package dblayer
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 
 	"testing"
 
@@ -39,15 +39,15 @@ func TestSearchUserByLogin(t *testing.T) {
 		t.Fatal("Failed to get DBEntity for 'users'")
 	}
 
-	// Step 3: Set the "login" column to "u"
-	userEntity.SetValue("login", "u")
+	// Step 3: Set the "login" column to ...
+	userEntity.SetValue("login", "a")
 
 	// Step 4: Create DBRepository with the connection
 	repo := NewDBRepository(dbContext, factory, dbConnection)
 
 	repo.Verbose = true
 
-	// Step 5: Search for the user with login "u"
+	// Step 5: Search for the user with specified login
 	results, err := repo.Search(userEntity, true, true, "login")
 	if err != nil {
 		t.Fatal("Failed to search for user:", err)
@@ -56,7 +56,8 @@ func TestSearchUserByLogin(t *testing.T) {
 		t.Fatal("No user found with login 'u'")
 	}
 
-	// Step 6: Print the user
-	foundUser := results[0]
-	fmt.Println("Found user:", foundUser)
+	// Step 6: Print the results
+	for _, user := range results {
+		log.Printf("- %s\t%s\t%s\n", user.GetValue("id"), user.GetValue("login"), user.GetValue("fullname"))
+	}
 }
