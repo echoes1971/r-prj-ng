@@ -37,6 +37,7 @@ import (
 
 	"rprj/be/api"
 	"rprj/be/db"
+	"rprj/be/dblayer"
 	"rprj/be/models"
 
 	"github.com/gorilla/mux"
@@ -75,6 +76,8 @@ func main() {
 	db.Init(AppConfig.DBUrl, AppConfig.TablePrefix)
 
 	db.TestConnection(AppConfig.DBUrl)
+
+	dblayer.InitDBLayer(AppConfig.DBUrl, AppConfig.TablePrefix)
 
 	api.OllamaInit(AppConfig.AppName, AppConfig.OllamaURL, AppConfig.OllamaModel)
 
