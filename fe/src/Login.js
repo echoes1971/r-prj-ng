@@ -26,7 +26,7 @@ function Login() {
   return (
     <div className={`container mt-3  ${themeClass}`}>
       <form onSubmit={handleSubmit} className="p-3">
-        <div class="form-group row">
+        <div className="form-group row">
           <label class="col-md-1 col-form-label">Login</label>
           <div class="col-sm-3">
             <input className="form-control mb-2" placeholder="Login" value={login} onChange={e => setLogin(e.target.value)} />
