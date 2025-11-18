@@ -11,8 +11,8 @@ var DbSchema string
 var DbConnection *sql.DB
 var Factory *DBEFactory
 
-func InitDBLayer(dbUrl, schema string) {
-	dbUrl = dbUrl
+func InitDBLayer(dbUrlAddress, schema string) {
+	dbUrl = dbUrlAddress
 	DbSchema = strings.ReplaceAll(schema, "_", "")
 	log.Print("DB Schema:", DbSchema)
 
