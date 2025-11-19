@@ -171,7 +171,7 @@ func (dbUser *DBUser) afterUpdate(dbr *DBRepository, tx *sql.Tx) error {
 	groupIDs := dbUser.GetMetadata("group_ids").([]string)
 
 	// Delete existing associations
-	userGroups := dbr.GetInstanceByTableName("users_groups").(*UserGroup)
+	userGroups := dbr.GetInstanceByTableName("users_groups")
 	userGroupFilter := userGroups.NewInstance()
 	userGroupFilter.SetValue("user_id", userID)
 	results, err := dbr.searchWithTx(userGroupFilter, false, false, "user_id", tx)
@@ -188,7 +188,7 @@ func (dbUser *DBUser) afterUpdate(dbr *DBRepository, tx *sql.Tx) error {
 
 	// Add new associations
 	for _, gID := range groupIDs {
-		userGroup := dbr.GetInstanceByTableName("users_groups").(*UserGroup)
+		userGroup := dbr.GetInstanceByTableName("users_groups")
 		userGroup.SetValue("user_id", userID)
 		userGroup.SetValue("group_id", gID)
 		_, err = dbr.insertWithTx(userGroup, tx)
@@ -259,7 +259,19 @@ func NewDBGroup() *DBGroup {
 		),
 	}
 }
+
+func (dbGroup *DBGroup) NewInstance() DBEntityInterface {
+	return NewDBGroup()
+}
+
 func (dbGroup *DBGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
+	log.Print("DBGroup::beforeInsert called")
+	if dbGroup.GetValue("id") == "" {
+		groupID, _ := uuid16HexGo()
+		dbGroup.SetValue("id", groupID)
+	}
+	log.Printf("DBGroup::beforeInsert: id=%s, name=%s, description=%s", dbGroup.GetValue("id"), dbGroup.GetValue("name"), dbGroup.GetValue("description	"))
+
 	// Check that group with same name does not already exist
 	existingGroup := dbGroup.NewInstance()
 	existingGroup.SetValue("name", dbGroup.GetValue("name"))
@@ -270,6 +282,45 @@ func (dbGroup *DBGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	if len(results) > 0 {
 		return fmt.Errorf("group with name '%s' already exists", dbGroup.GetValue("name"))
 	}
+	return nil
+}
+func (dbGroup *DBGroup) afterUpdate(dbr *DBRepository, tx *sql.Tx) error {
+	// Update user-group associations if user_ids metadata is set
+	if !dbGroup.HasMetadata("user_ids") {
+		return nil
+	}
+
+	groupID := dbGroup.GetValue("id")
+	userIDs := dbGroup.GetMetadata("user_ids").([]string)
+
+	// Delete existing associations
+	userGroups := dbr.GetInstanceByTableName("users_groups")
+	userGroupFilter := userGroups.NewInstance()
+	userGroupFilter.SetValue("group_id", groupID)
+	results, err := dbr.searchWithTx(userGroupFilter, false, false, "group_id", tx)
+	if err != nil {
+		return err
+	}
+	for _, res := range results {
+		_, err := dbr.deleteWithTx(res, tx)
+		if err != nil {
+			log.Print("DBGroup::afterUpdate: error deleting existing userGroup:", err)
+			return err
+		}
+	}
+
+	// Add new associations
+	for _, uID := range userIDs {
+		userGroup := dbr.GetInstanceByTableName("users_groups")
+		userGroup.SetValue("user_id", uID)
+		userGroup.SetValue("group_id", groupID)
+		_, err = dbr.insertWithTx(userGroup, tx)
+		if err != nil {
+			log.Print("DBGroup::afterUpdate: error inserting userGroup for updated users:", err)
+			return err
+		}
+	}
+
 	return nil
 }
 func (dbGroup *DBGroup) beforeDelete(dbr *DBRepository, tx *sql.Tx) error {
