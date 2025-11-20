@@ -38,7 +38,7 @@ type TokenResponse struct {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
@@ -53,31 +53,31 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
-		http.Error(w, "failed to create user instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 	user.SetValue("login", creds.Login)
 	foundUsers, err := repo.Search(user, false, false, "")
 	if err != nil || len(foundUsers) == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		RespondSimpleError(w, ErrUnauthorized, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 	foundUser, ok := foundUsers[0].(*dblayer.DBUser)
 	if !ok || foundUser.GetUnencryptedPwd() != creds.Pwd {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		RespondSimpleError(w, ErrUnauthorized, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
 	// Get User groups
 	userGroupsInstance := repo.GetInstanceByTableName("users_groups")
 	if userGroupsInstance == nil {
-		http.Error(w, "failed to create user-groups instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user-groups instance", http.StatusInternalServerError)
 		return
 	}
 	userGroupsInstance.SetValue("user_id", foundUser.GetValue("id"))
 	userGroups, err := repo.Search(userGroupsInstance, false, false, "")
 	if err != nil {
-		http.Error(w, "failed to get user groups: "+err.Error(), http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to get user groups: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	group_list := []string{}
@@ -101,13 +101,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(JWTKey)
 	if err != nil {
-		http.Error(w, "could not generate token", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Could not generate token", http.StatusInternalServerError)
 		return
 	}
 
 	// Salva token in tabella oauth_tokens
 	if err := SaveToken(repo, foundUser.GetValue("id").(string), tokenString, expiration.Unix()); err != nil {
-		http.Error(w, "could not save token", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Could not save token", http.StatusInternalServerError)
 		return
 	}
 

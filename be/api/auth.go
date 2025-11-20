@@ -60,14 +60,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Legge l'header Authorization
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "missing Authorization header", http.StatusUnauthorized)
+			RespondSimpleError(w, ErrMissingAuthorization, "Missing Authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		// Deve essere nel formato "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			http.Error(w, "invalid Authorization header", http.StatusUnauthorized)
+			RespondSimpleError(w, ErrInvalidToken, "Invalid Authorization header format", http.StatusUnauthorized)
 			return
 		}
 		tokenString := parts[1]
@@ -89,7 +89,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		log.Printf("Claims: %+v\n", claims)
 		log.Printf("err: %v\n", err)
 		if err != nil || !token.Valid {
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+			RespondSimpleError(w, ErrInvalidToken, "Invalid or expired token", http.StatusUnauthorized)
 			log.Print("Deleting token from db due to invalidity.")
 			DeleteToken(repo, tokenString)
 			return
@@ -108,7 +108,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Search the token in the database to ensure it's valid
 		if !IsTokenValid(repo, tokenString, userID) {
-			http.Error(w, "token not recognized", http.StatusUnauthorized)
+			RespondSimpleError(w, ErrInvalidToken, "Token not recognized", http.StatusUnauthorized)
 			log.Print("Token not found in the database")
 			return
 		}

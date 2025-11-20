@@ -2,11 +2,13 @@ import React, { useContext, useState } from "react";
 import api from "./axios";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "./ThemeContext";
+import { getErrorMessage } from "./errorHandler";
 
 function Login() {
   const { t } = useTranslation();
   const [login, setLogin] = useState("");
   const [pwd, setPwd] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { dark, themeClass } = useContext(ThemeContext);
 
   const handleSubmit = async (e) => {
@@ -19,13 +21,19 @@ function Login() {
       localStorage.setItem("groups", JSON.stringify(res.data.groups));
       window.location.href = "/users";
     } catch (err) {
-      alert("Login failed");
+      const errorMsg = getErrorMessage(err, t("common.login_failed") || "Login failed");
+      setErrorMessage(errorMsg);
     }
   };
 
   return (
     <div className={`container mt-3  ${themeClass}`}>
       <form onSubmit={handleSubmit} className="p-3">
+        {errorMessage && (
+          <div className="alert alert-danger" role="alert">
+            {errorMessage}
+          </div>
+        )}
         <div className="form-group row">
           <label class="col-md-1 col-form-label">Login</label>
           <div class="col-sm-3">

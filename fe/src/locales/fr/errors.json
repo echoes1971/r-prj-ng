@@ -1,0 +1,13 @@
+{
+  "USER_ALREADY_EXISTS": "L'utilisateur '{{login}}' existe déjà",
+  "USER_NOT_FOUND": "Utilisateur non trouvé",
+  "GROUP_ALREADY_EXISTS": "Le groupe '{{name}}' existe déjà",
+  "GROUP_NOT_FOUND": "Groupe non trouvé",
+  "UNAUTHORIZED": "Vous n'êtes pas autorisé à effectuer cette action",
+  "FORBIDDEN": "Accès interdit. Vous n'avez pas la permission d'effectuer cette action",
+  "INVALID_REQUEST": "Format de requête invalide",
+  "MISSING_FIELD": "Le champ '{{field}}' est requis",
+  "INTERNAL_SERVER_ERROR": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard",
+  "INVALID_TOKEN": "Votre session a expiré. Veuillez vous reconnecter",
+  "MISSING_AUTHORIZATION": "Authentification requise"
+}

@@ -43,7 +43,7 @@ func OllamaHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 

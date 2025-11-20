@@ -146,7 +146,7 @@ func (dbUser *DBUser) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	// 1. Check that user with same login does not already exist
 	existingUser := dbUser.NewInstance()
 	existingUser.SetValue("login", dbUser.GetValue("login"))
-	results, err := dbr.Search(existingUser, false, false, "login")
+	results, err := dbr.searchWithTx(existingUser, false, false, "login", tx)
 	if err != nil {
 		return err
 	}
@@ -322,12 +322,12 @@ func (dbGroup *DBGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 		groupID, _ := uuid16HexGo()
 		dbGroup.SetValue("id", groupID)
 	}
-	log.Printf("DBGroup::beforeInsert: id=%s, name=%s, description=%s", dbGroup.GetValue("id"), dbGroup.GetValue("name"), dbGroup.GetValue("description	"))
+	log.Printf("DBGroup::beforeInsert: id=%s, name=%s, description=%s", dbGroup.GetValue("id"), dbGroup.GetValue("name"), dbGroup.GetValue("description"))
 
 	// Check that group with same name does not already exist
 	existingGroup := dbGroup.NewInstance()
 	existingGroup.SetValue("name", dbGroup.GetValue("name"))
-	results, err := dbr.Search(existingGroup, false, false, "name")
+	results, err := dbr.searchWithTx(existingGroup, false, false, "name", tx)
 	if err != nil {
 		return err
 	}

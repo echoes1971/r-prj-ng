@@ -5,12 +5,28 @@ import translationEN from "./locales/en/translation.json";
 import translationFR from "./locales/fr/translation.json";
 import translationDE from "./locales/de/translation.json";
 import translationIT from "./locales/it/translation.json";
+import errorsEN from "./locales/en/errors.json";
+import errorsFR from "./locales/fr/errors.json";
+import errorsDE from "./locales/de/errors.json";
+import errorsIT from "./locales/it/errors.json";
 
 const resources = {
-  en: { translation: translationEN },
-  fr: { translation: translationFR },
-  de: { translation: translationDE },
-  it: { translation: translationIT }
+  en: { 
+    translation: translationEN,
+    errors: errorsEN 
+  },
+  fr: { 
+    translation: translationFR,
+    errors: errorsFR 
+  },
+  de: { 
+    translation: translationDE,
+    errors: errorsDE 
+  },
+  it: { 
+    translation: translationIT,
+    errors: errorsIT 
+  }
 };
 
 const savedLang = localStorage.getItem("lang") || "en";

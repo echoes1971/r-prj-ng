@@ -1,0 +1,13 @@
+{
+  "USER_ALREADY_EXISTS": "User '{{login}}' already exists",
+  "USER_NOT_FOUND": "User not found",
+  "GROUP_ALREADY_EXISTS": "Group '{{name}}' already exists",
+  "GROUP_NOT_FOUND": "Group not found",
+  "UNAUTHORIZED": "You are not authorized to perform this action",
+  "FORBIDDEN": "Access forbidden. You don't have permission to perform this action",
+  "INVALID_REQUEST": "Invalid request format",
+  "MISSING_FIELD": "Field '{{field}}' is required",
+  "INTERNAL_SERVER_ERROR": "An unexpected error occurred. Please try again later",
+  "INVALID_TOKEN": "Your session has expired. Please login again",
+  "MISSING_AUTHORIZATION": "Authentication required"
+}

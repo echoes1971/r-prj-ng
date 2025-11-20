@@ -3,6 +3,7 @@ import api from "./axios";
 import { ThemeContext } from "./ThemeContext";
 import { useTranslation } from "react-i18next";
 import AssociationManager from "./AssociationManager";
+import { getErrorMessage } from "./errorHandler";
 
 function Groups() {
   const { t } = useTranslation();
@@ -114,8 +115,8 @@ function Groups() {
       setEditingGroup(null);
       fetchGroups();
     } catch (err) {
-      // Extract error message from response
-      const errorMsg = err.response?.data?.error || err.message || "Error saving group";
+      // Extract and translate error message from response
+      const errorMsg = getErrorMessage(err, t("groups.error_saving") || "Error saving group");
       setErrorMessage(errorMsg);
     }
   };
@@ -130,8 +131,8 @@ function Groups() {
             setEditingGroup(null);
             fetchGroups();
         } catch (err) {
-            // Extract error message from response
-            const errorMsg = err.response?.data?.error || err.message || "Error deleting group";
+            // Extract and translate error message from response
+            const errorMsg = getErrorMessage(err, t("groups.error_deleting") || "Error deleting group");
             setErrorMessage(errorMsg);
         }
     }

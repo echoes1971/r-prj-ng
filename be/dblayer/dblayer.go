@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // The database can be mysql, sqlite, postgres, etc.
@@ -29,7 +31,7 @@ func InitDBLayer(dbEngineName, dbUrlAddress, schema string) {
 	Factory.Register(NewDBGroup())
 	log.Print("Initializing DB connection...")
 	var err error
-	DbConnection, err = sql.Open("mysql", dbUrl)
+	DbConnection, err = sql.Open(dbEngine, dbUrl)
 	if err != nil {
 		log.Fatal("Error opening DB connection:", err)
 	}
@@ -54,7 +56,7 @@ func InitDBConnection() {
 	var err error
 	DbConnection, err = sql.Open(dbEngine, dbUrl)
 	if err != nil {
-		log.Fatal("Error opening DB connection:", err)
+		log.Fatal("InitDBConnection: Error opening DB connection:", err)
 	}
 	err = DbConnection.Ping()
 	if err != nil {

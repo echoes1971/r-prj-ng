@@ -17,9 +17,7 @@ func GetAllGroupsHandler(w http.ResponseWriter, r *http.Request) {
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -34,9 +32,7 @@ func GetAllGroupsHandler(w http.ResponseWriter, r *http.Request) {
 
 	search := repo.GetInstanceByTableName("groups")
 	if search == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create group instance", http.StatusInternalServerError)
 		return
 	}
 	if searchBy != "" {
@@ -45,9 +41,7 @@ func GetAllGroupsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	groups, err := repo.Search(search, true, false, orderBy)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Search failed: " + err.Error()})
+		RespondSimpleError(w, ErrInternalServer, "Search failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -69,13 +63,13 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -90,17 +84,17 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {
-		http.Error(w, "failed to create group instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create group instance", http.StatusInternalServerError)
 		return
 	}
 	group.SetValue("id", id)
 	foundGroups, err := repo.Search(group, false, false, "")
 	if err != nil {
-		http.Error(w, "failed to get group: "+err.Error(), http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to get group: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if len(foundGroups) == 0 {
-		http.NotFound(w, r)
+		RespondError(w, ErrGroupNotFound, "Group not found", map[string]string{"id": id}, http.StatusNotFound)
 		return
 	}
 	group = foundGroups[0]
@@ -108,13 +102,13 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	// Get User groups
 	userGroupsInstance := repo.GetInstanceByTableName("users_groups")
 	if userGroupsInstance == nil {
-		http.Error(w, "failed to create user-groups instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user-groups instance", http.StatusInternalServerError)
 		return
 	}
 	userGroupsInstance.SetValue("group_id", id)
 	groupUsers, err := repo.Search(userGroupsInstance, false, false, "")
 	if err != nil {
-		http.Error(w, "failed to get user groups: "+err.Error(), http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to get user groups: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -142,25 +136,19 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 		// UserIDs     []string `json:"user_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
 	// Validate required fields
 	if req.Name == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Group name is required"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "name"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -176,9 +164,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	dbGroup := repo.GetInstanceByTableName("groups")
 	if dbGroup == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create group instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create group instance", http.StatusInternalServerError)
 		return
 	}
 	dbGroup.SetValue("name", req.Name)
@@ -187,14 +173,11 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	createdGroup, err := repo.Insert(dbGroup)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
 		// Check if it's a duplicate name error
 		if strings.Contains(err.Error(), "already exists") {
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			RespondError(w, ErrGroupAlreadyExists, "Group already exists", map[string]string{"name": req.Name}, http.StatusConflict)
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create group: " + err.Error()})
+			RespondSimpleError(w, ErrInternalServer, "Failed to create group: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -214,9 +197,7 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Missing group ID"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
@@ -226,25 +207,19 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 		UserIDs     []string `json:"user_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
 	// Validate required fields
 	if req.Name == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Group name is required"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "name"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -259,9 +234,7 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create group instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create group instance", http.StatusInternalServerError)
 		return
 	}
 	group.SetValue("id", id)
@@ -271,9 +244,7 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	g, err := repo.Update(group)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update group: " + err.Error()})
+		RespondSimpleError(w, ErrInternalServer, "Failed to update group: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -290,17 +261,13 @@ func DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Missing group ID"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
 	// Groups with negative ID cannot be deleted (system groups)
 	if strings.HasPrefix(id, "-") {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Cannot delete system groups"})
+		RespondError(w, ErrForbidden, "Cannot delete system groups", map[string]string{"id": id}, http.StatusForbidden)
 		return
 	}
 
@@ -323,18 +290,14 @@ func DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create group instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create group instance", http.StatusInternalServerError)
 		return
 	}
 	group.SetValue("id", id)
 
 	_, err = repo.Delete(group)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to delete group: " + err.Error()})
+		RespondSimpleError(w, ErrInternalServer, "Failed to delete group: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

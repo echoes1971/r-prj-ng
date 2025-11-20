@@ -34,9 +34,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	search := repo.GetInstanceByTableName("users")
 	if search == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 	if searchBy != "" {
@@ -45,9 +43,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	users, err := repo.Search(search, true, false, orderBy)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to search users: " + err.Error()})
+		RespondSimpleError(w, ErrInternalServer, "Failed to search users: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -68,13 +64,13 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -89,17 +85,17 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
-		http.Error(w, "failed to create user instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 	user.SetValue("id", id)
 	foundUsers, err := repo.Search(user, false, false, "")
 	if err != nil {
-		http.Error(w, "failed to get user: "+err.Error(), http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to get user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if len(foundUsers) == 0 {
-		http.NotFound(w, r)
+		RespondError(w, ErrUserNotFound, "User not found", map[string]string{"id": id}, http.StatusNotFound)
 		return
 	}
 	user = foundUsers[0]
@@ -107,13 +103,13 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Get User groups
 	userGroupsInstance := repo.GetInstanceByTableName("users_groups")
 	if userGroupsInstance == nil {
-		http.Error(w, "failed to create user-groups instance", http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user-groups instance", http.StatusInternalServerError)
 		return
 	}
 	userGroupsInstance.SetValue("user_id", id)
 	userGroups, err := repo.Search(userGroupsInstance, false, false, "")
 	if err != nil {
-		http.Error(w, "failed to get user groups: "+err.Error(), http.StatusInternalServerError)
+		RespondSimpleError(w, ErrInternalServer, "Failed to get user groups: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -144,31 +140,23 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		GroupIDs []string `json:"group_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
 	// Validate required fields
 	if req.Login == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Login is required"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "login"}, http.StatusBadRequest)
 		return
 	}
 	if req.Pwd == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Password is required"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "password"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -184,9 +172,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	dbUser := repo.GetInstanceByTableName("users")
 	if dbUser == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 	dbUser.SetValue("login", req.Login)
@@ -196,14 +182,11 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	createdUser, err := repo.Insert(dbUser)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
 		// Check if it's a duplicate login error
 		if strings.Contains(err.Error(), "already exists") {
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			RespondError(w, ErrUserAlreadyExists, "User already exists", map[string]string{"login": req.Login}, http.StatusConflict)
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user: " + err.Error()})
+			RespondSimpleError(w, ErrInternalServer, "Failed to create user: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -226,9 +209,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Missing user ID"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
@@ -240,25 +221,19 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		GroupIDs []string `json:"group_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request format"})
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request format", http.StatusBadRequest)
 		return
 	}
 
 	// Validate required fields
 	if req.Login == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Login is required"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "login"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -273,9 +248,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 
@@ -290,14 +263,11 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, err := repo.Update(user)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
 		// Check if it's a duplicate login error
 		if strings.Contains(err.Error(), "already exists") {
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			RespondError(w, ErrUserAlreadyExists, "User already exists", map[string]string{"login": req.Login}, http.StatusConflict)
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update user: " + err.Error()})
+			RespondSimpleError(w, ErrInternalServer, "Failed to update user: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -311,17 +281,13 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Missing user ID"})
+		RespondError(w, ErrMissingField, "Field is required", map[string]string{"field": "id"}, http.StatusBadRequest)
 		return
 	}
 
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -336,18 +302,14 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create user instance"})
+		RespondSimpleError(w, ErrInternalServer, "Failed to create user instance", http.StatusInternalServerError)
 		return
 	}
 	user.SetValue("id", id)
 
 	_, err = repo.Delete(user)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to delete user: " + err.Error()})
+		RespondSimpleError(w, ErrInternalServer, "Failed to delete user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

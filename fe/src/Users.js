@@ -3,6 +3,7 @@ import api from "./axios";
 import { ThemeContext } from "./ThemeContext";
 import { useTranslation } from "react-i18next";
 import AssociationManager from "./AssociationManager";
+import { getErrorMessage } from "./errorHandler";
 
 function Users() {
   const { t } = useTranslation();
@@ -146,8 +147,8 @@ function Users() {
       setConfirmPwd("");
       fetchUsers();
     } catch (err) {
-      // Extract error message from response
-      const errorMsg = err.response?.data?.error || err.message || "Error saving user";
+      // Extract and translate error message from response
+      const errorMsg = getErrorMessage(err, t("users.error_saving") || "Error saving user");
       setErrorMessage(errorMsg);
     }
   };
