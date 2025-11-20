@@ -1,7 +1,6 @@
 package dblayer
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -12,6 +11,16 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+func TestMain(m *testing.M) {
+	InitDBLayer("mysql", "root:mysecret@tcp(localhost:3306)/rproject", "rprj")
+
+	// Esegui i test
+	m.Run()
+
+	// Teardown: chiudi la connessione
+	CloseDBConnection()
+}
 
 /*
 1. Connect to "root:mysecret@tcp(localhost:3306)/rproject"
@@ -28,17 +37,9 @@ func TestSearchUserByLogin(t *testing.T) {
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
 	}
-	factory := NewDBEFactory(true)
-	user := NewDBUser()
-	factory.Register(user)
-	dbConnection, err := sql.Open("mysql", "root:mysecret@tcp(localhost:3306)/rproject")
-	if err != nil {
-		t.Fatal("Failed to connect to database:", err)
-	}
-	defer dbConnection.Close()
 
 	// Step 2: Create a new DBEntity of type "users"
-	userEntity := factory.GetInstanceByTableName("users")
+	userEntity := Factory.GetInstanceByTableName("users")
 	if userEntity == nil {
 		t.Fatal("Failed to get DBEntity for 'users'")
 	}
@@ -47,7 +48,7 @@ func TestSearchUserByLogin(t *testing.T) {
 	userEntity.SetValue("login", "a")
 
 	// Step 4: Create DBRepository with the connection
-	repo := NewDBRepository(dbContext, factory, dbConnection)
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
 
 	repo.Verbose = true
 
@@ -88,24 +89,12 @@ func TestInsertUser(t *testing.T) {
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
 	}
-	factory := NewDBEFactory(true)
-	user := NewDBUser()
-	factory.Register(user)
-	group := NewDBGroup()
-	factory.Register(group)
-	userGroup := NewUserGroup()
-	factory.Register(userGroup)
-	dbConnection, err := sql.Open("mysql", "root:mysecret@tcp(localhost:3306)/rproject")
-	if err != nil {
-		t.Fatal("Failed to connect to database:", err)
-	}
-	defer dbConnection.Close()
 
-	repo := NewDBRepository(dbContext, factory, dbConnection)
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = true
 
 	// Create a new user entity
-	newUser := factory.GetInstanceByTableName("users")
+	newUser := Factory.GetInstanceByTableName("users")
 	if newUser == nil {
 		t.Fatal("Failed to get DBEntity for 'users'")
 	}
@@ -115,7 +104,6 @@ func TestInsertUser(t *testing.T) {
 	newUser.SetValue("login", login)
 	newUser.SetValue("pwd", "testpassword")
 	newUser.SetValue("fullname", "Test User")
-
 	// newUser.SetValue("group_id", "-3") // -3 is the default "users" group
 
 	// Insert the user (transaction is handled internally)
@@ -125,7 +113,7 @@ func TestInsertUser(t *testing.T) {
 	}
 
 	// Verify insertion by searching
-	searchEntity := factory.GetInstanceByTableName("users")
+	searchEntity := Factory.GetInstanceByTableName("users")
 	searchEntity.SetValue("login", login)
 	results, err := repo.Search(searchEntity, false, true, "")
 	if err != nil {
@@ -139,7 +127,7 @@ func TestInsertUser(t *testing.T) {
 		t.Fatal("Inserted user's group_id is not set")
 	}
 	// Verify the group exists
-	groupEntity := factory.GetInstanceByTableName("groups")
+	groupEntity := Factory.GetInstanceByTableName("groups")
 	groupEntity.SetValue("id", results[0].GetValue("group_id"))
 	groupResults, err := repo.Search(groupEntity, false, true, "")
 	if err != nil {
@@ -167,26 +155,8 @@ func TestConcurrentMayhem(t *testing.T) {
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
 	}
-	factory := NewDBEFactory(false)
-	user := NewDBUser()
-	factory.Register(user)
-	group := NewDBGroup()
-	factory.Register(group)
-	userGroup := NewUserGroup()
-	factory.Register(userGroup)
 
-	dbConnection, err := sql.Open("mysql", "root:mysecret@tcp(localhost:3306)/rproject")
-	if err != nil {
-		t.Fatal("Failed to connect to database:", err)
-	}
-	defer dbConnection.Close()
-
-	// Configure connection pool to handle concurrent operations
-	dbConnection.SetMaxOpenConns(25)   // Maximum number of open connections to the database
-	dbConnection.SetMaxIdleConns(10)   // Maximum number of connections in the idle connection pool
-	dbConnection.SetConnMaxLifetime(0) // Maximum amount of time a connection may be reused (0 = unlimited)
-
-	repo := NewDBRepository(dbContext, factory, dbConnection)
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false
 
 	var wgCreate sync.WaitGroup
@@ -219,7 +189,7 @@ func TestConcurrentMayhem(t *testing.T) {
 		go func(index int) {
 			defer wgCreate.Done()
 			// Create a new user entity
-			newUser := factory.GetInstanceByTableName("users")
+			newUser := Factory.GetInstanceByTableName("users")
 			if newUser == nil {
 				t.Log("Failed to get DBEntity for 'users'")
 				return
@@ -288,7 +258,7 @@ func TestConcurrentMayhem(t *testing.T) {
 	wgMayhem.Wait()
 
 	// Search for any remaining users with the mayhem prefix
-	searchEntity := factory.GetInstanceByTableName("users")
+	searchEntity := Factory.GetInstanceByTableName("users")
 	searchEntity.SetValue("login", userPrefix+"_%")
 	results, err := repo.Search(searchEntity, false, true, "")
 	if err != nil {
@@ -301,7 +271,7 @@ func TestConcurrentMayhem(t *testing.T) {
 	}
 
 	// Search for the personal groups created
-	groupSearchEntity := factory.GetInstanceByTableName("groups")
+	groupSearchEntity := Factory.GetInstanceByTableName("groups")
 	groupSearchEntity.SetValue("name", userPrefix+"_%'s group")
 	groupResults, err := repo.Search(groupSearchEntity, false, true, "")
 	if err != nil {
@@ -321,24 +291,12 @@ func TestCRUDUser(t *testing.T) {
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
 	}
-	factory := NewDBEFactory(true)
-	user := NewDBUser()
-	factory.Register(user)
-	group := NewDBGroup()
-	factory.Register(group)
-	userGroup := NewUserGroup()
-	factory.Register(userGroup)
-	dbConnection, err := sql.Open("mysql", "root:mysecret@tcp(localhost:3306)/rproject")
-	if err != nil {
-		t.Fatal("Failed to connect to database:", err)
-	}
-	defer dbConnection.Close()
 
-	repo := NewDBRepository(dbContext, factory, dbConnection)
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = true
 
 	// Create a new user entity
-	newUser := factory.GetInstanceByTableName("users")
+	newUser := Factory.GetInstanceByTableName("users")
 	if newUser == nil {
 		t.Fatal("Failed to get DBEntity for 'users'")
 	}
@@ -358,7 +316,7 @@ func TestCRUDUser(t *testing.T) {
 	}
 
 	// Verify insertion by searching
-	searchEntity := factory.GetInstanceByTableName("users")
+	searchEntity := Factory.GetInstanceByTableName("users")
 	searchEntity.SetValue("login", login)
 	results, err := repo.Search(searchEntity, false, true, "")
 	if err != nil {
@@ -372,7 +330,7 @@ func TestCRUDUser(t *testing.T) {
 		t.Fatal("Inserted user's group_id is not set")
 	}
 	// Verify the group exists
-	groupEntity := factory.GetInstanceByTableName("groups")
+	groupEntity := Factory.GetInstanceByTableName("groups")
 	groupEntity.SetValue("id", results[0].GetValue("group_id"))
 	groupResults, err := repo.Search(groupEntity, false, true, "")
 	if err != nil {
@@ -390,7 +348,7 @@ func TestCRUDUser(t *testing.T) {
 	}
 
 	// Verify the update
-	verifyEntity := factory.GetInstanceByTableName("users")
+	verifyEntity := Factory.GetInstanceByTableName("users")
 	verifyEntity.SetValue("login", login)
 	verifyResults, err := repo.Search(verifyEntity, false, true, "")
 	if err != nil {
@@ -428,20 +386,8 @@ func TestCRUDMayhem(t *testing.T) {
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
 	}
-	factory := NewDBEFactory(false)
-	user := NewDBUser()
-	factory.Register(user)
-	group := NewDBGroup()
-	factory.Register(group)
-	userGroup := NewUserGroup()
-	factory.Register(userGroup)
-	dbConnection, err := sql.Open("mysql", "root:mysecret@tcp(localhost:3306)/rproject")
-	if err != nil {
-		t.Fatal("Failed to connect to database:", err)
-	}
-	defer dbConnection.Close()
 
-	repo := NewDBRepository(dbContext, factory, dbConnection)
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false
 
 	var wgCreate sync.WaitGroup
@@ -471,7 +417,7 @@ func TestCRUDMayhem(t *testing.T) {
 		go func(index int) {
 			defer wgCreate.Done()
 			// Create a new user entity
-			newUser := factory.GetInstanceByTableName("users")
+			newUser := Factory.GetInstanceByTableName("users")
 			if newUser == nil {
 				t.Log("Failed to get DBEntity for 'users'")
 				return
@@ -491,7 +437,7 @@ func TestCRUDMayhem(t *testing.T) {
 			t.Logf("Successfully inserted user: %s", login)
 
 			// Verify insertion by searching
-			searchEntity := factory.GetInstanceByTableName("users")
+			searchEntity := Factory.GetInstanceByTableName("users")
 			searchEntity.SetValue("login", login)
 			results, err := repo.Search(searchEntity, false, true, "")
 			if err != nil {
@@ -514,7 +460,7 @@ func TestCRUDMayhem(t *testing.T) {
 			t.Logf("Successfully updated user: %s", login)
 
 			// Verify the update
-			verifyEntity := factory.GetInstanceByTableName("users")
+			verifyEntity := Factory.GetInstanceByTableName("users")
 			verifyEntity.SetValue("login", login)
 			verifyResults, err := repo.Search(verifyEntity, false, true, "")
 			if err != nil {
@@ -545,7 +491,7 @@ func TestCRUDMayhem(t *testing.T) {
 	wgDelete.Wait()
 
 	// Search for any remaining users with the mayhem prefix
-	searchEntity := factory.GetInstanceByTableName("users")
+	searchEntity := Factory.GetInstanceByTableName("users")
 	searchEntity.SetValue("login", userPrefix+"_%")
 	results, err := repo.Search(searchEntity, false, true, "")
 	if err != nil {
@@ -558,7 +504,7 @@ func TestCRUDMayhem(t *testing.T) {
 	}
 
 	// Search for the personal groups created
-	groupSearchEntity := factory.GetInstanceByTableName("groups")
+	groupSearchEntity := Factory.GetInstanceByTableName("groups")
 	groupSearchEntity.SetValue("name", userPrefix+"_%'s group")
 	groupResults, err := repo.Search(groupSearchEntity, false, true, "")
 	if err != nil {
