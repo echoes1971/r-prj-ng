@@ -10,20 +10,20 @@ CREATE TABLE IF NOT EXISTS `rra_dbversion` (
 
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 */
-type DBVersion struct {
-	ModelName string
-	Version   int
-}
+// type DBVersion struct {
+// 	ModelName string
+// 	Version   int
+// }
 
 // Struttura che rappresenta la tabella
-type DBUser struct {
-	ID       string
-	Login    string
-	Pwd      string
-	PwdSalt  string
-	Fullname string
-	GroupID  string
-}
+// type DBUser struct {
+// 	ID       string
+// 	Login    string
+// 	Pwd      string
+// 	PwdSalt  string
+// 	Fullname string
+// 	GroupID  string
+// }
 
 /*
 CREATE TABLE IF NOT EXISTS `rprj_groups` (
@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS `rprj_groups` (
 
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 */
-type DBGroup struct {
-	ID          string
-	Name        string
-	Description string
-}
+// type DBGroup struct {
+// 	ID          string
+// 	Name        string
+// 	Description string
+// }
 
 /*
 CREATE TABLE IF NOT EXISTS `rra_users_groups` (
@@ -53,10 +53,10 @@ CREATE TABLE IF NOT EXISTS `rra_users_groups` (
 
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 */
-type DBUserGroup struct {
-	UserID  string
-	GroupID string
-}
+// type DBUserGroup struct {
+// 	UserID  string
+// 	GroupID string
+// }
 
 /*
 CREATE TABLE IF NOT EXISTS oauth_tokens (
@@ -71,14 +71,14 @@ CREATE TABLE IF NOT EXISTS oauth_tokens (
 
 );
 */
-type DBOAuthToken struct {
-	TokenID      string
-	UserID       string
-	AccessToken  string
-	RefreshToken string
-	ExpiresAt    string // DATETIME in formato stringa
-	CreatedAt    string // DATETIME in formato stringa
-}
+// type DBOAuthToken struct {
+// 	TokenID      string
+// 	UserID       string
+// 	AccessToken  string
+// 	RefreshToken string
+// 	ExpiresAt    string // DATETIME in formato stringa
+// 	CreatedAt    string // DATETIME in formato stringa
+// }
 
 /*
 CREATE TABLE IF NOT EXISTS `rra_log` (

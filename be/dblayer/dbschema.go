@@ -37,6 +37,54 @@ func NewDBVersion() *DBVersion {
 		),
 	}
 }
+func (dbVersion *DBVersion) NewInstance() DBEntityInterface {
+	return NewDBVersion()
+}
+
+/*
+CREATE TABLE IF NOT EXISTS oauth_tokens (
+
+	token_id     VARCHAR(64) PRIMARY KEY,
+	user_id      VARCHAR(16) NOT NULL,
+	access_token TEXT NOT NULL,
+	refresh_token TEXT,
+	expires_at   DATETIME NOT NULL,
+	created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (user_id) REFERENCES rra_users(id)
+
+);
+*/
+type OAuthToken struct {
+	DBEntity
+}
+
+func NewOAuthToken() *OAuthToken {
+	columns := []Column{
+		{Name: "token_id", Type: "varchar(64)", Constraints: []string{"PRIMARY KEY"}},
+		{Name: "user_id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
+		{Name: "access_token", Type: "text", Constraints: []string{"NOT NULL"}},
+		{Name: "refresh_token", Type: "text", Constraints: []string{}},
+		{Name: "expires_at", Type: "datetime", Constraints: []string{"NOT NULL"}},
+		{Name: "created_at", Type: "datetime", Constraints: []string{}},
+	}
+	keys := []string{"token_id"}
+	foreignKeys := []ForeignKey{
+		{Column: "user_id", RefTable: "users", RefColumn: "id"},
+	}
+	return &OAuthToken{
+		DBEntity: *NewDBEntity(
+			"OAuthToken",
+			"oauth_tokens",
+			columns,
+			keys,
+			foreignKeys,
+			make(map[string]any),
+		),
+	}
+}
+func (oAuthToken *OAuthToken) NewInstance() DBEntityInterface {
+	return NewOAuthToken()
+}
 
 /*
 CREATE TABLE `rprj_users` (
@@ -84,11 +132,15 @@ func NewDBUser() *DBUser {
 func (dbUser *DBUser) NewInstance() DBEntityInterface {
 	return NewDBUser()
 }
-func (dbUser *DBUser) GetValue(columnName string) string {
+func (dbUser *DBUser) GetValue(columnName string) any {
 	return dbUser.DBEntity.GetValue(columnName)
 }
-func (dbUser *DBUser) SetValue(columnName string, value string) {
+func (dbUser *DBUser) SetValue(columnName string, value any) {
 	dbUser.DBEntity.SetValue(columnName, value)
+}
+func (dbUser *DBUser) GetUnencryptedPwd() string {
+	// TODO: implement proper password hashing and verification
+	return dbUser.GetValue("pwd").(string)
 }
 func (dbUser *DBUser) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	// 1. Check that user with same login does not already exist
@@ -109,8 +161,8 @@ func (dbUser *DBUser) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	// Create personal group
 	group := NewDBGroup()
 	group.SetValue("id", groupID)
-	group.SetValue("name", dbUser.GetValue("login")+"'s group")
-	group.SetValue("description", "Personal group for "+dbUser.GetValue("login"))
+	group.SetValue("name", dbUser.GetValue("login").(string)+"'s group")
+	group.SetValue("description", "Personal group for "+dbUser.GetValue("login").(string))
 	_, err = dbr.insertWithTx(group, tx)
 	if err != nil {
 		log.Print("DBUser::beforeInsert: error inserting group:", err)
@@ -350,10 +402,10 @@ func (dbGroup *DBGroup) beforeDelete(dbr *DBRepository, tx *sql.Tx) error {
 	return nil
 }
 
-func (dbGroup *DBGroup) GetValue(columnName string) string {
+func (dbGroup *DBGroup) GetValue(columnName string) any {
 	return dbGroup.DBEntity.GetValue(columnName)
 }
-func (dbGroup *DBGroup) SetValue(columnName string, value string) {
+func (dbGroup *DBGroup) SetValue(columnName string, value any) {
 	dbGroup.DBEntity.SetValue(columnName, value)
 }
 
@@ -393,9 +445,9 @@ func NewUserGroup() *UserGroup {
 func (dbUserGroup *UserGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	return nil
 }
-func (dbUserGroup *UserGroup) GetValue(columnName string) string {
+func (dbUserGroup *UserGroup) GetValue(columnName string) any {
 	return dbUserGroup.DBEntity.GetValue(columnName)
 }
-func (dbUserGroup *UserGroup) SetValue(columnName string, value string) {
+func (dbUserGroup *UserGroup) SetValue(columnName string, value any) {
 	dbUserGroup.DBEntity.SetValue(columnName, value)
 }

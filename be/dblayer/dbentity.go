@@ -42,8 +42,8 @@ type DBEntityInterface interface {
 	GetOrderByString() string
 	GetForeignKeysForTable(tableName string) []ForeignKey
 	GetForeignKeyDefinition(columnName string) *ForeignKey
-	SetValue(columnName string, value string)
-	GetValue(columnName string) string
+	SetValue(columnName string, value any)
+	GetValue(columnName string) any
 	HasValue(columnName string) bool
 	SetMetadata(key string, value any)
 	GetMetadata(key string) any
@@ -59,6 +59,7 @@ type DBEntityInterface interface {
 	IsNew() bool
 	ToString() string
 	ToJSON() string
+	GetCreateTableSQL(dbSchema string) string
 
 	getDictionary() map[string]any
 	beforeInsert(dbRepository *DBRepository, tx *sql.Tx) error
@@ -145,16 +146,16 @@ func (dbEntity *DBEntity) GetForeignKeyDefinition(columnName string) *ForeignKey
 }
 
 // TODO? Manage different types of values (int, date, etc.)
-func (dbEntity *DBEntity) SetValue(columnName string, value string) {
+func (dbEntity *DBEntity) SetValue(columnName string, value any) {
 	// if _, exists := dbEntity.dictionary[columnName]; exists {
 	dbEntity.dictionary[columnName] = value
 	// }
 }
-func (dbEntity *DBEntity) GetValue(columnName string) string {
+func (dbEntity *DBEntity) GetValue(columnName string) any {
 	if val, exists := dbEntity.dictionary[columnName]; exists {
-		return val.(string)
+		return val
 	}
-	return ""
+	return nil
 }
 func (dbEntity *DBEntity) HasValue(columnName string) bool {
 	_, exists := dbEntity.dictionary[columnName]
@@ -285,6 +286,29 @@ func (dbEntity *DBEntity) ToJSON() string {
 		parts = append(parts, fmt.Sprintf(`"%s":"%s"`, key, value))
 	}
 	return "{" + strings.Join(parts, ", ") + "}"
+}
+
+func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
+	columnDefs := []string{}
+	for _, col := range dbEntity.columns {
+		colDef := fmt.Sprintf(" %s %s", col.Name, col.Type)
+		if len(col.Constraints) > 0 {
+			colDef += " " + strings.Join(col.Constraints, " ")
+		}
+		columnDefs = append(columnDefs, colDef)
+	}
+	// Add primary key constraint
+	if len(dbEntity.keys) > 0 {
+		pkDef := fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(dbEntity.keys, ", "))
+		columnDefs = append(columnDefs, pkDef)
+	}
+	// Add foreign key constraints
+	for _, fk := range dbEntity.foreignKeys {
+		fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", fk.Column, fk.RefTable, fk.RefColumn)
+		columnDefs = append(columnDefs, fkDef)
+	}
+	createTableSQL := fmt.Sprintf("CREATE TABLE %s_%s (\n%s\n);", dbSchema, dbEntity.tablename, strings.Join(columnDefs, ",\n"))
+	return createTableSQL
 }
 
 func (dbEntity *DBEntity) beforeInsert(dbRepository *DBRepository, tx *sql.Tx) error {

@@ -36,7 +36,6 @@ import (
 	"strings"
 
 	"rprj/be/api"
-	"rprj/be/db"
 	"rprj/be/dblayer"
 	"rprj/be/models"
 
@@ -73,11 +72,8 @@ func main() {
 
 	// Passa la config ai pacchetti
 	api.JWTKey = []byte(AppConfig.JWTSecret)
-	db.Init(AppConfig.DBUrl, AppConfig.TablePrefix)
 
-	db.TestConnection(AppConfig.DBUrl)
-
-	dblayer.InitDBLayer(AppConfig.DBUrl, AppConfig.TablePrefix)
+	dblayer.InitDBLayer(AppConfig.DBEngine, AppConfig.DBUrl, AppConfig.TablePrefix)
 
 	api.OllamaInit(AppConfig.AppName, AppConfig.OllamaURL, AppConfig.OllamaModel)
 

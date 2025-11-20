@@ -52,6 +52,54 @@ func NewDBRepository(dbContext *DBContext, factory *DBEFactory, dbConnection *sq
 	}
 }
 
+func (dbr *DBRepository) GetDBVersion() int {
+	search := dbr.GetInstanceByTableName("dbversion")
+	if search == nil {
+		return -1
+	}
+	search.SetValue("model_name", DbSchema)
+	foundEntities, err := dbr.Search(search, false, false, "")
+	if err != nil || len(foundEntities) == 0 {
+		return -1
+	}
+	dbVersion, ok := foundEntities[0].(*DBVersion)
+	if !ok {
+		return -1
+	}
+	return dbVersion.GetValue("version").(int)
+}
+func (dbr *DBRepository) SetDBVersion(version int) error {
+	search := dbr.GetInstanceByTableName("dbversion")
+	if search == nil {
+		return fmt.Errorf("DBRepository::SetDBVersion: cannot create dbversion instance")
+	}
+	search.SetValue("model_name", DbSchema)
+	foundEntities, err := dbr.Search(search, false, false, "")
+	if err != nil {
+		return err
+	}
+	if len(foundEntities) == 0 {
+		// Insert new
+		newVersion := dbr.GetInstanceByTableName("dbversion")
+		if newVersion == nil {
+			return fmt.Errorf("DBRepository::SetDBVersion: cannot create dbversion instance for insert")
+		}
+		newVersion.SetValue("model_name", DbSchema)
+		newVersion.SetValue("version", version)
+		_, err := dbr.Insert(newVersion)
+		return err
+	} else {
+		// Update existing
+		dbVersion, ok := foundEntities[0].(*DBVersion)
+		if !ok {
+			return fmt.Errorf("DBRepository::SetDBVersion: cannot cast found entity to DBVersion")
+		}
+		dbVersion.SetValue("version", version)
+		_, err := dbr.Update(dbVersion)
+		return err
+	}
+}
+
 func (dbr *DBRepository) GetInstanceByClassName(classname string) DBEntityInterface {
 	return dbr.factory.GetInstanceByClassName(classname)
 }
@@ -444,4 +492,16 @@ func (dbr *DBRepository) updateWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	}
 
 	return dbe, nil
+}
+
+func (dbr *DBRepository) ExecuteSQL(sqlString string, args ...interface{}) (sql.Result, error) {
+	if dbr.Verbose {
+		log.Print("DBRepository::ExecuteSQL: sqlString=", sqlString, " args=", args)
+	}
+	result, err := dbr.DbConnection.Exec(sqlString, args...)
+	if err != nil {
+		log.Print("DBRepository::ExecuteSQL: Exec error:", err)
+		return nil, err
+	}
+	return result, nil
 }

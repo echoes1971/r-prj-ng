@@ -120,7 +120,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Build response with group IDs
 	groupIDs := make([]string, len(userGroups))
 	for i, ug := range userGroups {
-		groupIDs[i] = ug.GetValue("group_id")
+		groupIDs[i] = ug.GetValue("group_id").(string)
 	}
 
 	response := map[string]interface{}{

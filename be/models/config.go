@@ -10,6 +10,7 @@ import (
 type Config struct {
 	AppName     string `json:"app_name"`
 	ServerPort  int    `json:"server_port"`
+	DBEngine    string `json:"db_engine"`
 	DBUrl       string `json:"db_url"`
 	TablePrefix string `json:"table_prefix"`
 	JWTSecret   string `json:"jwt_secret"`

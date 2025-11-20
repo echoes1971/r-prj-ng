@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
-	"rprj/be/db"
+	"rprj/be/dblayer"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -23,6 +24,14 @@ func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
 	}
 	tokenString := parts[1]
 
+	dbContext := &dblayer.DBContext{
+		UserID:   "-1",           // DANGEROUS!!!! Think of something better here!!!
+		GroupIDs: []string{"-2"}, // Same here!!!
+		Schema:   dblayer.DbSchema,
+	}
+	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = true
+
 	// Validate the token
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
@@ -30,7 +39,7 @@ func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
 	})
 	if err != nil || !token.Valid {
 		log.Print("Deleting token from db due to invalidity.")
-		db.DeleteToken(tokenString)
+		DeleteToken(repo, tokenString)
 		return nil, http.ErrNoCookie
 	}
 
@@ -64,6 +73,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := parts[1]
 		log.Printf("Token ricevuto: %s\n", tokenString)
 
+		dbContext := &dblayer.DBContext{
+			UserID:   "-1",           // DANGEROUS!!!! Think of something better here!!!
+			GroupIDs: []string{"-2"}, // Same here!!!
+			Schema:   dblayer.DbSchema,
+		}
+		repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+		repo.Verbose = true
+
 		// Valida il token
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
@@ -74,7 +91,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil || !token.Valid {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			log.Print("Deleting token from db due to invalidity.")
-			db.DeleteToken(tokenString)
+			DeleteToken(repo, tokenString)
 			return
 		}
 
@@ -90,7 +107,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		log.Printf("Group IDs: %+v\n", groupIDs)
 
 		// Search the token in the database to ensure it's valid
-		if !db.IsTokenValid(tokenString, userID) {
+		if !IsTokenValid(repo, tokenString, userID) {
 			http.Error(w, "token not recognized", http.StatusUnauthorized)
 			log.Print("Token not found in the database")
 			return
@@ -99,4 +116,52 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Passa la richiesta all'handler successivo
 		next.ServeHTTP(w, r)
 	})
+}
+
+func SaveToken(repo *dblayer.DBRepository, userID string, tokenString string, expiry int64) error {
+
+	dbOAuthToken := repo.GetInstanceByTableName("oauth_tokens")
+	if dbOAuthToken == nil {
+		log.Println("Errore creazione istanza oauth_tokens")
+		return nil
+	}
+	dbOAuthToken.SetValue("user_id", userID)
+	dbOAuthToken.SetValue("token_id", tokenString)
+	dbOAuthToken.SetValue("access_token", tokenString)
+	dbOAuthToken.SetValue("expires_at", time.Unix(expiry, 0))
+
+	_, err := repo.Insert(dbOAuthToken)
+	return err
+}
+
+func IsTokenValid(repo *dblayer.DBRepository, tokenString string, userID string) bool {
+
+	search := repo.GetInstanceByTableName("oauth_tokens")
+	if search == nil {
+		log.Println("Errore creazione istanza oauth_tokens")
+		return false
+	}
+	search.SetValue("token_id", tokenString)
+	search.SetValue("user_id", userID)
+
+	results, err := repo.Search(search, false, false, "")
+	if err != nil {
+		log.Println("Errore verifica token:", err)
+		return false
+	}
+	return len(results) > 0
+}
+
+func DeleteToken(repo *dblayer.DBRepository, tokenString string) error {
+	search := repo.GetInstanceByTableName("oauth_tokens")
+	if search == nil {
+		log.Println("Errore creazione istanza oauth_tokens")
+		return nil
+	}
+	search.SetValue("token_id", tokenString)
+	_, err := repo.Delete(search)
+	if err != nil {
+		log.Println("Errore cancellazione token:", err)
+	}
+	return err
 }

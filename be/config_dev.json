@@ -1,6 +1,7 @@
 {
   "app_name": "R-Project Dev",
   "server_port": 1971,
+  "db_engine": "mysql",
   "db_url": "root:mysecret@tcp(db:3306)/rproject",
   "table_prefix": "rprj_",
   "jwt_secret": "mySecretJWTKeyForRProjectApp",

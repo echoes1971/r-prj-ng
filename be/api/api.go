@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"rprj/be/db"
+	"rprj/be/dblayer"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -42,32 +42,59 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verifica utente nel DB
-	user, err := db.GetUserByLogin(creds.Login)
-	if err != nil || user == nil || user.Pwd != creds.Pwd {
+	dbContext := &dblayer.DBContext{
+		UserID:   "-1",           // DANGEROUS!!!! Think of something better here!!!
+		GroupIDs: []string{"-2"}, // Same here!!!
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = true
+
+	user := repo.GetInstanceByTableName("users")
+	if user == nil {
+		http.Error(w, "failed to create user instance", http.StatusInternalServerError)
+		return
+	}
+	user.SetValue("login", creds.Login)
+	foundUsers, err := repo.Search(user, false, false, "")
+	if err != nil || len(foundUsers) == 0 {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	foundUser, ok := foundUsers[0].(*dblayer.DBUser)
+	if !ok || foundUser.GetUnencryptedPwd() != creds.Pwd {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	// Retrieve user groups
-	groups, err := db.GetUserGroupsByUserID(user.ID)
+	// Get User groups
+	userGroupsInstance := repo.GetInstanceByTableName("users_groups")
+	if userGroupsInstance == nil {
+		http.Error(w, "failed to create user-groups instance", http.StatusInternalServerError)
+		return
+	}
+	userGroupsInstance.SetValue("user_id", foundUser.GetValue("id"))
+	userGroups, err := repo.Search(userGroupsInstance, false, false, "")
 	if err != nil {
-		http.Error(w, "could not retrieve user groups", http.StatusInternalServerError)
+		http.Error(w, "failed to get user groups: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	group_list := []string{}
-	for _, g := range groups {
-		group_list = append(group_list, g.GroupID)
+	for _, ug := range userGroups {
+		ugEntry := ug
+		group_list = append(group_list, ugEntry.GetValue("group_id").(string))
 	}
-	if user.GroupID != "" && slices.Index(group_list, user.GroupID) < 0 {
-		group_list = append(group_list, user.GroupID)
+
+	if foundUser.GetValue("group_id") != "" && slices.Index(group_list, foundUser.GetValue("group_id").(string)) < 0 {
+		group_list = append(group_list, foundUser.GetValue("group_id").(string))
 	}
 
 	// Genera JWT
 	expiration := time.Now().Add(1 * time.Hour)
 	claims := &jwt.MapClaims{
-		"user_id": user.ID,
-		"login":   user.Login,
+		"user_id": foundUser.GetValue("id"),
+		"login":   foundUser.GetValue("login"),
 		"groups":  strings.Join(group_list, ","),
 		"exp":     expiration.Unix(),
 	}
@@ -79,7 +106,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Salva token in tabella oauth_tokens
-	if err := db.SaveToken(user.ID, tokenString, expiration.Unix()); err != nil {
+	if err := SaveToken(repo, foundUser.GetValue("id").(string), tokenString, expiration.Unix()); err != nil {
 		http.Error(w, "could not save token", http.StatusInternalServerError)
 		return
 	}

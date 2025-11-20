@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"rprj/be/db"
+	"rprj/be/dblayer"
 	"rprj/be/models"
 )
 
@@ -23,9 +23,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Errore caricamento configurazione: %v", err)
 	}
 
-	// Setup: inizializza il DB usando config.json
-	// (qui puoi leggere il file e passare la stringa DSN)
-	db.Init(AppConfig.DBUrl, AppConfig.TablePrefix)
+	dblayer.InitDBLayer(AppConfig.DBEngine, AppConfig.DBUrl, AppConfig.TablePrefix)
 
 	log.Println("DB inizializzato per i test")
 
@@ -33,9 +31,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Teardown: chiudi la connessione
-	if db.DB != nil {
-		db.DB.Close()
-	}
+	dblayer.CloseDBConnection()
 
 	// Exit con il codice dei test
 	os.Exit(code)
@@ -44,8 +40,8 @@ func TestMain(m *testing.M) {
 func TestLoginHandler(t *testing.T) {
 	// Prepara il body JSON con credenziali
 	creds := Credentials{
-		Login: "roberto",
-		Pwd:   "echoestrade",
+		Login: "adm",
+		Pwd:   "mysecretpass",
 	}
 	body, _ := json.Marshal(creds)
 
