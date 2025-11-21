@@ -8,7 +8,7 @@ import { app_cfg } from './app.cfg';
 import DefaultPage from "./DefaultPage";
 import Login from "./Login";
 import Users from "./Users";
-import Groups from './groups';
+import Groups from './Groups';
 
 function App() {
   const token = localStorage.getItem("token");
