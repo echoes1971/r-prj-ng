@@ -38,7 +38,7 @@ CREATE TABLE `rprj_companies` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -425,7 +425,7 @@ CREATE TABLE `rprj_events` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -498,7 +498,7 @@ CREATE TABLE `rprj_files` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -550,7 +550,7 @@ CREATE TABLE `rprj_folders` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -633,7 +633,7 @@ CREATE TABLE `rprj_links` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -717,7 +717,7 @@ CREATE TABLE `rprj_news` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -765,7 +765,7 @@ CREATE TABLE `rprj_notes` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -840,7 +840,7 @@ CREATE TABLE `rprj_objects` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -881,7 +881,7 @@ CREATE TABLE `rprj_pages` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -935,7 +935,7 @@ CREATE TABLE `rprj_people` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -994,7 +994,7 @@ CREATE TABLE `rprj_projects` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1065,7 +1065,7 @@ CREATE TABLE `rprj_projects_companies_roles` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1137,7 +1137,7 @@ CREATE TABLE `rprj_projects_people_roles` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1203,7 +1203,7 @@ CREATE TABLE `rprj_projects_projects_roles` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1245,7 +1245,7 @@ CREATE TABLE `rprj_timetracks` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1301,7 +1301,7 @@ CREATE TABLE `rprj_todo` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1359,7 +1359,7 @@ CREATE TABLE `rprj_todo_tipo` (
   `last_modify` varchar(16) NOT NULL,
   `last_modify_date` datetime DEFAULT NULL,
   `deleted_by` varchar(16) DEFAULT NULL,
-  `deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `deleted_date` datetime,
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
@@ -1446,79 +1446,5 @@ INSERT INTO `rprj_users_groups` VALUES
 /*!40000 ALTER TABLE `rprj_users_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `test_societa`
---
-
-DROP TABLE IF EXISTS `test_societa`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `test_societa` (
-  `id` varchar(16) NOT NULL,
-  `ragione_sociale` text DEFAULT NULL,
-  `indirizzo` text DEFAULT NULL,
-  `cap` varchar(6) DEFAULT NULL,
-  `nazione` text DEFAULT NULL,
-  `telefono` text DEFAULT NULL,
-  `fax` text DEFAULT NULL,
-  `email` text DEFAULT NULL,
-  `note` text DEFAULT NULL,
-  `website` text DEFAULT NULL,
-  `citta` text DEFAULT NULL,
-  `provincia` text DEFAULT NULL,
-  `partita_iva` text DEFAULT NULL,
-  `tipo` text DEFAULT NULL,
-  `data_creazione` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `test_societa_0` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `test_societa`
---
-
-LOCK TABLES `test_societa` WRITE;
-/*!40000 ALTER TABLE `test_societa` DISABLE KEYS */;
-/*!40000 ALTER TABLE `test_societa` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `test_test_dblayer`
---
-
-DROP TABLE IF EXISTS `test_test_dblayer`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `test_test_dblayer` (
-  `id` varchar(16) NOT NULL,
-  `nome` varchar(255) DEFAULT NULL,
-  `descrizione` varchar(2000) DEFAULT NULL,
-  `abilitato` char(1) DEFAULT NULL,
-  `data_creazione` datetime DEFAULT NULL,
-  `prezzo` float DEFAULT NULL,
-  `data_disponibilita` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `test_test_dblayer_0` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `test_test_dblayer`
---
-
-LOCK TABLES `test_test_dblayer` WRITE;
-/*!40000 ALTER TABLE `test_test_dblayer` DISABLE KEYS */;
-/*!40000 ALTER TABLE `test_test_dblayer` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-11-10  9:48:13
