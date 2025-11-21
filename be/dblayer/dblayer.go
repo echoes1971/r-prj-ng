@@ -29,6 +29,8 @@ func InitDBLayer(dbEngineName, dbUrlAddress, schema string) {
 	Factory.Register(NewDBUser())
 	Factory.Register(NewUserGroup())
 	Factory.Register(NewDBGroup())
+	Factory.Register(NewDBLog())
+	Factory.Register(NewDBObject())
 	log.Print("Initializing DB connection...")
 	var err error
 	DbConnection, err = sql.Open(dbEngine, dbUrl)

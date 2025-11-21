@@ -35,9 +35,10 @@ func (dbctx *DBContext) IsUser(userID string) bool {
 }
 
 type DBRepository struct {
-	Verbose   bool
-	DbContext *DBContext
-	factory   *DBEFactory
+	Verbose     bool
+	DbContext   *DBContext
+	factory     *DBEFactory
+	currentUser *DBUser
 
 	/* Can be a connection to mysql, postgresql, sqlite, etc. */
 	DbConnection *sql.DB
@@ -121,7 +122,7 @@ func (dbr *DBRepository) Search(dbe DBEntityInterface, useLike bool, caseSensiti
 // searchWithTx is an internal method that performs the search using an existing transaction (if provided)
 func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseSensitive bool, orderBy string, tx *sql.Tx) ([]DBEntityInterface, error) {
 	if dbr.Verbose {
-		log.Print("DBRepository::searchWithTx: dbe=", dbe)
+		log.Print("DBRepository::searchWithTx: dbe=", dbe.ToString())
 	}
 
 	// 1. Build WHERE clauses
@@ -208,8 +209,8 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 				resultEntity.SetValue(colName, string(b))
 			} else if val != nil {
 				resultEntity.SetValue(colName, fmt.Sprint(val))
-			} else {
-				resultEntity.SetValue(colName, "")
+				// } else {
+				// 	resultEntity.SetValue(colName, "")
 			}
 		}
 
@@ -341,6 +342,37 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 		log.Print("DBRepository::deleteWithTx: dbe=", dbe.ToString())
 	}
 
+	if dbe.IsDBObject() {
+		dbObj := dbe.(*DBObject)
+		// IF has not deleted date
+		if !dbObj.HasDeletedDate() {
+			// Call beforeDelete
+			err := dbe.beforeDelete(dbr, tx)
+			if err != nil {
+				log.Print("DBRepository::deleteWithTx: beforeDelete error:", err)
+				return nil, err
+			}
+			// Build UPDATE query dynamicallyto set deleted_date and deleted_by
+			query := fmt.Sprintf("UPDATE %s SET deleted_date = ?, deleted_by = ? WHERE id='%s'",
+				dbr.buildTableName(dbe), dbe.GetValue("id"))
+			if dbr.Verbose {
+				log.Print("DBRepository::deleteWithTx: Soft delete query=", query)
+			}
+
+			_, err = tx.Exec(query, dbe.GetValue("deleted_date"), dbe.GetValue("deleted_by"))
+			if err != nil {
+				log.Print("DBRepository::deleteWithTx: Exec error:", err)
+				return nil, err
+			}
+			err = dbe.afterDelete(dbr, tx)
+			if err != nil {
+				log.Print("DBRepository::deleteWithTx: afterDelete error:", err)
+				return nil, err
+			}
+			return dbe, nil
+		}
+	}
+
 	err := dbe.beforeDelete(dbr, tx)
 	if err != nil {
 		log.Print("DBRepository::deleteWithTx: beforeDelete error:", err)
@@ -389,7 +421,6 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	}
 
 	return dbe, nil
-
 }
 
 // Update updates an existing entity in the database within a transaction
@@ -504,4 +535,134 @@ func (dbr *DBRepository) ExecuteSQL(sqlString string, args ...interface{}) (sql.
 		return nil, err
 	}
 	return result, nil
+}
+
+func (dbr *DBRepository) GetCurrentUser() DBEntityInterface {
+	if dbr.currentUser != nil {
+		return dbr.currentUser
+	}
+	user := dbr.GetInstanceByTableName("users")
+	if user == nil {
+		return nil
+	}
+	user.SetValue("id", dbr.DbContext.UserID)
+	foundUsers, err := dbr.Search(user, false, false, "")
+	if err != nil || len(foundUsers) == 0 {
+		return nil
+	}
+	dbr.currentUser = foundUsers[0].(*DBUser)
+	return foundUsers[0]
+}
+
+// **** Objects Management ****
+
+func (dbr *DBRepository) ObjectByID(objectID string, ignoreDeleted bool) DBEntityInterface {
+	registeredTypes := dbr.factory.GetAllClassNames()
+	var queries []string
+
+	for _, className := range registeredTypes {
+		// TODO: enable this once we have subclasses
+		// if className == "DBObject" {
+		// 	continue
+		// }
+		dbe := dbr.GetInstanceByClassName(className)
+		if dbe == nil {
+			continue
+		}
+		if !dbe.IsDBObject() {
+			continue
+		}
+		query := "SELECT '" + className + "' as classname, id,owner,group_id,permissions,creator," +
+			"creation_date,last_modify,last_modify_date," +
+			"deleted_by,deleted_date," +
+			"father_id,name,description" +
+			" from " + dbr.buildTableName(dbe) +
+			" WHERE id = '" + objectID + "'"
+		if ignoreDeleted {
+			query += " AND deleted_date IS NULL"
+		}
+		queries = append(queries, query)
+	}
+	searchString := strings.Join(queries, " UNION ")
+	if dbr.Verbose {
+		log.Print("DBRepository::ObjectByID: searchString=", searchString)
+	}
+	results := dbr.Select("DBObject", searchString)
+	if len(results) == 0 {
+		return nil
+	}
+	if len(results) > 1 {
+		log.Printf("DBRepository::ObjectByID: Warning, multiple objects found with ID=%s", objectID)
+	}
+	return results[0]
+}
+
+func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args ...interface{}) []DBEntityInterface {
+	if dbr.Verbose {
+		log.Print("DBRepository::Select: sqlString=", sqlString, " args=", args)
+	}
+	rows, err := dbr.DbConnection.Query(sqlString, args...)
+	if err != nil {
+		log.Print("DBRepository::Select: Query error:", err)
+		return nil
+	}
+	defer rows.Close()
+
+	results := make([]DBEntityInterface, 0)
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Print("DBRepository::Select: Columns error:", err)
+		return nil
+	}
+
+	for rows.Next() {
+		// Read classname first
+		// var className string
+		columnValues := make([]interface{}, len(columns))
+		columnValuePtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			columnValuePtrs[i] = &columnValues[i]
+		}
+		if err := rows.Scan(columnValuePtrs...); err != nil {
+			log.Print("DBRepository::Select: Scan error:", err)
+			return nil
+		}
+		// for i, colName := range columns {
+		// 	if colName == "classname" {
+		// 		if b, ok := columnValues[i].([]byte); ok {
+		// 			className = string(b)
+		// 		} else if columnValues[i] != nil {
+		// 			className = fmt.Sprint(columnValues[i])
+		// 		}
+		// 		break
+		// 	}
+		// }
+		dbe := dbr.GetInstanceByClassName(returnedClassName)
+		if dbe == nil {
+			log.Printf("DBRepository::Select: Warning, cannot create instance of class %s", returnedClassName)
+			continue
+		}
+		// Map column values to the result entity's dictionary
+		for i, colName := range columns {
+			if colName == "classname" {
+				dbe.SetMetadata("classname", columnValues[i])
+				continue
+			}
+			val := columnValues[i]
+			if b, ok := val.([]byte); ok {
+				dbe.SetValue(colName, string(b))
+			} else if val != nil {
+				dbe.SetValue(colName, fmt.Sprint(val))
+			} else {
+				dbe.SetValue(colName, "")
+			}
+		}
+		results = append(results, dbe)
+	}
+
+	if dbr.Verbose {
+		log.Printf("DBRepository::Select: found %d results", len(results))
+	}
+
+	return results
 }

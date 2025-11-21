@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
@@ -57,6 +58,7 @@ type DBEntityInterface interface {
 	GetKeySetDictionary() map[string]string
 	RemoveKeysFromDictionary()
 	IsNew() bool
+	IsDBObject() bool
 	ToString() string
 	ToJSON() string
 	GetCreateTableSQL(dbSchema string) string
@@ -276,16 +278,26 @@ func (dbEntity *DBEntity) IsNew() bool {
 	}
 	return true
 }
+func (dbEntity *DBEntity) IsDBObject() bool {
+	return false
+}
 
 func (dbEntity *DBEntity) ToString() string {
 	return fmt.Sprintf("%s(%v)", dbEntity.typename, dbEntity.ToJSON())
 }
 func (dbEntity *DBEntity) ToJSON() string {
-	parts := make([]string, 0, len(dbEntity.dictionary))
-	for key, value := range dbEntity.dictionary {
-		parts = append(parts, fmt.Sprintf(`"%s":"%s"`, key, value))
+
+	data := map[string]any{
+		"data": dbEntity.dictionary,
 	}
-	return "{" + strings.Join(parts, ", ") + "}"
+	if dbEntity.metadata != nil {
+		data["metadata"] = dbEntity.metadata
+	}
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return "{}"
+	}
+	return string(jsonBytes)
 }
 
 func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
