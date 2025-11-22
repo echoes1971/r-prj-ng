@@ -109,10 +109,20 @@ func (dbr *DBRepository) GetInstanceByTableName(tablename string) DBEntityInterf
 }
 
 func (dbr *DBRepository) buildTableName(dbe DBEntityInterface) string {
-	if dbr.DbContext != nil && dbr.DbContext.Schema != "" {
-		return dbr.DbContext.Schema + "_" + dbe.GetTableName()
+	tablename := dbe.GetTableName()
+	// Handle lightweight objects fetched by ObjectByID. Too much of spaghetti code?
+	if tablename == "objects" && dbe.HasMetadata("classname") {
+		classname := dbe.GetMetadata("classname").(string)
+		tmp := dbr.factory.GetInstanceByClassName(classname)
+		if tmp != nil {
+			tablename = tmp.GetTableName()
+		}
 	}
-	return dbe.GetTableName()
+
+	if dbr.DbContext != nil && dbr.DbContext.Schema != "" {
+		return dbr.DbContext.Schema + "_" + tablename
+	}
+	return tablename
 }
 
 func (dbr *DBRepository) Search(dbe DBEntityInterface, useLike bool, caseSensitive bool, orderBy string) ([]DBEntityInterface, error) {
@@ -343,11 +353,11 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	}
 
 	if dbe.IsDBObject() {
-		dbObj := dbe.(*DBObject)
+		dbObj := dbe.(DBObjectInterface)
 		// IF has not deleted date
 		if !dbObj.HasDeletedDate() {
 			// Call beforeDelete
-			err := dbe.beforeDelete(dbr, tx)
+			err := dbObj.beforeDelete(dbr, tx)
 			if err != nil {
 				log.Print("DBRepository::deleteWithTx: beforeDelete error:", err)
 				return nil, err
@@ -371,6 +381,7 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 			}
 			return dbe, nil
 		}
+		// If deleted_date is set, proceed with hard delete below
 	}
 
 	err := dbe.beforeDelete(dbr, tx)
@@ -596,6 +607,108 @@ func (dbr *DBRepository) ObjectByID(objectID string, ignoreDeleted bool) DBEntit
 	}
 	return results[0]
 }
+func (dbr *DBRepository) FullObjectById(objectID string, ignoreDeleted bool) DBEntityInterface {
+	obj := dbr.ObjectByID(objectID, ignoreDeleted)
+	if obj == nil {
+		return nil
+	}
+	dbObj, ok := obj.(*DBObject)
+	if !ok {
+		return nil
+	}
+	log.Println("DBRepository::FullObjectById: classname=", dbObj.GetMetadata("classname"))
+	classname, ok := dbObj.GetMetadata("classname").(string)
+	if !ok {
+		return nil
+	}
+	fullObj := dbr.GetInstanceByClassName(classname)
+	if fullObj == nil {
+		return nil
+	}
+	fullObj.SetValue("id", objectID)
+	foundEntities, err := dbr.Search(fullObj, false, false, "")
+	if err != nil || len(foundEntities) == 0 {
+		return nil
+	}
+	return foundEntities[0]
+}
+
+// GetChildren returns all direct children of a folder (objects with father_id = parentID)
+// Filters results by read permissions
+func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEntityInterface {
+	registeredTypes := dbr.factory.GetAllClassNames()
+	var queries []string
+
+	for _, className := range registeredTypes {
+		dbe := dbr.GetInstanceByClassName(className)
+		if dbe == nil {
+			continue
+		}
+		if !dbe.IsDBObject() {
+			continue
+		}
+		query := "SELECT '" + className + "' as classname, id,owner,group_id,permissions,creator," +
+			"creation_date,last_modify,last_modify_date," +
+			"deleted_by,deleted_date," +
+			"father_id,name,description" +
+			" from " + dbr.buildTableName(dbe) +
+			" WHERE father_id = '" + parentID + "'"
+		if ignoreDeleted {
+			query += " AND deleted_date IS NULL"
+		}
+		queries = append(queries, query)
+	}
+	searchString := strings.Join(queries, " UNION ")
+	searchString += " ORDER BY name"
+
+	if dbr.Verbose {
+		log.Print("DBRepository::GetChildren: searchString=", searchString)
+	}
+	results := dbr.Select("DBObject", searchString)
+
+	// Filter by read permissions
+	return dbr.FilterByReadPermission(results)
+}
+
+// GetBreadcrumb returns the path from root to the specified object
+// Each element is a DBObject with id, name, and father_id
+func (dbr *DBRepository) GetBreadcrumb(objectID string) []DBEntityInterface {
+	breadcrumb := make([]DBEntityInterface, 0)
+	currentID := objectID
+
+	for currentID != "" {
+		obj := dbr.ObjectByID(currentID, true)
+		if obj == nil {
+			break
+		}
+
+		// Check read permission
+		if !dbr.CheckReadPermission(obj) {
+			break
+		}
+
+		breadcrumb = append(breadcrumb, obj)
+
+		// Get father_id for next iteration
+		fatherID := obj.GetValue("father_id")
+		if fatherID == nil {
+			break
+		}
+		fatherIDStr, ok := fatherID.(string)
+		if !ok || fatherIDStr == "" {
+			break
+		}
+		currentID = fatherIDStr
+	}
+
+	// Reverse the slice to get root -> object order
+	for i := 0; i < len(breadcrumb)/2; i++ {
+		j := len(breadcrumb) - 1 - i
+		breadcrumb[i], breadcrumb[j] = breadcrumb[j], breadcrumb[i]
+	}
+
+	return breadcrumb
+}
 
 func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args ...interface{}) []DBEntityInterface {
 	if dbr.Verbose {
@@ -645,10 +758,23 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 		// Map column values to the result entity's dictionary
 		for i, colName := range columns {
 			if colName == "classname" {
-				dbe.SetMetadata("classname", columnValues[i])
+				myval := columnValues[i]
+				if b, ok := myval.([]byte); ok {
+					dbe.SetMetadata("classname", string(b))
+				} else if myval != nil {
+					dbe.SetMetadata("classname", fmt.Sprint(myval))
+				}
 				continue
 			}
+			// if colName == "deleted_date" {
+			// 	// Special handling for deleted_date to allow nil
+			// 	log.Println("DBRepository::Select: deleted_date=", columnValues[i])
+			// }
 			val := columnValues[i]
+			if val == nil {
+				// dbe.SetValue(colName, nil)
+				continue
+			}
 			if b, ok := val.([]byte); ok {
 				dbe.SetValue(colName, string(b))
 			} else if val != nil {
@@ -665,4 +791,61 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 	}
 
 	return results
+}
+
+// CheckReadPermission checks if the current user can read a DBObject
+// Returns true if:
+// - User is the owner
+// - User is in the object's group and group has read permission
+// - Object has public read permission
+func (dbr *DBRepository) CheckReadPermission(dbe DBEntityInterface) bool {
+	if !dbe.IsDBObject() {
+		return true // Non-DBObjects have no permission restrictions
+	}
+
+	owner, ok := dbe.GetValue("owner").(string)
+	if !ok {
+		return false
+	}
+
+	// User is owner
+	if dbr.DbContext.IsUser(owner) {
+		permissions, ok := dbe.GetValue("permissions").(string)
+		if !ok || len(permissions) != 9 {
+			return false
+		}
+		return permissions[0] == 'r' // User read permission
+	}
+
+	groupID, ok := dbe.GetValue("group_id").(string)
+	if !ok {
+		return false
+	}
+
+	// User is in group
+	if dbr.DbContext.IsInGroup(groupID) {
+		permissions, ok := dbe.GetValue("permissions").(string)
+		if !ok || len(permissions) != 9 {
+			return false
+		}
+		return permissions[3] == 'r' // Group read permission
+	}
+
+	// Check public read permission
+	permissions, ok := dbe.GetValue("permissions").(string)
+	if !ok || len(permissions) != 9 {
+		return false
+	}
+	return permissions[6] == 'r' // Others read permission
+}
+
+// FilterByReadPermission filters a slice of DBEntityInterface, keeping only objects the user can read
+func (dbr *DBRepository) FilterByReadPermission(entities []DBEntityInterface) []DBEntityInterface {
+	filtered := make([]DBEntityInterface, 0, len(entities))
+	for _, entity := range entities {
+		if dbr.CheckReadPermission(entity) {
+			filtered = append(filtered, entity)
+		}
+	}
+	return filtered
 }

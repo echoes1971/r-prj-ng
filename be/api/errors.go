@@ -25,6 +25,8 @@ const (
 	ErrInternalServer       = "INTERNAL_SERVER_ERROR"
 	ErrInvalidToken         = "INVALID_TOKEN"
 	ErrMissingAuthorization = "MISSING_AUTHORIZATION"
+
+	ErrObjectNotFound = "OBJECT_NOT_FOUND"
 )
 
 // RespondError sends a structured error response

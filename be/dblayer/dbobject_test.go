@@ -117,3 +117,102 @@ func TestCRUDDBObject(t *testing.T) {
 
 	log.Print("DBObject CRUD operations test completed successfully")
 }
+
+func TestObjectById(t *testing.T) {
+	// Setup
+	dbContext := &DBContext{
+		UserID:   "-1",
+		GroupIDs: []string{"-2"},
+		Schema:   "rprj",
+	}
+
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
+	repo.Verbose = false
+	// Create a test object
+	dbObj := repo.GetInstanceByTableName("notes")
+	if dbObj == nil {
+		t.Fatal("Failed to create DBObject instance")
+	}
+	dbObj.SetValue("name", "Test Note for GetById")
+	dbObj.SetValue("description", "This is a test note object")
+
+	createdObj, err := repo.Insert(dbObj)
+	if err != nil {
+		t.Fatalf("Failed to create DBObject: %v", err)
+	}
+	objID := createdObj.GetValue("id").(string)
+
+	// Test GetObjectById
+	retrievedObj := repo.ObjectByID(objID, true)
+	if retrievedObj == nil {
+		t.Fatalf("ObjectByID returned nil for ID %s", objID)
+	}
+	if retrievedObj.GetValue("name") != "Test Note for GetById" {
+		t.Fatalf("Expected name 'Test Note for GetById', got '%v'", retrievedObj.GetValue("name"))
+	}
+	log.Printf("ObjectByID successful: %v", retrievedObj.ToString())
+
+	// Cleanup
+	deletedObject, err := repo.Delete(retrievedObj)
+	// deletedObject, err := repo.Delete(createdObj)
+	if err != nil {
+		t.Fatalf("Failed to delete DBObject during cleanup: %v", err)
+	}
+	log.Printf("Deleted object: %v", deletedObject.ToString())
+	// Second time to force the hard delete
+	deletedObject, err = repo.Delete(deletedObject)
+	if err != nil {
+		t.Fatalf("Failed to delete DBObject during cleanup: %v", err)
+	}
+	log.Printf("Hard Deleted object: %v", deletedObject.ToString())
+}
+
+func TestFullObjectById(t *testing.T) {
+	// Setup
+	dbContext := &DBContext{
+		UserID:   "-1",
+		GroupIDs: []string{"-2"},
+		Schema:   "rprj",
+	}
+
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
+	repo.Verbose = false
+	// Create a test object
+	dbObj := repo.GetInstanceByTableName("pages")
+	if dbObj == nil {
+		t.Fatal("Failed to create DBObject instance")
+	}
+	dbObj.SetValue("name", "Test Page for FullObjectById")
+	dbObj.SetValue("description", "This is a test page content")
+	dbObj.SetValue("html", "<h1>Test Page</h1><p>This is a test page content</p>")
+
+	createdObj, err := repo.Insert(dbObj)
+	if err != nil {
+		t.Fatalf("Failed to create DBObject: %v", err)
+	}
+	objID := createdObj.GetValue("id").(string)
+
+	// Test FullObjectByID
+	retrievedObj := repo.FullObjectById(objID, true)
+	if retrievedObj == nil {
+		t.Fatalf("FullObjectByID returned nil for ID %s", objID)
+	}
+	if retrievedObj.GetValue("name") != "Test Page for FullObjectById" {
+		t.Fatalf("Expected name 'Test Page for FullObjectById', got '%v'", retrievedObj.GetValue("name"))
+	}
+	log.Printf("FullObjectByID successful: %v", retrievedObj.ToString())
+
+	// Cleanup
+	deletedObject, err := repo.Delete(retrievedObj)
+	if err != nil {
+		t.Fatalf("Failed to delete DBObject during cleanup: %v", err)
+	}
+	log.Printf("Deleted object: %v", deletedObject.ToString())
+
+	// Second time to force the hard delete
+	deletedObject, err = repo.Delete(deletedObject)
+	if err != nil {
+		t.Fatalf("Failed to delete DBObject during cleanup: %v", err)
+	}
+	log.Printf("Hard Deleted object: %v", deletedObject.ToString())
+}

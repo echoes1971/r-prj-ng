@@ -201,7 +201,7 @@ func (dbUser *DBUser) afterInsert(dbr *DBRepository, tx *sql.Tx) error {
 		if gID == groupID {
 			continue // Skip personal group (already added)
 		}
-		userGroup := dbr.GetInstanceByTableName("users_groups").(*UserGroup)
+		userGroup := dbr.GetInstanceByTableName("users_groups")
 		userGroup.SetValue("user_id", userID)
 		userGroup.SetValue("group_id", gID)
 		_, err = dbr.insertWithTx(userGroup, tx)
@@ -508,11 +508,14 @@ func (logEntry *DBLog) SetValue(columnName string, value any) {
 type DBObjectInterface interface {
 	DBEntityInterface
 	IsDBObject() bool
-	IsDeleted() bool
+	HasDeletedDate() bool
 	CanRead(kind string) bool
 	CanWrite(kind string) bool
 	CanExecute(kind string) bool
 	SetDefaultValues(repo *DBRepository)
+	beforeInsert(dbr *DBRepository, tx *sql.Tx) error
+	beforeUpdate(dbr *DBRepository, tx *sql.Tx) error
+	beforeDelete(dbr *DBRepository, tx *sql.Tx) error
 }
 
 /*

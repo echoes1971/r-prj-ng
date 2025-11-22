@@ -15,6 +15,27 @@ curl -X GET http://localhost:1971/users/ \
   -H "Authorization: Bearer <access_token>"
 
 
+Some curls for testing:
+
+curl -X GET http://localhost:8080/api/content/a996-3e3aed1c-a911
+curl -X GET http://localhost:8080/api/nav/breadcrumb/a996-3e3aed1c-a911
+curl -X GET http://localhost:8080/api/nav/children/2c53-b677a6c6-74a1
+
+curl -X GET http://localhost:8080/api/nav/children/-10
+curl -X GET http://localhost:8080/api/content/-10
+curl -X GET http://localhost:8080/api/nav/children/-12
+curl -X GET http://localhost:8080/api/content/-22
+curl -X GET http://localhost:8080/api/nav/breadcrumb/-22
+
+curl -X POST http://localhost:8080/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"login":"adm","pwd":"mysecretpass"}'
+
+curl -X GET http://localhost:8080/api/nav/breadcrumb/d626-5380f5d0-019d \
+  -H "Authorization: Bearer <access_token>"
+
+
+
 Test Suites:
 
 # Esegue tutti i test dei vari package
@@ -74,6 +95,8 @@ func main() {
 	api.JWTKey = []byte(AppConfig.JWTSecret)
 
 	dblayer.InitDBLayer(AppConfig.DBEngine, AppConfig.DBUrl, AppConfig.TablePrefix)
+	// dblayer.EnsureDBSchema()
+	dblayer.InitDBData()
 
 	api.OllamaInit(AppConfig.AppName, AppConfig.OllamaURL, AppConfig.OllamaModel)
 
@@ -81,6 +104,11 @@ func main() {
 	r := mux.NewRouter()
 	// remove cors
 	r.Use(mux.CORSMethodMiddleware(r))
+
+	// Endpoints navigation
+	r.HandleFunc("/content/{objectId}", api.GetNavigationHandler).Methods("GET")
+	r.HandleFunc("/nav/children/{folderId}", api.GetChildrenHandler).Methods("GET")
+	r.HandleFunc("/nav/breadcrumb/{objectId}", api.GetBreadcrumbHandler).Methods("GET")
 
 	// Endpoint pubblico: login
 	r.HandleFunc("/login", api.LoginHandler).Methods("POST")

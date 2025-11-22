@@ -46,9 +46,11 @@ type DBEntityInterface interface {
 	SetValue(columnName string, value any)
 	GetValue(columnName string) any
 	HasValue(columnName string) bool
+	GetAllValues() map[string]any
 	SetMetadata(key string, value any)
 	GetMetadata(key string) any
 	HasMetadata(key string) bool
+	GetAllMetadata() map[string]any
 	ReadFKFrom(dbe *DBEntity)
 	WriteToFK(dbe *DBEntity)
 	IsPrimaryKey(columnName string) bool
@@ -163,6 +165,14 @@ func (dbEntity *DBEntity) HasValue(columnName string) bool {
 	_, exists := dbEntity.dictionary[columnName]
 	return exists
 }
+func (dbEntity *DBEntity) GetAllValues() map[string]any {
+	// Return a copy to prevent external modification
+	valuesCopy := make(map[string]any)
+	for k, v := range dbEntity.dictionary {
+		valuesCopy[k] = v
+	}
+	return valuesCopy
+}
 
 // SetMetadata sets a metadata value that won't be persisted to the database
 // Useful for passing extra data to beforeInsert/beforeUpdate hooks
@@ -187,6 +197,18 @@ func (dbEntity *DBEntity) HasMetadata(key string) bool {
 	}
 	_, exists := dbEntity.metadata[key]
 	return exists
+}
+
+func (dbEntity *DBEntity) GetAllMetadata() map[string]any {
+	if dbEntity.metadata == nil {
+		return nil
+	}
+	// Return a copy to prevent external modification
+	metadataCopy := make(map[string]any)
+	for k, v := range dbEntity.metadata {
+		metadataCopy[k] = v
+	}
+	return metadataCopy
 }
 
 func (dbEntity *DBEntity) ReadFKFrom(dbe *DBEntity) {

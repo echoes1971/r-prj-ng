@@ -115,6 +115,71 @@ func ensureTableExistsAndUpdatedForSqlite(dbe DBEntityInterface) error {
 	return nil
 }
 
+func InitDBData() {
+
+	// Check if the anonymous user exists, if not create it and associate it to the group "Guests"
+	// Setup
+	dbContext := &DBContext{
+		UserID:   "-1",
+		GroupIDs: []string{"-2"},
+		Schema:   "rprj",
+	}
+
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
+	repo.Verbose = false
+	// Check for "Guests" group
+	guestGroup := repo.GetInstanceByTableName("groups")
+	guestGroup.SetValue("name", "Guests")
+	results, err := repo.Search(guestGroup, false, false, "")
+	if err != nil {
+		log.Printf("Failed to find or create 'Guests' group: %v\n", err)
+		return
+	}
+	var guestGroupID string
+	if len(results) == 1 {
+		guestGroupID = results[0].GetValue("id").(string)
+		log.Printf("Found existing 'Guests' group with ID %s\n", guestGroupID)
+	} else {
+		// Create the group
+		newGroup := repo.GetInstanceByTableName("groups")
+		newGroup.SetValue("name", "Guests")
+		newGroup.SetValue("description", "Default group for anonymous users")
+		created, err := repo.Insert(newGroup)
+		if err != nil {
+			log.Printf("Failed to create 'Guests' group: %v\n", err)
+			return
+		}
+		guestGroupID = created.GetValue("id").(string)
+		log.Printf("Created 'Guests' group with ID %s\n", guestGroupID)
+	}
+
+	// Check for anonymous user
+	anonUser := repo.GetInstanceByTableName("users")
+	anonUser.SetValue("login", "anonymous")
+	results, err = repo.Search(anonUser, false, false, "")
+	if err != nil {
+		log.Printf("Failed to find or create 'anonymous' user: %v\n", err)
+		return
+	}
+	if len(results) == 1 {
+		log.Printf("Found existing 'anonymous' user with ID %s\n", results[0].GetValue("id").(string))
+	} else {
+		// Create the user
+		newUser := repo.GetInstanceByTableName("users")
+		newUser.SetValue("id", "-7")
+		newUser.SetValue("login", "anonymous")
+		newUser.SetValue("pwd", "") // No password for anonymous user
+		newUser.SetValue("fullname", "Anonymous User")
+		newUser.SetMetadata("group_ids", []string{guestGroupID})
+		created, err := repo.Insert(newUser)
+		if err != nil {
+			log.Printf("Failed to create 'anonymous' user: %v\n", err)
+			return
+		}
+		log.Printf("Created 'anonymous' user with ID %s\n", created.GetValue("id").(string))
+	}
+}
+
 // Iterate over all registered DBEntity types and create tables if they do not exist or update their schema
 func EnsureDBSchema() {
 	var classInstances []DBEntityInterface
