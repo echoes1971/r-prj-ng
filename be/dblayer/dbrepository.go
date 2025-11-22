@@ -616,7 +616,7 @@ func (dbr *DBRepository) FullObjectById(objectID string, ignoreDeleted bool) DBE
 	if !ok {
 		return nil
 	}
-	log.Println("DBRepository::FullObjectById: classname=", dbObj.GetMetadata("classname"))
+
 	classname, ok := dbObj.GetMetadata("classname").(string)
 	if !ok {
 		return nil

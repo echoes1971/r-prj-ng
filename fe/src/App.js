@@ -9,6 +9,7 @@ import DefaultPage from "./DefaultPage";
 import Login from "./Login";
 import Users from "./Users";
 import Groups from './Groups';
+import SiteNavigation from './SiteNavigation';
 
 function App() {
   const token = localStorage.getItem("token");
@@ -19,8 +20,13 @@ function App() {
     <Router>
       <AppNavbar />
       <Routes>
-        <Route path="/" element={<DefaultPage />} />
+        <Route path="/" element={<SiteNavigation />} />
+        <Route path="/default" element={<DefaultPage />} />
         <Route path="/login" element={<Login />} />
+
+        {/* Site Navigation - content by object ID */}
+        <Route path="/c/:objectId" element={<SiteNavigation />} />
+        <Route path="/c" element={<SiteNavigation />} />
 
         {/* Protected routes - only for admins (group -2) */}
         <Route

@@ -43,6 +43,7 @@ Features
 - Site navigation
   - the site is organized in folders and content pages, like a tree
   - a read-only navigation has to be implemented
+  - all documents are returned to the frontend with the classname in the metadata, so the UI can select the appropriate view
   - documents (dbobjects) have to be accessible via url: http://sitename.com/<object id in the format of xxxx-xxxxxxxx-xxxx>
   - all documents that are public access have to be shown to non logged users
   - the site root is a folder specified in an environment parameter passed to the react application or, given the app name, the react app can search the backend for a folder with name <app name>
@@ -52,7 +53,7 @@ Features
   - a breadcrumb path is displayed on the top, use the father_id to display up to the root folder
   - a root folder is a folder without a father
   - a search field must be displayed on the top (at the left of the login button?): it allows to research objects by name, description, content (html or other)
-  - in the same folder, a page can the same name of another only if the specified language is different.
+  - in the same folder, a page can have the same name of another only if the specified language is different.
   - users can navigate the site plus the content they have access to (personal and of the assigned groups)
   - if the user is logged in and has rights to modify the content is visiting, show a button to bring him to the edit form
 

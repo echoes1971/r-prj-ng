@@ -46,6 +46,10 @@ function AppNavbar() {
               <NavDropdown title="Admin ⚙️" id="admin-nav-dropdown" align="end">
                 <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/default">Ollama Test</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/c/2c53-b677a6c6-74a1">Ollama Pages</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/c/3339-6a5e4fd8-5670">Ollama Pages</NavDropdown.Item>
               </NavDropdown>
             ) : null}
 

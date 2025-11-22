@@ -45,6 +45,7 @@ services:
       - REACT_APP_TITLE=R-Project Dev
       # - REACT_APP_ENDPOINT=http://localhost:8080/api  # Per connettere FE a BE
       - REACT_APP_API_URL=/api  # Per connettere FE a BE
+      - REACT_APP_HOME_OBJECT_ID=-10  # Object ID della home page
       # Only for windows to force polling
       - CHOKIDAR_USEPOLLING=true  # Force polling for file changes (fix Windows/Docker)
       - CHOKIDAR_INTERVAL=1000    # Polling interval in ms (1s: balanced, non CPU-heavy)

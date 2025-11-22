@@ -21,6 +21,9 @@ curl -X GET http://localhost:8080/api/content/a996-3e3aed1c-a911
 curl -X GET http://localhost:8080/api/nav/breadcrumb/a996-3e3aed1c-a911
 curl -X GET http://localhost:8080/api/nav/children/2c53-b677a6c6-74a1
 
+curl -X GET http://localhost:8080/api/nav/2c53-b677a6c6-74a1/indexes
+
+
 curl -X GET http://localhost:8080/api/nav/children/-10
 curl -X GET http://localhost:8080/api/content/-10
 curl -X GET http://localhost:8080/api/nav/children/-12
@@ -82,6 +85,9 @@ func main() {
 	if appName := os.Getenv("APP_NAME"); appName != "" {
 		AppConfig.AppName = appName
 	}
+	if tablePrefix := os.Getenv("TABLE_PREFIX"); tablePrefix != "" {
+		AppConfig.TablePrefix = tablePrefix
+	}
 
 	// Override Ollama settings from environment variables if present
 	if ollamaURL := os.Getenv("OLLAMA_URL"); ollamaURL != "" {
@@ -109,6 +115,7 @@ func main() {
 	r.HandleFunc("/content/{objectId}", api.GetNavigationHandler).Methods("GET")
 	r.HandleFunc("/nav/children/{folderId}", api.GetChildrenHandler).Methods("GET")
 	r.HandleFunc("/nav/breadcrumb/{objectId}", api.GetBreadcrumbHandler).Methods("GET")
+	r.HandleFunc("/nav/{objectId}/indexes", api.GetIndexesHandler).Methods("GET")
 
 	// Endpoint pubblico: login
 	r.HandleFunc("/login", api.LoginHandler).Methods("POST")

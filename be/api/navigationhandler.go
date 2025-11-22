@@ -46,7 +46,7 @@ func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	obj := repo.FullObjectById(objectID, true)
 	if obj == nil {
@@ -104,13 +104,18 @@ func GetChildrenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	children := repo.GetChildren(folderId, true)
 
 	// Convert to response format
 	childrenData := make([]map[string]interface{}, 0, len(children))
 	for _, child := range children {
+		if (child.GetTypeName() == "DBPage" || child.GetMetadata("classname") == "DBPage") && child.GetValue("name") == "index" {
+			// Skip index pages
+			log.Print("GetChildrenHandler: skipping index page=", child.ToString())
+			continue
+		}
 		if !child.HasMetadata("classname") {
 			child.SetMetadata("classname", child.GetTypeName())
 		}
@@ -159,7 +164,7 @@ func GetBreadcrumbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	breadcrumb := repo.GetBreadcrumb(objectID)
 
@@ -183,3 +188,71 @@ func GetBreadcrumbHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
+
+// GET /nav/:objectId/indexes
+//
+//	curl -X GET http://localhost:8080/api/nav/xxxx-xxxxxxxx-xxxx/indexes \
+func GetIndexesHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	objectID := vars["objectId"]
+	// The object ID is in the format xxxx-xxxxxxxx-xxxx: remove all the '-' characters
+	if len(objectID) == 18 {
+		objectID = strings.ReplaceAll(objectID, "-", "")
+	}
+
+	claims, err := GetClaimsFromRequest(r)
+
+	var dbContext dblayer.DBContext
+	if err == nil {
+		dbContext = dblayer.DBContext{
+			UserID:   claims["user_id"],
+			GroupIDs: strings.Split(claims["groups"], ","),
+			Schema:   dblayer.DbSchema,
+		}
+	} else {
+		dbContext = dblayer.DBContext{
+			UserID:   "-7",           // Anonymous user
+			GroupIDs: []string{"-4"}, // Guests group
+			Schema:   dblayer.DbSchema,
+		}
+	}
+
+	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = false
+
+	search := repo.GetInstanceByTableName("pages")
+	if search == nil {
+		RespondSimpleError(w, ErrInternalServer, "Failed to create page instance", http.StatusInternalServerError)
+		return
+	}
+	search.SetValue("father_id", objectID)
+	search.SetValue("name", "index")
+	pages, err := repo.Search(search, false, false, "")
+	if err != nil {
+		RespondSimpleError(w, ErrInternalServer, "Search failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Filter by permissions
+	indexes := make([]map[string]interface{}, 0, len(pages))
+	for _, p := range pages {
+		if repo.CheckReadPermission(p) {
+			if !p.HasMetadata("classname") {
+				p.SetMetadata("classname", p.GetTypeName())
+			}
+			indexes = append(indexes, map[string]interface{}{
+				"data":     p.GetAllValues(),
+				"metadata": p.GetAllMetadata(),
+			})
+		}
+	}
+
+	response := map[string]interface{}{
+		"indexes": indexes,
+		"count":   len(indexes),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// Convert to response format
