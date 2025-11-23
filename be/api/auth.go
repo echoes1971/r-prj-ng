@@ -30,7 +30,7 @@ func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
 		Schema:   dblayer.DbSchema,
 	}
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	// Validate the token
 	claims := jwt.MapClaims{}
@@ -79,7 +79,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			Schema:   dblayer.DbSchema,
 		}
 		repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-		repo.Verbose = true
+		repo.Verbose = false
 
 		// Valida il token
 		claims := jwt.MapClaims{}
@@ -97,7 +97,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Retrieve user ID from claims
 		userID := claims["user_id"].(string)
-		log.Printf("User ID autenticato: %s\n", userID)
+		log.Printf("User ID authenticated: %s\n", userID)
 
 		// Retrieve group ids from claims
 		groupIDs := []string{}

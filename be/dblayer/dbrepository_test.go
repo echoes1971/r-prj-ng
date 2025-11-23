@@ -50,7 +50,7 @@ func TestSearchUserByLogin(t *testing.T) {
 	// Step 4: Create DBRepository with the connection
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
 
-	repo.Verbose = true
+	repo.Verbose = false
 
 	// Step 5: Search for the user with specified login
 	results, err := repo.Search(userEntity, true, true, "login")
@@ -91,7 +91,7 @@ func TestInsertUser(t *testing.T) {
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	// Create a new user entity
 	newUser := Factory.GetInstanceByTableName("users")
@@ -293,7 +293,7 @@ func TestCRUDUser(t *testing.T) {
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	// Create a new user entity
 	newUser := Factory.GetInstanceByTableName("users")

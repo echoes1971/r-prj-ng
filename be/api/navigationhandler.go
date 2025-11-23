@@ -113,7 +113,6 @@ func GetChildrenHandler(w http.ResponseWriter, r *http.Request) {
 	for _, child := range children {
 		if (child.GetTypeName() == "DBPage" || child.GetMetadata("classname") == "DBPage") && child.GetValue("name") == "index" {
 			// Skip index pages
-			log.Print("GetChildrenHandler: skipping index page=", child.ToString())
 			continue
 		}
 		if !child.HasMetadata("classname") {

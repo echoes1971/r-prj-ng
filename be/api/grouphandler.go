@@ -28,7 +28,7 @@ func GetAllGroupsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	search := repo.GetInstanceByTableName("groups")
 	if search == nil {
@@ -80,7 +80,7 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {
@@ -160,7 +160,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	// dblayer.InitDBConnection()
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	dbGroup := repo.GetInstanceByTableName("groups")
 	if dbGroup == nil {
@@ -230,7 +230,7 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {
@@ -286,7 +286,7 @@ func DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	group := repo.GetInstanceByTableName("groups")
 	if group == nil {

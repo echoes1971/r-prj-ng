@@ -49,7 +49,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {

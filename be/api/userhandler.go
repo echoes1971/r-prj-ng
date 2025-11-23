@@ -30,7 +30,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	search := repo.GetInstanceByTableName("users")
 	if search == nil {
@@ -81,7 +81,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
@@ -168,7 +168,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// dblayer.InitDBConnection()
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	dbUser := repo.GetInstanceByTableName("users")
 	if dbUser == nil {
@@ -244,7 +244,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
@@ -298,7 +298,7 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
-	repo.Verbose = true
+	repo.Verbose = false
 
 	user := repo.GetInstanceByTableName("users")
 	if user == nil {
