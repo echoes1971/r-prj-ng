@@ -467,9 +467,9 @@ function ContentView({ data, metadata, dark }) {
 
     switch (classname) {
         case 'DBCompany':
-            return <CompanyView data={data} metadata={metadata} dark={dark} />;
+            return <CompanyView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         case 'DBPerson':
-            return <PersonView data={data} metadata={metadata} dark={dark} />;
+            return <PersonView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         // // CMS
         // case 'DBEvent':
         //     return <EventView data={data} metadata={metadata} dark={dark} />;
