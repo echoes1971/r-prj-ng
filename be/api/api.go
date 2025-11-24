@@ -32,6 +32,7 @@ type Credentials struct {
 type TokenResponse struct {
 	AccessToken string   `json:"access_token"`
 	ExpiresAt   int64    `json:"expires_at"`
+	UserID      string   `json:"user_id"`
 	Groups      []string `json:"groups"`
 }
 
@@ -115,6 +116,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	resp := TokenResponse{
 		AccessToken: tokenString,
 		ExpiresAt:   expiration.Unix(),
+		UserID:      foundUser.GetValue("id").(string),
 		Groups:      group_list,
 	}
 	w.Header().Set("Content-Type", "application/json")

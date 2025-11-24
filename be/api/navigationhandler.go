@@ -64,6 +64,10 @@ func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 		obj.SetMetadata("classname", obj.GetTypeName())
 	}
 
+	// Check permissions
+	canEdit := repo.CheckWritePermission(obj)
+	obj.SetMetadata("can_edit", canEdit)
+
 	// Returns { data: { ... } , metadata: { ... } }
 	response := map[string]interface{}{
 		"data":     obj.GetAllValues(),
@@ -252,6 +256,37 @@ func GetIndexesHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// GET /content/country/:countryId
+//
+//	curl -X GET http://localhost:8080/api/content/country/xxxx-xxxxxxxx-xxxx \
+//	  -H "Authorization: Bearer <access_token>"
+func GetCountryHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	countryID := vars["countryId"]
+	// The country ID is in the format xxxx-xxxxxxxx-xxxx: remove all the '-' characters
+	if len(countryID) == 18 {
+		countryID = strings.ReplaceAll(countryID, "-", "")
+	}
+
+	dbContext := dblayer.DBContext{
+		UserID:   "-7",           // Anonymous user - countries are public
+		GroupIDs: []string{"-4"}, // Guests group
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = false
+
+	country := repo.GetEntityByID("countrylist", countryID)
+	if country == nil {
+		http.Error(w, "Country not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(country.GetAllValues())
 }
 
 // Convert to response format

@@ -839,6 +839,52 @@ func (dbr *DBRepository) CheckReadPermission(dbe DBEntityInterface) bool {
 	return permissions[6] == 'r' // Others read permission
 }
 
+// CheckWritePermission checks if the current user can write (modify/delete) a DBObject
+// Returns true if:
+// - User is the owner and has write permission
+// - User is in the object's group and group has write permission
+// - Object has public write permission
+func (dbr *DBRepository) CheckWritePermission(dbe DBEntityInterface) bool {
+	if !dbe.IsDBObject() {
+		return true // Non-DBObjects have no permission restrictions
+	}
+
+	owner, ok := dbe.GetValue("owner").(string)
+	if !ok {
+		return false
+	}
+
+	// User is owner
+	if dbr.DbContext.IsUser(owner) {
+		permissions, ok := dbe.GetValue("permissions").(string)
+		if !ok || len(permissions) != 9 {
+			return false
+		}
+		return permissions[1] == 'w' // User write permission
+	}
+
+	groupID, ok := dbe.GetValue("group_id").(string)
+	if !ok {
+		return false
+	}
+
+	// User is in group
+	if dbr.DbContext.IsInGroup(groupID) {
+		permissions, ok := dbe.GetValue("permissions").(string)
+		if !ok || len(permissions) != 9 {
+			return false
+		}
+		return permissions[4] == 'w' // Group write permission
+	}
+
+	// Check public write permission
+	permissions, ok := dbe.GetValue("permissions").(string)
+	if !ok || len(permissions) != 9 {
+		return false
+	}
+	return permissions[7] == 'w' // Others write permission
+}
+
 // FilterByReadPermission filters a slice of DBEntityInterface, keeping only objects the user can read
 func (dbr *DBRepository) FilterByReadPermission(entities []DBEntityInterface) []DBEntityInterface {
 	filtered := make([]DBEntityInterface, 0, len(entities))
@@ -848,4 +894,18 @@ func (dbr *DBRepository) FilterByReadPermission(entities []DBEntityInterface) []
 		}
 	}
 	return filtered
+}
+
+// GetEntityByID retrieves a generic entity (non-DBObject) by table name and ID
+func (dbr *DBRepository) GetEntityByID(tableName string, id string) DBEntityInterface {
+	dbe := dbr.GetInstanceByTableName(tableName)
+	if dbe == nil {
+		return nil
+	}
+	dbe.SetValue("id", id)
+	results, err := dbr.Search(dbe, false, false, "")
+	if err != nil || len(results) == 0 {
+		return nil
+	}
+	return results[0]
 }

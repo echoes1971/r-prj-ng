@@ -113,6 +113,7 @@ func main() {
 
 	// Endpoints navigation
 	r.HandleFunc("/content/{objectId}", api.GetNavigationHandler).Methods("GET")
+	r.HandleFunc("/content/country/{countryId}", api.GetCountryHandler).Methods("GET")
 	r.HandleFunc("/nav/children/{folderId}", api.GetChildrenHandler).Methods("GET")
 	r.HandleFunc("/nav/breadcrumb/{objectId}", api.GetBreadcrumbHandler).Methods("GET")
 	r.HandleFunc("/nav/{objectId}/indexes", api.GetIndexesHandler).Methods("GET")
