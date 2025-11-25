@@ -1,8 +1,20 @@
 package dblayer
 
 import (
+	"crypto/sha1"
 	"database/sql"
+	"fmt"
+	"image"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
+	"io"
 	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/nfnt/resize"
 )
 
 /*
@@ -204,6 +216,7 @@ func NewDBFile() *DBFile {
 		{Column: "creator", RefTable: "users", RefColumn: "id"},
 		{Column: "last_modify", RefTable: "users", RefColumn: "id"},
 		{Column: "deleted_by", RefTable: "users", RefColumn: "id"},
+		{Column: "father_id", RefTable: "objects", RefColumn: "id"},
 		{Column: "father_id", RefTable: "folders", RefColumn: "id"},
 		{Column: "fk_obj_id", RefTable: "pages", RefColumn: "id"},
 		{Column: "father_id", RefTable: "pages", RefColumn: "id"},
@@ -231,6 +244,26 @@ func (dbFile *DBFile) GetOrderBy() []string {
 	return []string{"path", "filename"}
 }
 
+func (dbFile *DBFile) generateFilename(aId any, aFilename any) string {
+	var filename string
+	if aFilename == nil {
+		filename = dbFile.GetValue("filename").(string)
+	} else {
+		filename = aFilename.(string)
+	}
+	var id any
+	if aId == nil {
+		id = dbFile.GetValue("id")
+	} else {
+		id = aId
+	}
+	prefix := "r_" + id.(string) + "_"
+	if len(filename) >= len(prefix) && filename[0:len(prefix)] == prefix {
+		filename = filename[len(prefix):]
+	}
+	return prefix + filename
+}
+
 // function generaFilename($aId=null, $aFilename=null) {
 // 	$nomefile = $aFilename==null?$this->getValue('filename'):$aFilename;
 // 	$id=$aId==null?$this->getValue('id'):$aId;
@@ -239,6 +272,29 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 		$nomefile=str_replace($prefisso,"",$nomefile);
 // 	return $prefisso.$nomefile;
 // }
+
+func (dbFile *DBFile) generateObjectPath(a_dbe DBEntityInterface) string {
+	var dest_path string
+	mydbe := a_dbe
+	if mydbe == nil {
+		mydbe = dbFile
+	}
+	if mydbe.GetValue("path") != nil && mydbe.GetValue("path").(string) != "" {
+		dest_path = mydbe.GetValue("path").(string)
+	} else {
+		dest_path = ""
+	}
+	father_id := mydbe.GetValue("father_id")
+	if father_id != nil && father_id.(string) != "" {
+		if dest_path != "" {
+			dest_path = father_id.(string) + "/" + dest_path
+		} else {
+			dest_path = father_id.(string)
+		}
+	}
+	return dest_path
+}
+
 // function generaObjectPath($a_dbe=null) {
 // 	$_dbe = $a_dbe!=null ? $a_dbe : $this;
 // 	$dest_path = $_dbe->getValue('path')>'' ? $_dbe->getValue('path') : '';
@@ -246,6 +302,24 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 	if($father_id>0) $dest_path = $father_id.($dest_path>''?'/':'').$dest_path;
 // 	return $dest_path;
 // }
+
+func (dbFile *DBFile) getFullpath(a_dbe DBEntityInterface) string {
+	var mydbe *DBFile
+	if a_dbe != nil {
+		mydbe = a_dbe.(*DBFile)
+	} else {
+		mydbe = dbFile
+	}
+	dest_path := mydbe.generateObjectPath(nil)
+	// $dest_dir=realpath($GLOBALS['root_directory'].'/'.$mydbe->dest_directory);
+	dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+	if dest_path != "" {
+		dest_dir = dest_dir + "/" + dest_path
+	}
+	ret := dest_dir + "/" + mydbe.GetValue("filename").(string)
+	return ret
+}
+
 // function getFullpath($a_dbe=null) {
 // 	$mydbe = $a_dbe!=null ? $a_dbe : $this;
 // 	$dest_path = $mydbe->generaObjectPath();
@@ -254,9 +328,123 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 	$ret = "$dest_dir/".$mydbe->getValue('filename');
 // 	return $ret;
 // }
+
 // // Image management: start.
+
 // function getThumbnailFilename() { return $this->getValue('filename')."_thumb.jpg"; }
-// function isImage() { $_mime = $this->getValue('mime'); return $_mime>'' && substr($_mime,0,5)=='image'; }
+func (dbFile *DBFile) getThumbnailFilename() string {
+	return dbFile.GetValue("filename").(string) + "_thumb.jpg"
+}
+
+// function isImage() { $_mime = $this->getValue('mime'); return $_mime>” && substr($_mime,0,5)=='image'; }
+func (dbFile *DBFile) isImage() bool {
+	mime := dbFile.GetValue("mime")
+	if mime != nil && mime.(string) != "" && len(mime.(string)) >= 5 && mime.(string)[0:5] == "image" {
+		return true
+	}
+	return false
+}
+
+// computeSHA1 calculates the SHA1 hash of a file
+func (dbFile *DBFile) computeSHA1(filepath string) (string, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := sha1.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+// detectMimeType detects the MIME type of a file (equivalent to finfo_open in PHP)
+func (dbFile *DBFile) detectMimeType(filepath string) (string, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return "application/octet-stream", err
+	}
+	defer file.Close()
+
+	// Read first 512 bytes for detection
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return "application/octet-stream", err
+	}
+
+	// Use http.DetectContentType (equivalent to finfo_open(FILEINFO_MIME) in PHP)
+	mimeType := http.DetectContentType(buffer[:n])
+	return mimeType, nil
+}
+
+func (dbFile *DBFile) createThumbnail(fullpath string) string {
+	thumbPath := fullpath + "_thumb.jpg"
+
+	// Open file
+	file, err := os.Open(fullpath)
+	if err != nil {
+		log.Printf("Error opening file %s: %v\n", fullpath, err)
+		return ""
+	}
+	defer file.Close()
+
+	// Decode image (supports JPEG, PNG, GIF)
+	img, format, err := image.Decode(file)
+	if err != nil {
+		log.Printf("Error decoding image %s: %v\n", fullpath, err)
+		return ""
+	}
+
+	// Calculate dimensions maintaining aspect ratio
+	bounds := img.Bounds()
+	width := uint(bounds.Dx())
+	height := uint(bounds.Dy())
+	maxDim := width
+	if height > width {
+		maxDim = height
+	}
+
+	// Resize to fit within 100x100 (same as PHP version)
+	var thumb image.Image
+	if maxDim > 100 {
+		thumb = resize.Thumbnail(100, 100, img, resize.Lanczos3)
+	} else {
+		thumb = img // No need to resize if already small
+	}
+
+	// Create output file
+	out, err := os.Create(thumbPath)
+	if err != nil {
+		log.Printf("Error creating thumbnail file %s: %v\n", thumbPath, err)
+		return ""
+	}
+	defer out.Close()
+
+	// Save as JPEG with quality 85
+	err = jpeg.Encode(out, thumb, &jpeg.Options{Quality: 85})
+	if err != nil {
+		log.Printf("Error encoding thumbnail %s: %v\n", thumbPath, err)
+		return ""
+	}
+
+	log.Printf("Created thumbnail for %s (format: %s) at %s\n", fullpath, format, thumbPath)
+	return thumbPath
+}
+
+func (dbFile *DBFile) deleteThumbnail(fullpath string) {
+	thumbPath := fullpath + "_thumb.jpg"
+	err := os.Remove(thumbPath)
+	if err != nil {
+		log.Printf("Error deleting thumbnail at %s: %v\n", thumbPath, err)
+	} else {
+		log.Printf("Deleted thumbnail at %s\n", thumbPath)
+	}
+}
+
 // function createThumbnail($fullpath, $pix_width=100,$pix_height=100) {
 // 	$gis = getimagesize($fullpath);
 // 	$type = $gis[2];
@@ -292,6 +480,78 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 	unlink($fullpath."_thumb.jpg");
 // }
 // // Image management: end.
+
+func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
+	if dbr.Verbose {
+		log.Print("DBFile.beforeInsert called")
+	}
+	err := dbFile.DBObject.beforeInsert(dbr, tx)
+	if err != nil {
+		return err
+	}
+	// This seems redundant with SetDefaultValues, but keeping it for compatibility
+	// I don't know, it seems to hide the effects of SetDefaultValues... maybe it should be removed?
+	fatherId := dbFile.GetValue("father_id")
+	if dbFile.HasValue("father_id") && fatherId != nil && fatherId != "" && fatherId != "0" {
+		father := dbr.GetEntityByIDWithTx("folders", fatherId.(string), tx)
+		if father != nil {
+			if fatherFolder, ok := father.(*DBFolder); ok {
+				if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
+					dbFile.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+				}
+			}
+		}
+	}
+	// Adding prefix to filename
+	if dbFile.GetValue("filename") != nil && dbFile.GetValue("filename").(string) != "" {
+		dest_path := dbFile.generateObjectPath(nil)
+		from_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		if dest_path != "" {
+			dest_dir = dest_dir + "/" + dest_path
+		}
+		// Create destination directory if it does not exist
+		os.MkdirAll(dest_dir, os.FileMode(0755))
+		// Using basename equivalent
+		new_filename := dbFile.generateFilename(dbFile.GetValue("id"), filepath.Base(dbFile.GetValue("filename").(string)))
+		err := os.Rename(from_dir+"/"+dbFile.GetValue("filename").(string), dest_dir+"/"+new_filename)
+		if err != nil {
+			return err
+		}
+		if dbFile.GetValue("name") == nil || dbFile.GetValue("name").(string) == "" {
+			dbFile.SetValue("name", filepath.Base(dbFile.GetValue("filename").(string)))
+		}
+		dbFile.SetValue("filename", new_filename)
+	}
+	// Checksum
+	fullpath := dbFile.getFullpath(nil)
+	if _, err := os.Stat(fullpath); err == nil {
+		// File exists
+		checksum, err := dbFile.computeSHA1(fullpath)
+		if err != nil {
+			return err
+		}
+		dbFile.SetValue("checksum", checksum)
+	} else {
+		dbFile.SetValue("checksum", "File '"+dbFile.GetValue("filename").(string)+"' not found!")
+	}
+	// Mime type
+	if _, err := os.Stat(fullpath); err == nil {
+		mimeType, err := dbFile.detectMimeType(fullpath)
+		if err != nil {
+			return err
+		}
+		dbFile.SetValue("mime", mimeType)
+	} else {
+		dbFile.SetValue("mime", "text/plain")
+	}
+	// Image
+	if dbFile.isImage() {
+		dbFile.createThumbnail(fullpath)
+	}
+	return nil
+}
+
 // function _before_insert(&$dbmgr) {
 // 	parent::_before_insert($dbmgr);
 // 	// Eredita la 'radice' dal padre
@@ -348,6 +608,122 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 	if($this->isImage())
 // 		$this->createThumbnail($_fullpath);
 // }
+
+func (dbFile *DBFile) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
+	if dbr.Verbose {
+		log.Print("DBFile.beforeUpdate called")
+	}
+	err := dbFile.DBObject.beforeUpdate(dbr, tx)
+	if err != nil {
+		return err
+	}
+	// Inherit 'root' from parent
+	fatherId := dbFile.GetValue("father_id")
+	if dbFile.HasValue("father_id") && fatherId != nil && fatherId != "" && fatherId != "0" {
+		father := dbr.GetEntityByIDWithTx("folders", fatherId.(string), tx)
+		if father != nil {
+			if fatherFolder, ok := father.(*DBFolder); ok {
+				if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
+					dbFile.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+				}
+			}
+		}
+	}
+	// Check if I already have a saved file
+	myself := dbr.GetEntityByIDWithTx("files", dbFile.GetValue("id").(string), tx).(*DBFile)
+	if myself == nil {
+		// Error: should not happen
+		return nil
+	}
+	if dbFile.GetValue("filename") != nil && dbFile.GetValue("filename").(string) != "" && myself.GetValue("filename").(string) != dbFile.GetValue("filename").(string) {
+		// Different filenames ==> delete the old one
+		dest_path := myself.generateObjectPath(nil)
+		dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		if dest_path != "" {
+			dest_dir = dest_dir + "/" + dest_path
+		}
+		dest_file := dest_dir + "/" + myself.GetValue("filename").(string)
+		if _, err := os.Stat(dest_file); os.IsNotExist(err) {
+			// Do nothing
+		} else {
+			err := os.Remove(dest_file)
+			if err != nil {
+				return err
+			}
+			// Image
+			if dbFile.isImage() {
+				dbFile.deleteThumbnail(dest_file)
+			}
+		}
+	}
+	// Adding prefix to filename
+	if dbFile.GetValue("filename") != nil && dbFile.GetValue("filename").(string) != "" {
+		from_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		dest_path := dbFile.generateObjectPath(nil)
+		dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		if dest_path != "" {
+			dest_dir = dest_dir + "/" + dest_path
+		}
+		// Create destination directory if it does not exist
+		os.MkdirAll(dest_dir, os.FileMode(0755))
+		new_filename := dbFile.generateFilename(dbFile.GetValue("id"), filepath.Base(dbFile.GetValue("filename").(string)))
+		err := os.Rename(from_dir+"/"+dbFile.GetValue("filename").(string), dest_dir+"/"+new_filename)
+		if err != nil {
+			return err
+		}
+		dbFile.SetValue("filename", new_filename)
+	} else if myself.GetValue("path") != dbFile.GetValue("path") {
+		from_path := myself.generateObjectPath(nil)
+		from_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		if from_path != "" {
+			from_dir = from_dir + "/" + from_path
+		}
+		dest_path := dbFile.generateObjectPath(nil)
+		dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+		if dest_path != "" {
+			dest_dir = dest_dir + "/" + dest_path
+		}
+		// Create destination directory if it does not exist
+		os.MkdirAll(dest_dir, os.FileMode(0755))
+		err := os.Rename(from_dir+"/"+myself.GetValue("filename").(string), dest_dir+"/"+myself.GetValue("filename").(string))
+		if err != nil {
+			return err
+		}
+		// TODO check if it works
+		dbFile.SetValue("filename", myself.GetValue("filename"))
+	} else {
+		// TODO check if it works
+		dbFile.SetValue("filename", myself.GetValue("filename"))
+	}
+	// Checksum
+	fullpath := dbFile.getFullpath(nil)
+	if _, err := os.Stat(fullpath); err == nil {
+		// File exists
+		checksum, err := dbFile.computeSHA1(fullpath)
+		if err != nil {
+			return err
+		}
+		dbFile.SetValue("checksum", checksum)
+	} else {
+		dbFile.SetValue("checksum", "File '"+dbFile.GetValue("filename").(string)+"' not found!")
+	}
+	// Mime type
+	if _, err := os.Stat(fullpath); err == nil {
+		mimeType, err := dbFile.detectMimeType(fullpath)
+		if err != nil {
+			return err
+		}
+		dbFile.SetValue("mime", mimeType)
+	} else {
+		dbFile.SetValue("mime", "text/plain")
+	}
+	// Image
+	if dbFile.isImage() {
+		dbFile.createThumbnail(fullpath)
+	}
+	return nil
+}
+
 // function _before_update(&$dbmgr) {
 // 	parent::_before_update($dbmgr);
 // 	// Eredita la 'radice' dal padre
@@ -436,6 +812,44 @@ func (dbFile *DBFile) GetOrderBy() []string {
 // 	if($this->isImage())
 // 		$this->createThumbnail($_fullpath);
 // }
+
+func (dbFile *DBFile) beforeDelete(dbr *DBRepository, tx *sql.Tx) error {
+	if dbr.Verbose {
+		log.Print("DBFile.beforeDelete called")
+	}
+	is_deleted := dbFile.HasDeletedDate()
+
+	// If it has been marked deleted, then now is a REAL delete, so remove the file BEFORE calling parent
+	if is_deleted {
+		// Use current dbFile values (not from DB, as it will be deleted)
+		if dbFile.GetValue("filename") != nil && dbFile.GetValue("filename").(string) != "" {
+			// ==> delete the file
+			dest_path := dbFile.generateObjectPath(nil)
+			dest_dir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+			if dest_path != "" {
+				dest_dir = dest_dir + "/" + dest_path
+			}
+			fullpath := dest_dir + "/" + dbFile.GetValue("filename").(string)
+			err := os.Remove(fullpath)
+			if err != nil && !os.IsNotExist(err) {
+				log.Printf("Error removing file %s: %v", fullpath, err)
+			} else {
+				log.Printf("Deleted file at %s", fullpath)
+			}
+			// Image
+			if dbFile.isImage() {
+				dbFile.deleteThumbnail(fullpath)
+			}
+		}
+	}
+
+	err := dbFile.DBObject.beforeDelete(dbr, tx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // function _before_delete(&$dbmgr) {
 // 	// Has it been marked deleted before?
 // 	$is_deleted = $this->isDeleted();
@@ -539,27 +953,27 @@ func NewDBFolder() *DBFolder {
 		},
 	}
 }
-func (dbFolder *DBFolder) NewInstance() DBEntityInterface {
+func (dbFile *DBFolder) NewInstance() DBEntityInterface {
 	return NewDBFolder()
 }
-func (dbFolder *DBFolder) IsDBObject() bool {
+func (dbFile *DBFolder) IsDBObject() bool {
 	return true
 }
 
-func (dbFolder *DBFolder) SetDefaultValues(repo *DBRepository) {
+func (dbFile *DBFolder) SetDefaultValues(repo *DBRepository) {
 	if repo.Verbose {
 		log.Print("DBFolder.SetDefaultValues called")
 	}
-	dbFolder.DBObject.SetDefaultValues(repo)
+	dbFile.DBObject.SetDefaultValues(repo)
 
-	if !dbFolder.HasValue("father_id") || dbFolder.GetValue("father_id") == "" || dbFolder.GetValue("father_id") == "0" {
+	if !dbFile.HasValue("father_id") || dbFile.GetValue("father_id") == "" || dbFile.GetValue("father_id") == "0" {
 		return
 	}
-	father := repo.GetEntityByID("folders", dbFolder.GetValue("father_id").(string))
+	father := repo.GetEntityByID("folders", dbFile.GetValue("father_id").(string))
 	if father != nil {
 		if fatherFolder, ok := father.(*DBFolder); ok {
 			if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
-				dbFolder.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+				dbFile.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
 			}
 		}
 	}
@@ -589,24 +1003,24 @@ func (dbFolder *DBFolder) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	return nil
 }
 
-func (dbFolder *DBFolder) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
+func (dbFile *DBFolder) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
 	if dbr.Verbose {
 		log.Print("DBFolder.beforeUpdate called")
 	}
-	err := dbFolder.DBObject.beforeUpdate(dbr, tx)
+	err := dbFile.DBObject.beforeUpdate(dbr, tx)
 	if err != nil {
 		return err
 	}
 	// This seems redundant with SetDefaultValues, but keeping it for compatibility
 	// I don't know, it seems to hide the effects of SetDefaultValues... maybe it should be removed?
-	if !dbFolder.HasValue("father_id") || dbFolder.GetValue("father_id") == "" || dbFolder.GetValue("father_id") == "0" {
+	if !dbFile.HasValue("father_id") || dbFile.GetValue("father_id") == "" || dbFile.GetValue("father_id") == "0" {
 		return nil
 	}
-	father := dbr.GetEntityByIDWithTx("folders", dbFolder.GetValue("father_id").(string), tx)
+	father := dbr.GetEntityByIDWithTx("folders", dbFile.GetValue("father_id").(string), tx)
 	if father != nil {
 		if fatherFolder, ok := father.(*DBFolder); ok {
 			if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
-				dbFolder.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+				dbFile.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
 			}
 		}
 	}

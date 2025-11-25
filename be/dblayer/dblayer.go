@@ -15,6 +15,10 @@ var DbSchema string
 var DbConnection *sql.DB
 var Factory *DBEFactory
 
+/* *** DBFiles *** */
+var dbFiles_root_directory string = "."
+var dbFiles_dest_directory string = "files"
+
 func InitDBLayer(dbEngineName, dbUrlAddress, schema string) {
 	dbEngine = dbEngineName
 	dbUrl = dbUrlAddress
