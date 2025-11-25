@@ -12,16 +12,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func TestMain(m *testing.M) {
-	InitDBLayer("mysql", "root:mysecret@tcp(localhost:3306)/rproject", "rprj")
-
-	// Esegui i test
-	m.Run()
-
-	// Teardown: chiudi la connessione
-	CloseDBConnection()
-}
-
 /*
 1. Connect to "root:mysecret@tcp(localhost:3306)/rproject"
 2. create a new DBEntity of type "users"
