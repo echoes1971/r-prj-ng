@@ -236,6 +236,33 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 	return results, nil
 }
 
+// CreateObject creates and inserts a new entity with the provided values
+// Usage: repo.CreateObject("files", map[string]any{"name": "Test", "filename": "test.jpg"})
+func (dbr *DBRepository) CreateObject(tableName string, values map[string]any) (DBEntityInterface, error) {
+	instance := dbr.factory.GetInstanceByTableNameWithValues(tableName, values)
+	if instance == nil {
+		return nil, fmt.Errorf("unknown table name: %s", tableName)
+	}
+	return dbr.Insert(instance)
+}
+
+// UpdateObject updates an existing entity with the provided values (only updates specified fields)
+// Usage: repo.UpdateObject("files", "file-id-123", map[string]any{"name": "New Name", "description": "Updated"})
+func (dbr *DBRepository) UpdateObject(tableName string, id string, values map[string]any) (DBEntityInterface, error) {
+	// Get the existing entity
+	existing := dbr.GetEntityByID(tableName, id)
+	if existing == nil {
+		return nil, fmt.Errorf("entity not found: %s with id %s", tableName, id)
+	}
+
+	// Update only the provided values
+	for key, value := range values {
+		existing.SetValue(key, value)
+	}
+
+	return dbr.Update(existing)
+}
+
 // Insert inserts a new entity into the database within a transaction
 func (dbr *DBRepository) Insert(dbe DBEntityInterface) (DBEntityInterface, error) {
 	// Start a transaction
