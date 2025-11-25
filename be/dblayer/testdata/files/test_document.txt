@@ -1,0 +1,6 @@
+This is a test text file.
+It contains multiple lines.
+Used for testing file upload and MIME type detection.
+
+SHA1 checksum should be calculated correctly.
+MIME type should be: text/plain
