@@ -692,7 +692,6 @@ func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEn
 
 		clause := "father_id='" + parentID + "'"
 
-		log.Print("DBRepository.GetChildren: className=", className)
 		switch className {
 		case "DBCompany":
 		case "DBObject":
