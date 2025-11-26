@@ -2,6 +2,7 @@ package dblayer
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 
@@ -275,3 +276,74 @@ func CloseDBConnection() {
 		DbConnection.Close()
 	}
 }
+
+/* **** Compatibility functions **** */
+
+func uuid2hex(str string) string {
+	if str == "" {
+		return str
+	}
+	if len(str) < 4 {
+		return str
+	}
+	if str[0:4] == "uuid" {
+		return str
+	}
+	hex := ""
+	for i := 0; i < len(str); i++ {
+		hex += stringFormat("%x", str[i])
+	}
+	return "uuid" + hex
+}
+func hex2uuid(a_str string) string {
+	if len(a_str) < 4 || a_str[0:4] != "uuid" {
+		return a_str
+	}
+	str := a_str[4:]
+	bin := ""
+	for i := 0; i < len(str); i += 2 {
+		var b byte
+		fmtSscanf(str[i:i+2], "%02x", &b)
+		bin += string(b)
+	}
+	return bin
+}
+func stringFormat(format string, a ...interface{}) string {
+	return fmt.Sprintf(format, a...)
+}
+func fmtSscanf(str string, format string, a ...interface{}) {
+	fmt.Sscanf(str, format, a...)
+}
+
+// Below is the equivalent PHP code for the uuid2hex and hex2uuid functions:
+/*
+   static function uuid2hex($str) {
+       if($str===null) return $str;
+       $str_len = strlen($str);
+       if($str_len<4) return $str;
+       if(substr($str,0,4)=='uuid')
+           return $str;
+       $hex = "";
+       $i = 0;
+       do {
+           $hex .= dechex(ord($str[$i]));
+           // $hex .= dechex(ord($str{$i}));
+           $i++;
+       } while ($i<$str_len);
+       return 'uuid'.$hex;
+   }
+   static function hex2uuid($a_str) {
+       if(substr($a_str,0,4)!='uuid')
+           return $a_str;
+       $str=substr($a_str,4);
+       $bin = "";
+       $i = 0;
+       $str_len = strlen($str);
+       do {
+           $bin .= chr(hexdec($str[$i].$str[($i + 1)]));
+           // $bin .= chr(hexdec($str{$i}.$str{($i + 1)}));
+           $i += 2;
+       } while ($i < $str_len);
+       return $bin;
+   }
+*/

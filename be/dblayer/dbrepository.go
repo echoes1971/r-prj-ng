@@ -663,6 +663,17 @@ func (dbr *DBRepository) FullObjectById(objectID string, ignoreDeleted bool) DBE
 // GetChildren returns all direct children of a folder (objects with father_id = parentID)
 // Filters results by read permissions
 func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEntityInterface {
+
+	// Get the container object
+	container := dbr.FullObjectById(parentID, true)
+	log.Print("DBRepository.GetChildren: container=", container.ToJSON())
+	// Get childs_sort_order if container is DBFolder
+	childs_sort_order := []string{}
+	if container != nil && container.GetTypeName() == "DBFolder" {
+		childs_sort_order = container.(*DBFolder).GetChildsSortOrder()
+		log.Print("DBRepository.GetChildren: childs_sort_order=", childs_sort_order)
+	}
+
 	registeredTypes := dbr.factory.GetAllClassNames()
 	var queries []string
 
@@ -692,6 +703,30 @@ func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEn
 		log.Print("DBRepository::GetChildren: searchString=", searchString)
 	}
 	results := dbr.Select("DBObject", searchString)
+
+	// If childs_sort_order is defined, sort results accordingly and append any missing items at the end
+	if len(childs_sort_order) > 0 {
+		sortedResults := make([]DBEntityInterface, 0)
+		seenIDs := make(map[string]bool)
+		// First, add items in the order defined by childs_sort_order
+		for _, childID := range childs_sort_order {
+			for _, obj := range results {
+				if obj.GetValue("id") == childID {
+					sortedResults = append(sortedResults, obj)
+					seenIDs[childID] = true
+					break
+				}
+			}
+		}
+		// Then, add any remaining items that were not in childs_sort_order
+		for _, obj := range results {
+			objID := obj.GetValue("id").(string)
+			if !seenIDs[objID] {
+				sortedResults = append(sortedResults, obj)
+			}
+		}
+		results = sortedResults
+	}
 
 	// Filter by read permissions
 	return dbr.FilterByReadPermission(results)

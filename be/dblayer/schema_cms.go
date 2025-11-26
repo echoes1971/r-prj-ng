@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/nfnt/resize"
 )
@@ -958,6 +959,16 @@ func (dbFile *DBFolder) NewInstance() DBEntityInterface {
 }
 func (dbFile *DBFolder) IsDBObject() bool {
 	return true
+}
+
+func (dbFile *DBFolder) GetChildsSortOrder() []string {
+	sorted_childs := []string{}
+	if dbFile.HasValue("childs_sort_order") && dbFile.GetValue("childs_sort_order") != nil && dbFile.GetValue("childs_sort_order").(string) != "" {
+		for _, child := range strings.Split(dbFile.GetValue("childs_sort_order").(string), ",") {
+			sorted_childs = append(sorted_childs, hex2uuid(child))
+		}
+	}
+	return sorted_childs
 }
 
 func (dbFile *DBFolder) SetDefaultValues(repo *DBRepository) {
