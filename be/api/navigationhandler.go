@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
@@ -24,14 +23,10 @@ func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims, err := GetClaimsFromRequest(r)
-	// if err != nil {
-	// 	RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
-	// 	return
-	// }
 
 	var dbContext dblayer.DBContext
 	if err == nil {
-		log.Print("GetNavigationHandler: authenticated user:", claims["user_id"])
+		// log.Print("GetNavigationHandler: authenticated user:", claims["user_id"])
 		dbContext = dblayer.DBContext{
 			UserID:   claims["user_id"],
 			GroupIDs: strings.Split(claims["groups"], ","),

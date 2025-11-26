@@ -6,24 +6,18 @@ import (
 )
 
 func TestCRUDDBObject(t *testing.T) {
-	// Setup
-	dbContext := &DBContext{
-		UserID:   "-1",
-		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
-	}
-
-	repo := NewDBRepository(dbContext, Factory, DbConnection)
-	repo.Verbose = false
+	repo := setupTestRepo(t)
 
 	// Create
-	dbObj := repo.GetInstanceByTableName("objects")
+	dbObj := repo.factory.GetInstanceByTableNameWithValues("objects", map[string]any{
+		"name":        "Test Object",
+		"description": "This is a test object",
+	})
 	if dbObj == nil {
 		t.Fatal("Failed to create DBObject instance")
 	}
-	dbObj.SetValue("name", "Test Object")
-	dbObj.SetValue("description", "This is a test object")
 
+	// Insert
 	log.Print("Insert dbObj=", dbObj.ToString())
 	_, err := repo.Insert(dbObj)
 	if err != nil {

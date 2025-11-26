@@ -71,7 +71,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		tokenString := parts[1]
-		log.Printf("Token ricevuto: %s\n", tokenString)
+		// log.Printf("Token ricevuto: %s\n", tokenString)
 
 		dbContext := &dblayer.DBContext{
 			UserID:   "-1",           // DANGEROUS!!!! Think of something better here!!!
@@ -86,8 +86,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 			return JWTKey, nil
 		})
-		log.Printf("Claims: %+v\n", claims)
-		log.Printf("err: %v\n", err)
+		// log.Printf("Claims: %+v\n", claims)
+		// log.Printf("err: %v\n", err)
 		if err != nil || !token.Valid {
 			RespondSimpleError(w, ErrInvalidToken, "Invalid or expired token", http.StatusUnauthorized)
 			log.Print("Deleting token from db due to invalidity.")
@@ -97,14 +97,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Retrieve user ID from claims
 		userID := claims["user_id"].(string)
-		log.Printf("User ID authenticated: %s\n", userID)
+		// log.Printf("User ID authenticated: %s\n", userID)
 
 		// Retrieve group ids from claims
-		groupIDs := []string{}
-		if g, ok := claims["groups"].(string); ok && g != "" {
-			groupIDs = strings.Split(g, ",")
-		}
-		log.Printf("Group IDs: %+v\n", groupIDs)
+		// groupIDs := []string{}
+		// if g, ok := claims["groups"].(string); ok && g != "" {
+		// 	groupIDs = strings.Split(g, ",")
+		// }
+		// log.Printf("Group IDs: %+v\n", groupIDs)
 
 		// Search the token in the database to ensure it's valid
 		if !IsTokenValid(repo, tokenString, userID) {

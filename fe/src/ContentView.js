@@ -127,6 +127,10 @@ function FolderView({ data, metadata, dark }) {
 
 // View for DBPage
 function PageView({ data, metadata, dark }) {
+    const navigate = useNavigate();
+    const { t } = useTranslation();
+    const canEdit = metadata.can_edit;
+
     return (
         <div>
             {data.name && (
@@ -137,6 +141,19 @@ function PageView({ data, metadata, dark }) {
             )}
             {data.html && (
                 <div dangerouslySetInnerHTML={{ __html: data.html }}></div>
+            )}
+            {canEdit && (
+                <>
+                    <br />
+                    <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="mt-2"
+                        onClick={() => navigate(`/e/${data.id}`)}
+                    >
+                        <i className="bi bi-pencil me-1"></i>{t('common.edit')}
+                    </Button>
+                </>
             )}
         </div>
     );

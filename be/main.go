@@ -152,6 +152,15 @@ func main() {
 	groupRoutes.HandleFunc("/{id}", api.UpdateGroupHandler).Methods("PUT")
 	groupRoutes.HandleFunc("/{id}", api.DeleteGroupHandler).Methods("DELETE")
 
+	// Endpoint protected: CRUD objects (generic DBObject operations)
+	objectRoutes := r.PathPrefix("/objects").Subrouter()
+	objectRoutes.Use(api.AuthMiddleware) // applica il middleware
+
+	objectRoutes.HandleFunc("/creatable-types", api.GetCreatableTypesHandler).Methods("GET")
+	objectRoutes.HandleFunc("", api.CreateObjectHandler).Methods("POST")
+	objectRoutes.HandleFunc("/{id}", api.UpdateObjectHandler).Methods("PUT")
+	objectRoutes.HandleFunc("/{id}", api.DeleteObjectHandler).Methods("DELETE")
+
 	log.Println("Server in ascolto su :", AppConfig.ServerPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", AppConfig.ServerPort), r))
 }

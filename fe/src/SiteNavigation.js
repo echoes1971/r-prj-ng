@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosInstance from './axios';
 import { app_cfg } from './app.cfg';
 import ContentView from './ContentView';
+import NewObjectButton from './NewObjectButton';
 import { getErrorMessage } from './errorHandler';
 import { ThemeContext } from './ThemeContext';
 import { formatObjectId, classname2bootstrapIcon } from './sitenavigation_utils';
@@ -98,20 +99,30 @@ function SiteNavigation() {
         <Container className={`mt-4 ${themeClass}`}>
             <Row>
                 <Col>
-                    {/* Breadcrumb */}
+                    {/* Breadcrumb with New button */}
                     {breadcrumb.length > 0 && (
-                        <Breadcrumb className="mb-3">
-                            {breadcrumb.map((item, index) => (
-                                <Breadcrumb.Item
-                                    key={item.data.id}
-                                    active={index === breadcrumb.length - 1}
-                                    linkAs={Link}
-                                    linkProps={{ to: `/c/${formatObjectId(item.data.id)}` }}
-                                >
-                                    {item.data.name}
-                                </Breadcrumb.Item>
-                            ))}
-                        </Breadcrumb>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <Breadcrumb className="mb-0">
+                                {breadcrumb.map((item, index) => (
+                                    <Breadcrumb.Item
+                                        key={item.data.id}
+                                        active={index === breadcrumb.length - 1}
+                                        linkAs={Link}
+                                        linkProps={{ to: `/c/${formatObjectId(item.data.id)}` }}
+                                    >
+                                        {item.data.name}
+                                    </Breadcrumb.Item>
+                                ))}
+                            </Breadcrumb>
+                            {!loading && content && content.metadata && content.metadata.can_edit && (
+                                <NewObjectButton 
+                                    fatherId={currentObjectId}
+                                    onObjectCreated={() => {
+                                        loadChildren(); // Refresh children list
+                                    }}
+                                />
+                            )}
+                        </div>
                     )}
 
                     {/* Main Content */}

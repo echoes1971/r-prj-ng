@@ -318,12 +318,10 @@ func (dbGroup *DBGroup) NewInstance() DBEntityInterface {
 }
 
 func (dbGroup *DBGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
-	log.Print("DBGroup::beforeInsert called")
 	if dbGroup.GetValue("id") == "" {
 		groupID, _ := uuid16HexGo()
 		dbGroup.SetValue("id", groupID)
 	}
-	log.Printf("DBGroup::beforeInsert: id=%s, name=%s, description=%s", dbGroup.GetValue("id"), dbGroup.GetValue("name"), dbGroup.GetValue("description"))
 
 	// Check that group with same name does not already exist
 	existingGroup := dbGroup.NewInstance()

@@ -12,6 +12,7 @@ import UserProfile from "./UserProfile";
 import Groups from './Groups';
 import GroupProfile from './GroupProfile';
 import SiteNavigation from './SiteNavigation';
+import ContentEdit from './ContentEdit';
 
 function App() {
   const token = localStorage.getItem("token");
@@ -29,6 +30,9 @@ function App() {
         {/* Site Navigation - content by object ID */}
         <Route path="/c/:objectId" element={<SiteNavigation />} />
         <Route path="/c" element={<SiteNavigation />} />
+
+        {/* Content Edit - edit object by ID (requires authentication) */}
+        <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to="/login" />} />
 
         {/* User profile - accessible by the user themselves or admins */}
         <Route

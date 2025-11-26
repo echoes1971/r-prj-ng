@@ -666,12 +666,16 @@ func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEn
 
 	// Get the container object
 	container := dbr.FullObjectById(parentID, true)
-	log.Print("DBRepository.GetChildren: container=", container.ToJSON())
+	if dbr.Verbose {
+		log.Print("DBRepository.GetChildren: container=", container.ToJSON())
+	}
 	// Get childs_sort_order if container is DBFolder
 	childs_sort_order := []string{}
 	if container != nil && container.GetTypeName() == "DBFolder" {
 		childs_sort_order = container.(*DBFolder).GetChildsSortOrder()
-		log.Print("DBRepository.GetChildren: childs_sort_order=", childs_sort_order)
+		if dbr.Verbose {
+			log.Print("DBRepository.GetChildren: childs_sort_order=", childs_sort_order)
+		}
 	}
 
 	registeredTypes := dbr.factory.GetAllClassNames()
