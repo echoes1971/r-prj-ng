@@ -284,4 +284,43 @@ func GetCountryHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(country.GetAllValues())
 }
 
+// GetCountriesHandler returns all countries from countrylist table
+// GET /api/countries
+func GetCountriesHandler(w http.ResponseWriter, r *http.Request) {
+	dbContext := dblayer.DBContext{
+		UserID:   "-7",           // Anonymous user - countries are public
+		GroupIDs: []string{"-4"}, // Guests group
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = false
+
+	// Get all countries - create empty instance for search
+	countryInstance := repo.GetInstanceByTableName("countrylist")
+	if countryInstance == nil {
+		http.Error(w, "Country table not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Search with empty criteria returns all
+	countries, err := repo.Search(countryInstance, false, false, "Common_Name")
+	if err != nil {
+		http.Error(w, "Error fetching countries: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert to simple array of country objects
+	result := make([]map[string]interface{}, 0, len(countries))
+	for _, country := range countries {
+		result = append(result, country.GetAllValues())
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":   true,
+		"countries": result,
+	})
+}
+
 // Convert to response format

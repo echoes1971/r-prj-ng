@@ -131,6 +131,9 @@ func main() {
 	// curl -X GET http://localhost:8080/api/ollama/defaultpage
 	r.HandleFunc("/ollama/defaultpage", api.DefaultPageOllamaHandler).Methods("GET")
 
+	// Endpoint pubblico: Get all countries
+	r.HandleFunc("/countries", api.GetCountriesHandler).Methods("GET")
+
 	// Endpoint protected: CRUD utenti
 	userRoutes := r.PathPrefix("/users").Subrouter()
 	userRoutes.Use(api.AuthMiddleware) // applica il middleware
@@ -156,6 +159,7 @@ func main() {
 	objectRoutes := r.PathPrefix("/objects").Subrouter()
 	objectRoutes.Use(api.AuthMiddleware) // applica il middleware
 
+	objectRoutes.HandleFunc("/search", api.SearchObjectsHandler).Methods("GET")
 	objectRoutes.HandleFunc("/creatable-types", api.GetCreatableTypesHandler).Methods("GET")
 	objectRoutes.HandleFunc("", api.CreateObjectHandler).Methods("POST")
 	objectRoutes.HandleFunc("/{id}", api.UpdateObjectHandler).Methods("PUT")

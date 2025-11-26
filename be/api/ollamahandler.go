@@ -212,7 +212,8 @@ func OllamaSavePage(content string) {
 	page.SetValue("description", "AI-generated content by Ollama")
 	page.SetValue("html", content)
 	page.SetValue("father_id", ollamaFolder.GetValue("id"))
-	page.SetValue("permissions", "rwxr--r--") // Tutti possono leggere
+	page.SetValue("permissions", "rwxrw-r--") // Tutti possono leggere
+	page.SetValue("group_id", "-6")
 	created, err := repo.Insert(page)
 	if err != nil {
 		log.Printf("Failed to create Ollama default page: %v\n", err)

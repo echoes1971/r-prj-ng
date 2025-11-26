@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -11,11 +12,6 @@ import (
 
 	"github.com/gorilla/mux"
 )
-
-// entityToMap converts a DBEntityInterface to a map using GetAllValues()
-func entityToMap(entity dblayer.DBEntityInterface) map[string]interface{} {
-	return entity.GetAllValues()
-}
 
 // CreateObjectHandler creates a new DBObject
 // POST /api/objects
@@ -99,7 +95,7 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("CreateObjectHandler: Created %s with ID=%s", classname, created.GetValue("id"))
 
 	// Convert entity to map
-	resultMap := entityToMap(created)
+	resultMap := created.GetAllValues()
 
 	// Return created object
 	w.Header().Set("Content-Type", "application/json")
@@ -199,8 +195,7 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("UpdateObjectHandler: Updated %s with ID=%s", classname, objectID)
 
-	// Convert entity to map
-	resultMap := entityToMap(updated)
+	resultMap := updated.GetAllValues()
 
 	// Return updated object
 	w.Header().Set("Content-Type", "application/json")
@@ -278,7 +273,7 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("DeleteObjectHandler: Soft-deleted %s with ID=%s", classname, objectID)
 
 	// Convert entity to map
-	resultMap := entityToMap(deleted)
+	resultMap := deleted.GetAllValues()
 
 	// Return success
 	w.Header().Set("Content-Type", "application/json")
@@ -370,5 +365,94 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"types":   creatableTypes,
+	})
+}
+
+// SearchObjectsHandler searches for objects by classname and name pattern
+// GET /api/objects/search?classname=DBCompany&name=acme&limit=10
+func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := GetClaimsFromRequest(r)
+	if err != nil {
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	dbContext := &dblayer.DBContext{
+		UserID:   claims["user_id"],
+		GroupIDs: strings.Split(claims["groups"], ","),
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = false
+
+	classname := r.URL.Query().Get("classname")
+	namePattern := r.URL.Query().Get("name")
+	limit := r.URL.Query().Get("limit")
+
+	if classname == "" {
+		RespondSimpleError(w, ErrInvalidRequest, "Missing classname parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Get instance for the requested classname
+	searchInstance := repo.GetInstanceByClassName(classname)
+	if searchInstance == nil {
+		RespondSimpleError(w, ErrInvalidRequest, "Unknown classname: "+classname, http.StatusBadRequest)
+		return
+	}
+
+	if !searchInstance.IsDBObject() {
+		RespondSimpleError(w, ErrInvalidRequest, "Classname is not a DBObject: "+classname, http.StatusBadRequest)
+		return
+	}
+
+	// Set search criteria
+	if namePattern != "" {
+		searchInstance.SetValue("name", namePattern)
+	}
+
+	// Search with LIKE and case-insensitive
+	results, err := repo.Search(searchInstance, true, false, "name")
+	if err != nil {
+		log.Printf("SearchObjectsHandler: Search failed: %v", err)
+		RespondSimpleError(w, ErrInternalServer, "Search failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Apply limit if specified
+	maxResults := len(results)
+	if limit != "" {
+		var limitInt int
+		if _, err := fmt.Sscanf(limit, "%d", &limitInt); err == nil && limitInt > 0 && limitInt < maxResults {
+			maxResults = limitInt
+		}
+	}
+
+	// Convert results to map array
+	var resultList []map[string]interface{}
+	for i := 0; i < maxResults && i < len(results); i++ {
+		entity := results[i]
+		// Check read permission
+		if !repo.CheckReadPermission(entity) {
+			continue
+		}
+
+		resultMap := make(map[string]interface{})
+		resultMap["id"] = entity.GetValue("id")
+		resultMap["name"] = entity.GetValue("name")
+		if desc := entity.GetValue("description"); desc != nil {
+			resultMap["description"] = desc
+		}
+		resultList = append(resultList, resultMap)
+	}
+
+	log.Printf("SearchObjectsHandler: Found %d %s objects matching '%s'", len(resultList), classname, namePattern)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"objects": resultList,
 	})
 }

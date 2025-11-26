@@ -689,12 +689,27 @@ func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEn
 		if !dbe.IsDBObject() {
 			continue
 		}
+
+		clause := "father_id='" + parentID + "'"
+
+		log.Print("DBRepository.GetChildren: className=", className)
+		switch className {
+		case "DBCompany":
+		case "DBObject":
+			continue
+		case "DBPerson":
+			clause = "father_id='" + parentID + "'" + " or " + "fk_companies_id='" + parentID + "'"
+		default:
+			clause = "father_id='" + parentID + "'"
+			// clause = "father_id='" + parentID + "' OR fk_obj_id='" + parentID + "'"
+		}
+
 		query := "SELECT '" + className + "' as classname, id,owner,group_id,permissions,creator," +
 			"creation_date,last_modify,last_modify_date," +
 			"deleted_by,deleted_date," +
 			"father_id,name,description" +
 			" from " + dbr.buildTableName(dbe) +
-			" WHERE father_id = '" + parentID + "'"
+			" WHERE " + clause
 		if ignoreDeleted {
 			query += " AND deleted_date IS NULL"
 		}

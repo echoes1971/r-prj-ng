@@ -242,7 +242,7 @@ function PersonView({ data, metadata, objectData, dark }) {
                 {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <br />}
                 {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <small style={{ opacity: 0.7 }}>Linked to: <ObjectLinkView obj_id={data.fk_obj_id} dark={dark} /></small>}
             </Card.Header>
-            <Card.Body>
+            <Card.Body className={dark ? 'bg-secondary bg-opacity-10' : ''}>
                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
                 {!data.html && data.description && <hr />}
                 {data.description && (
@@ -315,7 +315,7 @@ function CompanyView({ data, metadata, objectData, dark }) {
                 {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <br />}
                 {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <small style={{ opacity: 0.7 }}>Linked to: <ObjectLinkView obj_id={data.fk_obj_id} dark={dark} /></small>}
             </Card.Header>
-            <Card.Body>
+            <Card.Body className={dark ? 'bg-secondary bg-opacity-10' : ''}>
                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
                 {!data.html && data.description && <hr />}
                 {data.description && (
