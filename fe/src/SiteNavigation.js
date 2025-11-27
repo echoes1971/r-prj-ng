@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Row, Col, Breadcrumb, Spinner, Alert, ListGroup } from 'react-bootstrap';
+import { Button, Container, Row, Col, Breadcrumb, Spinner, Alert, ListGroup } from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosInstance from './axios';
+import { useTranslation } from 'react-i18next';
 import { app_cfg } from './app.cfg';
 import ContentView from './ContentView';
 import NewObjectButton from './NewObjectButton';
@@ -13,6 +14,7 @@ function SiteNavigation() {
     const { objectId } = useParams();
     const navigate = useNavigate();
     const { dark, themeClass } = useContext(ThemeContext);
+    const { t } = useTranslation();
     
     // Use home object ID from config if no objectId in URL
     const currentObjectId = objectId || app_cfg.app_home_object_id;
@@ -99,39 +101,49 @@ function SiteNavigation() {
         <Container className={`mt-4 ${themeClass}`}>
             <Row>
                 <Col>
-                    {/* Breadcrumb with New button */}
-                    {breadcrumb.length > 0 && (
+                    {/* Breadcrumb with Edit and New buttons */}
+                    {/* {breadcrumb.length > 0 && ( */}
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <Breadcrumb className="mb-0">
-                                {breadcrumb.map((item, index) => (
-                                    <Breadcrumb.Item
-                                        key={item.data.id}
-                                        active={index === breadcrumb.length - 1}
-                                        linkAs={Link}
-                                        linkProps={{ to: `/c/${formatObjectId(item.data.id)}` }}
-                                    >
-                                        {item.data.name}
-                                    </Breadcrumb.Item>
-                                ))}
-                            </Breadcrumb>
+                                <Breadcrumb className="mb-0" data-bs-theme={dark ? 'dark' : 'light'}>
+                                    {breadcrumb.length > 1 && breadcrumb.map((item, index) => (
+                                        <Breadcrumb.Item
+                                            key={item.data.id}
+                                            active={index === breadcrumb.length - 1}
+                                            linkAs={Link}
+                                            linkProps={{ to: `/c/${formatObjectId(item.data.id)}` }}
+                                        >
+                                            {item.data.name}
+                                        </Breadcrumb.Item>
+                                    ))}
+                                </Breadcrumb>
                             {!loading && content && content.metadata && content.metadata.can_edit && (
-                                <NewObjectButton 
-                                    fatherId={currentObjectId}
-                                    onObjectCreated={() => {
-                                        loadChildren(); // Refresh children list
-                                    }}
-                                />
+                                <div className="d-flex gap-2">
+                                    <Button 
+                                        variant="outline-primary" 
+                                        size="sm"
+                                        onClick={() => navigate(`/e/${currentObjectId}`)}
+                                    >
+                                        <i className="bi bi-pencil me-1"></i>
+                                        {t('common.edit')}
+                                    </Button>
+                                    <NewObjectButton 
+                                        fatherId={currentObjectId}
+                                        onObjectCreated={() => {
+                                            loadChildren(); // Refresh children list
+                                        }}
+                                    />
+                                </div>
                             )}
                         </div>
-                    )}
+                    {/* )} */}
 
                     {/* Main Content */}
-                <ContentView 
-                    data={content.data} 
-                    metadata={content.metadata}
-                    dark={dark}
-                />                    {/* Children List (if folder) */}
-                    {/*  && content.metadata.classname === 'DBFolder' */}
+                    <ContentView 
+                        data={content.data} 
+                        metadata={content.metadata}
+                        dark={dark}
+                    />
+                    {/* Children List*/}
                     {children.length > 0 && (
                         <div className="mt-4">
                             {/* <h4>Contents</h4> */}

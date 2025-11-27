@@ -9,6 +9,8 @@ import {
     classname2bootstrapIcon,
     CountryView,
     UserLinkView,
+    ObjectHeaderView,
+    ObjectFooterView,
     ObjectLinkView,
     HtmlFieldView
 } from './sitenavigation_utils';
@@ -21,7 +23,6 @@ function FolderView({ data, metadata, dark }) {
 
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
     
     const [indexContent, setIndexContent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -84,16 +85,6 @@ function FolderView({ data, metadata, dark }) {
                             ))}
                         </ul> */}
                     </div>
-                    {canEdit && (
-                            <Button 
-                                variant="primary" 
-                                size="sm" 
-                                className="mt-2"
-                                onClick={() => navigate(`/e/${data.id}`)}
-                            >
-                                <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                            </Button>
-                    )}
                 </div>
             )}
         </div>
@@ -129,7 +120,6 @@ function FolderView({ data, metadata, dark }) {
 function PageView({ data, metadata, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
 
     return (
         <div>
@@ -141,19 +131,6 @@ function PageView({ data, metadata, dark }) {
             )}
             {data.html && (
                 <div dangerouslySetInnerHTML={{ __html: data.html }}></div>
-            )}
-            {canEdit && (
-                <>
-                    <br />
-                    <Button 
-                        variant="primary" 
-                        size="sm" 
-                        className="mt-2"
-                        onClick={() => navigate(`/e/${data.id}`)}
-                    >
-                        <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                    </Button>
-                </>
             )}
         </div>
     );
@@ -193,15 +170,15 @@ function PageView({ data, metadata, dark }) {
 function NoteView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
 
     return (
         <Card className="mb-3 border-warning" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
             <Card.Header className={dark ? 'bg-warning bg-opacity-25' : 'bg-warning bg-opacity-10'}>
-                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
-                {/* <small style={{ opacity: 0.7 }}><i className={`bi bi-${classname2bootstrapIcon(metadata.classname)}`} title={metadata.classname}></i> Note · ID: {data.id}</small> */}
+                <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Header>
             <Card.Body>
+                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+                <hr />
                 {data.description && (
                     // <Card.Text>{data.description}</Card.Text>
                     <div className="content">
@@ -210,19 +187,7 @@ function NoteView({ data, metadata, objectData, dark }) {
                 )}
             </Card.Body>
             <Card.Footer className={dark ? 'bg-warning bg-opacity-25' : 'bg-warning bg-opacity-10'}>
-                {canEdit && (
-                    <>
-                        <br />
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => navigate(`/e/${data.id}`)}
-                        >
-                            <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                        </Button>
-                    </>
-                )}
+                <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Footer>
         </Card>
     );
@@ -231,16 +196,11 @@ function NoteView({ data, metadata, objectData, dark }) {
 function PersonView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
     
     return (
         <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
             <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                {data.father_id && data.father_id!=="0" && <small style={{ opacity: 0.7 }}>Parent: <ObjectLinkView obj_id={data.father_id} dark={dark} /></small>}
-                {data.father_id && data.father_id!=="0" && <br />}
-                <small style={{ opacity: 0.7 }}><i className={`bi bi-${classname2bootstrapIcon(metadata.classname)}`} title={metadata.classname}></i> ID: {data.id}</small>
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <br />}
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <small style={{ opacity: 0.7 }}>Linked to: <ObjectLinkView obj_id={data.fk_obj_id} dark={dark} /></small>}
+                <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Header>
             <Card.Body className={dark ? 'bg-secondary bg-opacity-10' : ''}>
                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
@@ -274,28 +234,7 @@ function PersonView({ data, metadata, objectData, dark }) {
                 {data.p_iva && <p>💰 {data.p_iva}</p>}
             </Card.Body>
             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                <small style={{ opacity: 0.7 }}>Owner: {objectData && objectData.owner_name} | Group: {objectData && objectData.group_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Permissions: {data.permissions}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Created: {formateDateTimeString(data.creation_date)} - {objectData && objectData.creator_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Last update: {formateDateTimeString(data.last_modify_date)} - {objectData && objectData.last_modifier_name}</small>
-                {data.deleted_date && <br />}
-                {data.deleted_date && <small style={{ opacity: 0.7 }}>Deleted: {formateDateTimeString(data.deleted_date)} - {objectData && objectData.deleted_by_name}</small>}
-                {canEdit && (
-                    <>
-                        <br />
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => navigate(`/e/${data.id}`)}
-                        >
-                            <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                        </Button>
-                    </>
-                )}
+                <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Footer>
         </Card>
     );
@@ -304,16 +243,11 @@ function PersonView({ data, metadata, objectData, dark }) {
 function CompanyView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
     
     return (
         <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
             <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                {data.father_id && data.father_id!=="0" && <small style={{ opacity: 0.7 }}>Parent: <ObjectLinkView obj_id={data.father_id} dark={dark} /></small>}
-                {data.father_id && data.father_id!=="0" && <br />}
-                <small style={{ opacity: 0.7 }}><i className={`bi bi-${classname2bootstrapIcon(metadata.classname)}`} title={metadata.classname}></i> ID: {data.id}</small>
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <br />}
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <small style={{ opacity: 0.7 }}>Linked to: <ObjectLinkView obj_id={data.fk_obj_id} dark={dark} /></small>}
+                <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Header>
             <Card.Body className={dark ? 'bg-secondary bg-opacity-10' : ''}>
                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
@@ -340,28 +274,7 @@ function CompanyView({ data, metadata, objectData, dark }) {
                 {data.p_iva && <p>💰 {data.p_iva}</p>}
             </Card.Body>
             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                <small style={{ opacity: 0.7 }}>Owner: {objectData && objectData.owner_name} | Group: {objectData && objectData.group_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Permissions: {data.permissions}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Created: {formateDateTimeString(data.creation_date)} - {objectData && objectData.creator_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Last update: {formateDateTimeString(data.last_modify_date)} - {objectData && objectData.last_modifier_name}</small>
-                {data.deleted_date && <br />}
-                {data.deleted_date && <small style={{ opacity: 0.7 }}>Deleted: {formateDateTimeString(data.deleted_date)} - {objectData && objectData.deleted_by_name}</small>}
-                {canEdit && (
-                    <>
-                        <br />
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => navigate(`/e/${data.id}`)}
-                        >
-                            <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                        </Button>
-                    </>
-                )}
+                <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Footer>
         </Card>
     );
@@ -371,16 +284,11 @@ function CompanyView({ data, metadata, objectData, dark }) {
 function ObjectView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const canEdit = metadata.can_edit;
     
     return (
         <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
             <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                {data.father_id && data.father_id!=="0" && <small style={{ opacity: 0.7 }}>Parent: <ObjectLinkView obj_id={data.father_id} dark={dark} /></small>}
-                {data.father_id && data.father_id!=="0" && <br />}
-                <small style={{ opacity: 0.7 }}><i className={`bi bi-${classname2bootstrapIcon(metadata.classname)}`} title={metadata.classname}></i> ID: {data.id}</small>
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <br />}
-                {data.fk_obj_id && data.fk_obj_id!==data.father_id && data.fk_obj_id!=="0" && <small style={{ opacity: 0.7 }}>Linked to: <ObjectLinkView obj_id={data.fk_obj_id} dark={dark} /></small>}
+                <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Header>
             <Card.Body>
                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
@@ -394,28 +302,7 @@ function ObjectView({ data, metadata, objectData, dark }) {
                 )}
             </Card.Body>
             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                <small style={{ opacity: 0.7 }}>Owner: {objectData && objectData.owner_name} | Group: {objectData && objectData.group_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Permissions: {data.permissions}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Created: {formateDateTimeString(data.creation_date)} - {objectData && objectData.creator_name}</small>
-                <br />
-                <small style={{ opacity: 0.7 }}>Last update: {formateDateTimeString(data.last_modify_date)} - {objectData && objectData.last_modifier_name}</small>
-                {data.deleted_date && <br />}
-                {data.deleted_date && <small style={{ opacity: 0.7 }}>Deleted: {formateDateTimeString(data.deleted_date)} - {objectData && objectData.deleted_by_name}</small>}
-                {canEdit && (
-                    <>
-                        <br />
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => navigate(`/e/${data.id}`)}
-                        >
-                            <i className="bi bi-pencil me-1"></i>{t('common.edit')}
-                        </Button>
-                    </>
-                )}
+                <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Footer>
         </Card>
     );

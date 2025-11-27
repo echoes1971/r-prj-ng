@@ -78,5 +78,35 @@
     "navigation": {
         "back": "Indietro",
         "delete_confirm": "Sei sicuro di voler eliminare questo oggetto?"
+    },
+    "dbobjects": {
+        "DBCompany": "Azienda",
+        "DBEvent": "Evento",
+        "DBFile": "File",
+        "DBFolder": "Cartella",
+        "DBNews": "Notizia",
+        "DBNote": "Nota",
+        "DBObject": "Oggetto",
+        "DBPage": "Pagina",
+        "DBPerson": "Persona",
+        "id": "ID",
+        "owner": "Proprietario",
+        "group": "Gruppo",
+        "permissions": "Permessi",
+        "created": "Creato",
+        "modified": "Modificato",
+        "deleted": "Eliminato",
+        "parent": "Genitore",
+        "linked_to": "Collegato a"
+    },
+    "permissions": {
+        "read": "Lettura",
+        "write": "Scrittura",
+        "execute": "Esecuzione",
+        "owner": "Proprietario",
+        "group": "Gruppo",
+        "others": "Altri",
+        "current": "Permessi attuali",
+        "hint": "Imposta i permessi di lettura, scrittura ed esecuzione per proprietario, gruppo e altri"
     }
 }

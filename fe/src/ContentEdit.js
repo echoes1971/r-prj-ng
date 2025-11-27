@@ -8,6 +8,7 @@ import 'react-quill/dist/quill.snow.css';
 import axiosInstance from './axios';
 import CountrySelector from './CountrySelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
+import PermissionsEditor from './PermissionsEditor';
 import { ThemeContext } from './ThemeContext';
 
 // Polyfill for findDOMNode (removed in React 19)
@@ -24,7 +25,7 @@ if (!ReactDOM.findDOMNode) {
 }
 
 // Edit form for DBNote
-function NoteEdit({ data, onSave, onCancel, saving, error, dark }) {
+function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: data.name || '',
@@ -107,13 +108,22 @@ function NoteEdit({ data, onSave, onCancel, saving, error, dark }) {
                     <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
                 </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
             </div>
         </Form>
     );
 }
 
 // Edit form for DBPage
-function PageEdit({ data, onSave, onCancel, saving, error, dark }) {
+function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     const [htmlMode, setHtmlMode] = useState('wysiwyg'); // 'wysiwyg' or 'source'
     const [formData, setFormData] = useState({
@@ -262,13 +272,22 @@ function PageEdit({ data, onSave, onCancel, saving, error, dark }) {
                     <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
                 </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
             </div>
         </Form>
     );
 }
 
 // Edit form for DBPerson
-function PersonEdit({ data, onSave, onCancel, saving, error, dark }) {
+function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: data.name || '',
@@ -288,6 +307,7 @@ function PersonEdit({ data, onSave, onCancel, saving, error, dark }) {
         p_iva: data.p_iva || '',
         fk_users_id: data.fk_users_id || '0',
         fk_companies_id: data.fk_companies_id || '0',
+        permissions: data.permissions || 'rwxr-x---',
     });
 
     const handleChange = (e) => {
@@ -504,6 +524,14 @@ function PersonEdit({ data, onSave, onCancel, saving, error, dark }) {
                 required={false}
             />
 
+            <PermissionsEditor
+                value={formData.permissions}
+                onChange={handleChange}
+                name="permissions"
+                label={t('permissions.current') || 'Permissions'}
+                dark={dark}
+            />
+
             {error && (
                 <Alert variant="danger" className="mb-3">
                     {error}
@@ -543,13 +571,22 @@ function PersonEdit({ data, onSave, onCancel, saving, error, dark }) {
                     <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
                 </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
             </div>
         </Form>
     );
 }
 
 // Edit form for DBCompany
-function CompanyEdit({ data, onSave, onCancel, saving, error, dark }) {
+function CompanyEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: data.name || '',
@@ -564,6 +601,7 @@ function CompanyEdit({ data, onSave, onCancel, saving, error, dark }) {
         email: data.email || '',
         url: data.url || '',
         p_iva: data.p_iva || '',
+        permissions: data.permissions || 'rwxr-x---',
     });
 
     const handleChange = (e) => {
@@ -720,6 +758,14 @@ function CompanyEdit({ data, onSave, onCancel, saving, error, dark }) {
                 />
             </Form.Group>
 
+            <PermissionsEditor
+                value={formData.permissions}
+                onChange={handleChange}
+                name="permissions"
+                label={t('permissions.current') || 'Permissions'}
+                dark={dark}
+            />
+
             {error && (
                 <Alert variant="danger" className="mb-3">
                     {error}
@@ -759,17 +805,27 @@ function CompanyEdit({ data, onSave, onCancel, saving, error, dark }) {
                     <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
                 </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
             </div>
         </Form>
     );
 }
 
 // Generic edit form for other DBObjects
-function ObjectEdit({ data, metadata, onSave, onCancel, saving, error, dark }) {
+function ObjectEdit({ data, metadata, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: data.name || '',
         description: data.description || '',
+        permissions: data.permissions || 'rwxr-x---',
     });
 
     const handleChange = (e) => {
@@ -814,6 +870,14 @@ function ObjectEdit({ data, metadata, onSave, onCancel, saving, error, dark }) {
                 />
             </Form.Group>
 
+            <PermissionsEditor
+                value={formData.permissions}
+                onChange={handleChange}
+                name="permissions"
+                label={t('permissions.current') || 'Permissions'}
+                dark={dark}
+            />
+
             {error && (
                 <Alert variant="danger" className="mb-3">
                     {error}
@@ -852,6 +916,15 @@ function ObjectEdit({ data, metadata, onSave, onCancel, saving, error, dark }) {
                 >
                     <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
+                </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
                 </Button>
             </div>
         </Form>
@@ -911,6 +984,27 @@ function ContentEdit() {
 
     const handleCancel = () => {
         navigate(`/c/${id}`);
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm(t('navigation.delete_confirm'))) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError(null);
+
+            // Delete object via API
+            await axiosInstance.delete(`/objects/${id}`);
+
+            // Navigate to parent or home
+            navigate(-1);
+        } catch (err) {
+            console.error('Error deleting object:', err);
+            setError(err.response?.data?.message || 'Failed to delete object');
+            setSaving(false);
+        }
     };
 
     if (loading) {
@@ -996,6 +1090,7 @@ function ContentEdit() {
                         metadata={metadata}
                         onSave={handleSave}
                         onCancel={handleCancel}
+                        onDelete={handleDelete}
                         saving={saving}
                         error={error}
                         dark={dark}

@@ -78,5 +78,35 @@
   "navigation": {
     "back": "Zurück",
     "delete_confirm": "Möchten Sie dieses Objekt wirklich löschen?"
+  },
+  "dbobjects": {
+    "DBCompany": "Firma",
+    "DBEvent": "Ereignis",
+    "DBFile": "Datei",
+    "DBFolder": "Ordner",
+    "DBNews": "Nachricht",
+    "DBNote": "Notiz",
+    "DBObject": "Objekt",
+    "DBPage": "Seite",
+    "DBPerson": "Person",
+    "id": "ID",
+    "owner": "Eigentümer",
+    "group": "Gruppe",
+    "permissions": "Berechtigungen",
+    "created": "Erstellt",
+    "modified": "Geändert",
+    "deleted": "Gelöscht",
+    "parent": "Elternteil",
+    "linked_to": "Verknüpft mit"
+  },
+  "permissions": {
+    "read": "Lesen",
+    "write": "Schreiben",
+    "execute": "Ausführen",
+    "owner": "Eigentümer",
+    "group": "Gruppe",
+    "others": "Andere",
+    "current": "Aktuelle Berechtigungen",
+    "hint": "Lese-, Schreib- und Ausführungsberechtigungen für Eigentümer, Gruppe und Andere festlegen"
   }
 }

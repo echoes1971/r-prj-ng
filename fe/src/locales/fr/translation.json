@@ -78,5 +78,35 @@
   "navigation": {
     "back": "Retour",
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet objet ?"
+  },
+  "dbobjects": {
+    "DBCompany": "Société",
+    "DBEvent": "Événement",
+    "DBFile": "Fichier",
+    "DBFolder": "Dossier",
+    "DBNews": "Actualité",
+    "DBNote": "Note",
+    "DBObject": "Objet",
+    "DBPage": "Page",
+    "DBPerson": "Personne",
+    "id": "ID",
+    "owner": "Propriétaire",
+    "group": "Groupe",
+    "permissions": "Permissions",
+    "created": "Créé",
+    "modified": "Modifié",
+    "deleted": "Supprimé",
+    "parent": "Parent",
+    "linked_to": "Lié à"
+  },
+  "permissions": {
+    "read": "Lecture",
+    "write": "Écriture",
+    "execute": "Exécution",
+    "owner": "Propriétaire",
+    "group": "Groupe",
+    "others": "Autres",
+    "current": "Permissions actuelles",
+    "hint": "Définir les permissions de lecture, écriture et exécution pour le propriétaire, le groupe et les autres"
   }
 }

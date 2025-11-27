@@ -78,5 +78,35 @@
   "navigation": {
     "back": "Back",
     "delete_confirm": "Are you sure you want to delete this object?"
+  },
+  "dbobjects": {
+    "DBCompany": "Company",
+    "DBEvent": "Event",
+    "DBFile": "File",
+    "DBFolder": "Folder",
+    "DBNews": "News",
+    "DBNote": "Note",
+    "DBObject": "Object",
+    "DBPage": "Page",
+    "DBPerson": "Person",
+    "id": "ID",
+    "owner": "Owner",
+    "group": "Group",
+    "permissions": "Permissions",
+    "created": "Created",
+    "modified": "Modified",
+    "deleted": "Deleted",
+    "parent": "Parent",
+    "linked_to": "Linked to"
+  },
+  "permissions": {
+    "read": "Read",
+    "write": "Write",
+    "execute": "Execute",
+    "owner": "Owner",
+    "group": "Group",
+    "others": "Others",
+    "current": "Current permissions",
+    "hint": "Set read, write, and execute permissions for owner, group, and others"
   }
 }
