@@ -81,7 +81,7 @@ func TestDBFileUpload(t *testing.T) {
 	file := createTestFile(t, repo, "testdata/images/test_image.jpg", map[string]any{
 		"name":        "Test Image",
 		"description": "Test image for upload",
-	})
+	}, nil)
 
 	// Verify file was renamed with prefix
 	filename := file.GetValue("filename").(string)
@@ -132,7 +132,7 @@ func TestDBFileUploadPNG(t *testing.T) {
 
 	file := createTestFile(t, repo, "testdata/images/test_image.png", map[string]any{
 		"name": "Test PNG Image",
-	})
+	}, nil)
 	mime := file.GetValue("mime").(string)
 	if mime != "image/png" && mime[:9] != "image/png" {
 		t.Errorf("Expected MIME type to be 'image/png', got '%s'", mime)
@@ -157,7 +157,7 @@ func TestDBFileUploadGIF(t *testing.T) {
 
 	file := createTestFile(t, repo, "testdata/images/test_image.gif", map[string]any{
 		"name": "Test GIF Image",
-	})
+	}, nil)
 	mime := file.GetValue("mime").(string)
 	if mime != "image/gif" && mime[:9] != "image/gif" {
 		t.Errorf("Expected MIME type to be 'image/gif', got '%s'", mime)
@@ -182,7 +182,7 @@ func TestDBFileUploadNonImage(t *testing.T) {
 
 	file := createTestFile(t, repo, "testdata/files/test_document.txt", map[string]any{
 		"name": "Test Text Document",
-	})
+	}, nil)
 	mime := file.GetValue("mime").(string)
 	if mime[:10] != "text/plain" {
 		t.Errorf("Expected MIME type to start with 'text/plain', got '%s'", mime)
@@ -207,7 +207,7 @@ func TestDBFileUploadPDF(t *testing.T) {
 
 	file := createTestFile(t, repo, "testdata/files/test_document.pdf", map[string]any{
 		"name": "Test PDF Document",
-	})
+	}, nil)
 
 	mime := file.GetValue("mime").(string)
 	if mime != "application/pdf" && mime[:15] != "application/pdf" {
@@ -228,14 +228,13 @@ func TestDBFileUploadPDF(t *testing.T) {
 	}
 }
 
-
 func TestDBFileSmallImage(t *testing.T) {
 	repo := setupTestRepo(t)
 
 	// Test with small image (50x50) - should still create thumbnail
 	file := createTestFile(t, repo, "testdata/images/small_image.jpg", map[string]any{
 		"name": "Small Test Image",
-	})
+	}, nil)
 
 	// Verify thumbnail was still created even for small image
 	fullpath := file.getFullpath(nil)
@@ -257,7 +256,7 @@ func TestDBFileUpdate(t *testing.T) {
 	// Create initial file
 	file := createTestFile(t, repo, "testdata/images/test_image.jpg", map[string]any{
 		"name": "Original File",
-	})
+	}, nil)
 
 	originalFilename := file.GetValue("filename").(string)
 	originalChecksum := file.GetValue("checksum").(string)
@@ -302,7 +301,7 @@ func TestDBFileSoftDelete(t *testing.T) {
 	// Create file
 	file := createTestFile(t, repo, "testdata/images/test_image.jpg", map[string]any{
 		"name": "File to Delete",
-	})
+	}, nil)
 
 	fullpath := file.getFullpath(nil)
 	thumbPath := fullpath + "_thumb.jpg"
@@ -350,7 +349,6 @@ func TestDBFileSoftDelete(t *testing.T) {
 	}
 }
 
-
 func TestDBFileWithFolder(t *testing.T) {
 	repo := setupTestRepo(t)
 
@@ -360,13 +358,13 @@ func TestDBFileWithFolder(t *testing.T) {
 	folder := createTestFolder(t, repo, map[string]any{
 		"name":      "Test Folder",
 		"fk_obj_id": fk_obj_id_value,
-	})
+	}, nil)
 
 	// Upload file into folder
 	file := createTestFile(t, repo, "testdata/images/test_image.jpg", map[string]any{
 		"name":      "File in Folder",
 		"father_id": folder.GetValue("id"),
-	})
+	}, nil)
 
 	// Verify fk_obj_id inherited from folder
 	if file.GetValue("fk_obj_id") != fk_obj_id_value {

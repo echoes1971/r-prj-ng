@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 )
@@ -347,7 +346,6 @@ func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
 
 func (dbEntity *DBEntity) beforeInsert(dbRepository *DBRepository, tx *sql.Tx) error {
 	// Implement any logic needed before inserting the entity into the database
-	log.Print("DBEntity::beforeInsert: ", dbEntity.ToString())
 	return nil
 }
 

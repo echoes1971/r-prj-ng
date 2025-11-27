@@ -12,7 +12,7 @@ func TestCRUDDBObject(t *testing.T) {
 	dbObj := repo.factory.GetInstanceByTableNameWithValues("objects", map[string]any{
 		"name":        "Test Object",
 		"description": "This is a test object",
-	})
+	}, nil)
 	if dbObj == nil {
 		t.Fatal("Failed to create DBObject instance")
 	}

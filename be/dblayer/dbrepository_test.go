@@ -3,7 +3,6 @@ package dblayer
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -57,21 +56,6 @@ func TestSearchUserByLogin(t *testing.T) {
 	}
 }
 
-func randInt(min, max int) int {
-	return min + rand.Intn(max-min)
-}
-
-/* Returns a random 4-digit string */
-func random4digits() string {
-	const digits = "0123456789"
-	result := make([]byte, 4)
-	// Generate random number between 0000 and 9999
-	for i := 0; i < 4; i++ {
-		result[i] = digits[randInt(0, len(digits))]
-	}
-	return string(result)
-}
-
 func TestInsertUser(t *testing.T) {
 	// Setup
 	dbContext := &DBContext{
@@ -90,7 +74,7 @@ func TestInsertUser(t *testing.T) {
 	}
 
 	// Set values (id must be set manually since it's not auto-increment)
-	login := "testuser_" + random4digits()
+	login := "testuser_" + Random4digits()
 	newUser.SetValue("login", login)
 	newUser.SetValue("pwd", "testpassword")
 	newUser.SetValue("fullname", "Test User")
@@ -170,7 +154,7 @@ func TestConcurrentMayhem(t *testing.T) {
 	}()
 
 	concurrent_routines := 500
-	userPrefix := "mayhem_" + random4digits()
+	userPrefix := "mayhem_" + Random4digits()
 
 	for i := range concurrent_routines {
 		<-burstyLimiter // Acquire a token
@@ -292,7 +276,7 @@ func TestCRUDUser(t *testing.T) {
 	}
 
 	// Set values (id must be set manually since it's not auto-increment)
-	login := "testuser_" + random4digits()
+	login := "testuser_" + Random4digits()
 	newUser.SetValue("login", login)
 	newUser.SetValue("pwd", "testpassword")
 	newUser.SetValue("fullname", "Test User")
@@ -399,7 +383,7 @@ func TestCRUDMayhem(t *testing.T) {
 	}()
 
 	concurrent_routines := 300
-	userPrefix := "mayhem_" + random4digits()
+	userPrefix := "mayhem_" + Random4digits()
 
 	for i := range concurrent_routines {
 		<-burstyLimiter // Acquire a token

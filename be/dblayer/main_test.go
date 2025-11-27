@@ -1,6 +1,7 @@
 package dblayer
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,6 +18,21 @@ func TestMain(m *testing.M) {
 }
 
 /* ***** Helper functions for tests ***** */
+
+func RandInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+/* Returns a random 4-digit string */
+func Random4digits() string {
+	const digits = "0123456789"
+	result := make([]byte, 4)
+	// Generate random number between 0000 and 9999
+	for i := 0; i < 4; i++ {
+		result[i] = digits[RandInt(0, len(digits))]
+	}
+	return string(result)
+}
 
 func hardDeleteForTests(repo *DBRepository, object DBObjectInterface) error {
 	deletedObject, err := repo.Delete(object)
@@ -37,6 +53,16 @@ func setupTestRepo(t *testing.T) *DBRepository {
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
 		Schema:   "rprj",
+	}
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
+	repo.Verbose = false
+	return repo
+}
+func SetupTestRepo(t *testing.T, user_id string, group_ids []string, schema string) *DBRepository {
+	dbContext := &DBContext{
+		UserID:   user_id,
+		GroupIDs: group_ids,
+		Schema:   schema,
 	}
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false
@@ -73,8 +99,8 @@ func prepareTestFile(t *testing.T, srcPath, destFilename string) string {
 
 // createTestObject creates an entity with the provided values using repo.CreateObject
 // Usage: createTestObject(t, repo, "files", map[string]any{"name": "Test", "filename": "test.jpg"})
-func createTestObject(t *testing.T, repo *DBRepository, tableName string, values map[string]any) DBEntityInterface {
-	created, err := repo.CreateObject(tableName, values)
+func createTestObject(t *testing.T, repo *DBRepository, tableName string, values map[string]any, metadata map[string]any) DBEntityInterface {
+	created, err := repo.CreateObject(tableName, values, metadata)
 	if err != nil {
 		t.Fatalf("Failed to create %s: %v", tableName, err)
 	}
@@ -83,7 +109,7 @@ func createTestObject(t *testing.T, repo *DBRepository, tableName string, values
 
 // createTestFile creates a DBFile with automatic file preparation
 // Usage: createTestFile(t, repo, "testdata/images/test.jpg", map[string]any{"name": "Test Image"})
-func createTestFile(t *testing.T, repo *DBRepository, srcPath string, values map[string]any) *DBFile {
+func createTestFile(t *testing.T, repo *DBRepository, srcPath string, values map[string]any, metadata map[string]any) *DBFile {
 	// Generate unique filename
 	filename := filepath.Base(srcPath)
 	prepareTestFile(t, srcPath, filename)
@@ -93,12 +119,12 @@ func createTestFile(t *testing.T, repo *DBRepository, srcPath string, values map
 		values["filename"] = filename
 	}
 
-	created := createTestObject(t, repo, "files", values)
+	created := createTestObject(t, repo, "files", values, metadata)
 	return created.(*DBFile)
 }
 
 // createTestFolder creates a DBFolder
 // Usage: createTestFolder(t, repo, map[string]any{"name": "Test Folder", "fk_obj_id": "-10"})
-func createTestFolder(t *testing.T, repo *DBRepository, values map[string]any) DBEntityInterface {
-	return createTestObject(t, repo, "folders", values)
+func createTestFolder(t *testing.T, repo *DBRepository, values map[string]any, metadata map[string]any) DBEntityInterface {
+	return createTestObject(t, repo, "folders", values, metadata)
 }
