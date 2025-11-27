@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"slices"
 	"strings"
@@ -108,6 +109,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Salva token in tabella oauth_tokens
 	if err := SaveToken(repo, foundUser.GetValue("id").(string), tokenString, expiration.Unix()); err != nil {
+		log.Print("Error saving token:", err)
 		RespondSimpleError(w, ErrInternalServer, "Could not save token", http.StatusInternalServerError)
 		return
 	}
