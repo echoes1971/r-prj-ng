@@ -85,7 +85,8 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the object
-	created, err := repo.CreateObject(tableName, requestData)
+	// TODO: pass metadata if any
+	created, err := repo.CreateObject(tableName, requestData, nil)
 	if err != nil {
 		log.Printf("CreateObjectHandler: Failed to create object: %v", err)
 		RespondSimpleError(w, ErrInternalServer, "Failed to create object: "+err.Error(), http.StatusInternalServerError)
@@ -465,6 +466,9 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 			resultMap["name"] = entity.GetValue("name")
 		}
 		if desc := entity.GetValue("description"); desc != nil {
+			resultMap["description"] = desc
+		}
+		if desc := entity.GetValue("fullname"); desc != nil {
 			resultMap["description"] = desc
 		}
 		resultList = append(resultList, resultMap)
