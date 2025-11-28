@@ -97,13 +97,21 @@ func main() {
 		AppConfig.OllamaModel = strings.ReplaceAll(ollamaModel, "\"", "")
 	}
 
-	// Passa la config ai pacchetti
-	api.JWTKey = []byte(AppConfig.JWTSecret)
+	// File system directories
+	AppConfig.RootDirectory = "."
+	if rootDir := os.Getenv("ROOT_DIRECTORY"); rootDir != "" {
+		AppConfig.RootDirectory = rootDir
+	}
+	AppConfig.FilesDirectory = "files"
+	if filesDir := os.Getenv("FILES_DIRECTORY"); filesDir != "" {
+		AppConfig.FilesDirectory = filesDir
+	}
 
-	dblayer.InitDBLayer(AppConfig.DBEngine, AppConfig.DBUrl, AppConfig.TablePrefix)
+	dblayer.InitDBLayer(AppConfig)
 	// dblayer.EnsureDBSchema()
 	dblayer.InitDBData()
 
+	api.InitAPI(AppConfig)
 	api.OllamaInit(AppConfig.AppName, AppConfig.OllamaURL, AppConfig.OllamaModel)
 
 	// Routing
@@ -164,6 +172,11 @@ func main() {
 	objectRoutes.HandleFunc("", api.CreateObjectHandler).Methods("POST")
 	objectRoutes.HandleFunc("/{id}", api.UpdateObjectHandler).Methods("PUT")
 	objectRoutes.HandleFunc("/{id}", api.DeleteObjectHandler).Methods("DELETE")
+
+	// Endpoint protected: File download
+	fileRoutes := r.PathPrefix("/files").Subrouter()
+	fileRoutes.Use(api.AuthMiddleware)
+	fileRoutes.HandleFunc("/{id}/download", api.DownloadFileHandler).Methods("GET")
 
 	log.Println("Server in ascolto su :", AppConfig.ServerPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", AppConfig.ServerPort), r))

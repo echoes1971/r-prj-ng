@@ -8,15 +8,17 @@ import (
 
 // Backend Configuration Structure
 type Config struct {
-	AppName     string `json:"app_name"`
-	ServerPort  int    `json:"server_port"`
-	DBEngine    string `json:"db_engine"`
-	DBUrl       string `json:"db_url"`
-	TablePrefix string `json:"table_prefix"`
-	JWTSecret   string `json:"jwt_secret"`
-	LogLevel    string `json:"log_level"`
-	OllamaModel string `json:"ollama_model"`
-	OllamaURL   string `json:"ollama_url"`
+	AppName        string `json:"app_name"`
+	ServerPort     int    `json:"server_port"`
+	DBEngine       string `json:"db_engine"`
+	DBUrl          string `json:"db_url"`
+	TablePrefix    string `json:"table_prefix"`
+	JWTSecret      string `json:"jwt_secret"`
+	LogLevel       string `json:"log_level"`
+	OllamaModel    string `json:"ollama_model"`
+	OllamaURL      string `json:"ollama_url"`
+	RootDirectory  string `json:"root_directory"`
+	FilesDirectory string `json:"files_directory"`
 }
 
 func LoadConfig(filename string, config *Config) error {
