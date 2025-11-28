@@ -108,5 +108,16 @@
         "others": "Altri",
         "current": "Permessi attuali",
         "hint": "Imposta i permessi di lettura, scrittura ed esecuzione per proprietario, gruppo e altri"
+    },
+    "files": {
+        "upload": "Carica File",
+        "drop_or_click": "Trascina il file qui o clicca per sfogliare",
+        "current": "File attuale",
+        "hint": "Trascina e rilascia un file o clicca per sfogliare",
+        "filename": "Nome File",
+        "mime_type": "Tipo MIME",
+        "alt_link": "Link Alternativo",
+        "alt_link_hint": "URL esterno se il file è ospitato altrove",
+        "linked_object": "Oggetto Collegato"
     }
 }

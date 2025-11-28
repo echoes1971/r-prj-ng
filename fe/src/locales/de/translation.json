@@ -108,5 +108,16 @@
     "others": "Andere",
     "current": "Aktuelle Berechtigungen",
     "hint": "Lese-, Schreib- und Ausführungsberechtigungen für Eigentümer, Gruppe und Andere festlegen"
+  },
+  "files": {
+    "upload": "Datei Hochladen",
+    "drop_or_click": "Datei hier ablegen oder klicken zum Durchsuchen",
+    "current": "Aktuelle Datei",
+    "hint": "Datei per Drag & Drop oder Klick durchsuchen",
+    "filename": "Dateiname",
+    "mime_type": "MIME-Typ",
+    "alt_link": "Alternativer Link",
+    "alt_link_hint": "Externe URL wenn Datei woanders gehostet wird",
+    "linked_object": "Verknüpftes Objekt"
   }
 }

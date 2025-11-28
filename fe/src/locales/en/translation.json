@@ -108,5 +108,16 @@
     "others": "Others",
     "current": "Current permissions",
     "hint": "Set read, write, and execute permissions for owner, group, and others"
+  },
+  "files": {
+    "upload": "Upload File",
+    "drop_or_click": "Drop file here or click to browse",
+    "current": "Current file",
+    "hint": "Drag and drop a file or click to browse",
+    "filename": "Filename",
+    "mime_type": "MIME Type",
+    "alt_link": "Alternative Link",
+    "alt_link_hint": "External URL if file is hosted elsewhere",
+    "linked_object": "Linked Object"
   }
 }

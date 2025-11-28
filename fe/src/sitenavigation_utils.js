@@ -26,6 +26,8 @@ export function classname2bootstrapIcon(classname) {
             return 'newspaper-fill';
         case 'DBNote':
             return 'file-text-fill';
+        case 'DBObject':
+            return 'box-fill';
         case 'DBPage':
             return 'file-richtext-fill';
         case 'DBPerson':

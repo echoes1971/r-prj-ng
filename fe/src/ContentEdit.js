@@ -819,6 +819,327 @@ function CompanyEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) 
     );
 }
 
+// Edit form for DBFile
+function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
+    const { t } = useTranslation();
+    const [formData, setFormData] = useState({
+        name: data.name || '',
+        description: data.description || '',
+        filename: data.filename || '',
+        mime: data.mime || '',
+        alt_link: data.alt_link || '',
+        fk_obj_id: data.fk_obj_id || '0',
+        permissions: data.permissions || 'rwxr-x---',
+    });
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [dragActive, setDragActive] = useState(false);
+    const [preview, setPreview] = useState(null);
+
+    useEffect(() => {
+        console.log('FileEdit useEffect:', { id: data.id, filename: data.filename, selectedFile });
+        // Load preview if file exists
+        if (data.id && data.filename && !selectedFile) {
+            // Fetch the file with authorization header and create a blob URL
+            const loadPreview = async () => {
+                try {
+                    console.log('Loading file preview for:', data.id, 'filename:', data.filename);
+                    const response = await axiosInstance.get(`/files/${data.id}/download`, {
+                        responseType: 'blob'
+                    });
+                    console.log('File loaded, blob size:', response.data.size, 'type:', response.data.type);
+                    const blobUrl = URL.createObjectURL(response.data);
+                    console.log('Blob URL created:', blobUrl);
+                    setPreview(blobUrl);
+                } catch (error) {
+                    console.error('Failed to load file preview:', error);
+                    setPreview(null);
+                }
+            };
+            loadPreview();
+
+            // Cleanup blob URL on unmount
+            return () => {
+                if (preview && preview.startsWith('blob:')) {
+                    console.log('Revoking blob URL:', preview);
+                    URL.revokeObjectURL(preview);
+                }
+            };
+        } else {
+            console.log('Skipping preview load - condition not met');
+        }
+    }, [data.id, data.filename, selectedFile]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+            setFormData(prev => ({
+                ...prev,
+                filename: file.name,
+                mime: file.type
+            }));
+
+            // Create preview for images
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setPreview(null);
+            }
+        }
+    };
+
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === 'dragenter' || e.type === 'dragover') {
+            setDragActive(true);
+        } else if (e.type === 'dragleave') {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            setSelectedFile(file);
+            setFormData(prev => ({
+                ...prev,
+                filename: file.name,
+                mime: file.type
+            }));
+
+            // Create preview for images
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setPreview(null);
+            }
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (selectedFile) {
+            // Upload new file
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', selectedFile);
+            uploadFormData.append('name', formData.name);
+            uploadFormData.append('description', formData.description);
+            uploadFormData.append('alt_link', formData.alt_link);
+            uploadFormData.append('fk_obj_id', formData.fk_obj_id);
+            uploadFormData.append('permissions', formData.permissions);
+
+            onSave(uploadFormData, true); // Pass true to indicate multipart upload
+        } else {
+            // Update metadata only
+            onSave(formData);
+        }
+    };
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.name')}</Form.Label>
+                <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.description')}</Form.Label>
+                <Form.Control
+                    as="textarea"
+                    name="description"
+                    rows={3}
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+            </Form.Group>
+
+            {/* File Upload */}
+            <Form.Group className="mb-3">
+                <Form.Label>{t('files.upload') || 'Upload File'}</Form.Label>
+                <div
+                    className={`border rounded p-4 text-center ${dragActive ? 'border-primary bg-primary bg-opacity-10' : ''} ${dark ? 'bg-dark border-secondary' : 'bg-light'}`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => document.getElementById('fileInput').click()}
+                >
+                    <input
+                        id="fileInput"
+                        type="file"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                    />
+                    {preview ? (
+                        <div>
+                            <img 
+                                src={preview} 
+                                alt="Preview" 
+                                style={{ maxWidth: '100%', maxHeight: '300px', marginBottom: '10px' }}
+                            />
+                            <div>
+                                <small className="text-muted">{formData.filename}</small>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <i className="bi bi-cloud-upload fs-1"></i>
+                            <p className="mb-0">
+                                {selectedFile ? selectedFile.name : (t('files.drop_or_click') || 'Drop file here or click to browse')}
+                            </p>
+                            {formData.filename && !selectedFile && (
+                                <small className="text-muted d-block mt-2">
+                                    {t('files.current') || 'Current'}: {formData.filename}
+                                </small>
+                            )}
+                        </>
+                    )}
+                </div>
+                <Form.Text className="text-muted">
+                    {t('files.hint') || 'Drag and drop a file or click to browse'}
+                </Form.Text>
+            </Form.Group>
+
+            {/* File Metadata */}
+            <div className="row">
+                <div className="col-md-6">
+                    <Form.Group className="mb-3">
+                        <Form.Label>{t('files.filename') || 'Filename'}</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="filename"
+                            value={formData.filename}
+                            onChange={handleChange}
+                            readOnly
+                        />
+                    </Form.Group>
+                </div>
+                <div className="col-md-6">
+                    <Form.Group className="mb-3">
+                        <Form.Label>{t('files.mime_type') || 'MIME Type'}</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="mime"
+                            value={formData.mime}
+                            onChange={handleChange}
+                            readOnly
+                        />
+                    </Form.Group>
+                </div>
+            </div>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('files.alt_link') || 'Alternative Link'}</Form.Label>
+                <Form.Control
+                    type="url"
+                    name="alt_link"
+                    value={formData.alt_link}
+                    onChange={handleChange}
+                />
+                <Form.Text className="text-muted">
+                    {t('files.alt_link_hint') || 'External URL if file is hosted elsewhere'}
+                </Form.Text>
+            </Form.Group>
+
+            <ObjectLinkSelector
+                value={formData.fk_obj_id}
+                onChange={handleChange}
+                classname="DBPage"
+                fieldName="fk_obj_id"
+                label={t('files.linked_object') || 'Linked Object'}
+                required={false}
+            />
+
+            <PermissionsEditor
+                value={formData.permissions}
+                onChange={handleChange}
+                name="permissions"
+                label={t('permissions.current') || 'Permissions'}
+                dark={dark}
+            />
+
+            {error && (
+                <Alert variant="danger" className="mb-3">
+                    {error}
+                </Alert>
+            )}
+
+            <div className="d-flex gap-2">
+                <Button 
+                    variant="primary" 
+                    type="submit"
+                    disabled={saving}
+                >
+                    {saving ? (
+                        <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                                className="me-2"
+                            />
+                            {t('common.saving')}
+                        </>
+                    ) : (
+                        <>
+                            <i className="bi bi-check-lg me-1"></i>
+                            {t('common.save')}
+                        </>
+                    )}
+                </Button>
+                <Button 
+                    variant="secondary" 
+                    onClick={onCancel}
+                    disabled={saving}
+                >
+                    <i className="bi bi-x-lg me-1"></i>
+                    {t('common.cancel')}
+                </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
+            </div>
+        </Form>
+    );
+}
+
 // Generic edit form for other DBObjects
 function ObjectEdit({ data, metadata, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
@@ -965,13 +1286,22 @@ function ContentEdit() {
         loadObject();
     }, [id]);
 
-    const handleSave = async (formData) => {
+    const handleSave = async (formData, isMultipart = false) => {
         try {
             setSaving(true);
             setError(null);
 
-            // Update object via API
-            await axiosInstance.put(`/objects/${id}`, formData);
+            if (isMultipart) {
+                // Upload with multipart/form-data for file uploads
+                await axiosInstance.put(`/objects/${id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+            } else {
+                // Regular JSON update
+                await axiosInstance.put(`/objects/${id}`, formData);
+            }
 
             // Navigate back to view mode
             navigate(`/c/${id}`);
@@ -999,6 +1329,11 @@ function ContentEdit() {
             await axiosInstance.delete(`/objects/${id}`);
 
             // Navigate to parent or home
+            // alert("father_id=" + data.father_id);
+            if (data.father_id) {
+                navigate(`/c/${data.father_id}`);
+                return;
+            }
             navigate(-1);
         } catch (err) {
             console.error('Error deleting object:', err);
@@ -1066,6 +1401,9 @@ function ContentEdit() {
             break;
         case 'DBCompany':
             EditComponent = CompanyEdit;
+            break;
+        case 'DBFile':
+            EditComponent = FileEdit;
             break;
         default:
             EditComponent = ObjectEdit;
