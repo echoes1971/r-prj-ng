@@ -1140,6 +1140,282 @@ function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     );
 }
 
+// Edit form for DBFolder
+function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
+    const { t } = useTranslation();
+    const [formData, setFormData] = useState({
+        name: data.name || '',
+        description: data.description || '',
+        fk_obj_id: data.fk_obj_id || '0',
+        permissions: data.permissions || 'rwxr-x---',
+        childs_sort_order: data.childs_sort_order || '',
+    });
+    const [children, setChildren] = useState([]);
+    const [loadingChildren, setLoadingChildren] = useState(false);
+    const [sortedChildrenIds, setSortedChildrenIds] = useState([]);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+
+    // Load children on mount
+    useEffect(() => {
+        if (data.id) {
+            loadChildren();
+        }
+    }, [data.id]);
+
+    const loadChildren = async () => {
+        setLoadingChildren(true);
+        try {
+            const response = await axiosInstance.get(`/nav/children/${data.id}`);
+            const childrenData = response.data.children || [];
+            setChildren(childrenData);
+            // console.log('Children data:', childrenData);
+            
+            // Initialize sorted order from childs_sort_order or use current order
+            if (formData.childs_sort_order) {
+                const orderIds = formData.childs_sort_order.split(',').filter(id => id);
+                setSortedChildrenIds(orderIds);
+            // } else {
+            //     setSortedChildrenIds(childrenData.map(child => child.data.id));
+            }
+            console.log('Initial sortedChildrenIds:', sortedChildrenIds);
+        } catch (error) {
+            console.error('Failed to load children:', error);
+        } finally {
+            setLoadingChildren(false);
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleDragStart = (e, index) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e, index) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+
+        const newOrder = [...sortedChildrenIds];
+        const draggedItem = newOrder[draggedIndex];
+        newOrder.splice(draggedIndex, 1);
+        newOrder.splice(index, 0, draggedItem);
+
+        setSortedChildrenIds(newOrder);
+        setDraggedIndex(index);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        // Update formData with new order
+        setFormData(prev => ({
+            ...prev,
+            childs_sort_order: sortedChildrenIds.join(',')
+        }));
+    };
+
+    const toggleChildInOrder = (childId) => {
+        const newOrder = sortedChildrenIds.includes(childId)
+            ? sortedChildrenIds.filter(id => id !== childId)
+            : [...sortedChildrenIds, childId];
+        
+        setSortedChildrenIds(newOrder);
+        setFormData(prev => ({
+            ...prev,
+            childs_sort_order: newOrder.join(',')
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+    };
+
+    // Get child name by ID
+    const getChildName = (childId) => {
+        const child = children.find(c => c.data.id === childId);
+        return child ? child.data.name : childId;
+    };
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.name')}</Form.Label>
+                <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    disabled={saving}
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.description')}</Form.Label>
+                <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    disabled={saving}
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('files.linked_object')}</Form.Label>
+                <ObjectLinkSelector
+                    value={formData.fk_obj_id}
+                    onChange={(value) => setFormData(prev => ({ ...prev, fk_obj_id: value }))}
+                    disabled={saving}
+                    allowedTypes={['DBPage', 'DBNews']}
+                />
+            </Form.Group>
+
+            {/* Children Sort Order */}
+            {children.length > 0 && (
+                <Form.Group className="mb-3">
+                    <Form.Label>
+                        {t('folder.children_order')}
+                        <small className="ms-2 text-muted">
+                            ({t('folder.drag_to_reorder')})
+                        </small>
+                    </Form.Label>
+                    
+                    {loadingChildren ? (
+                        <div className="text-center p-3">
+                            <Spinner animation="border" size="sm" />
+                        </div>
+                    ) : (
+                        <>
+                            {/* List of sorted children (draggable) */}
+                            <div className={`border rounded p-2 mb-2 ${dark ? 'border-secondary' : ''}`}>
+                                {sortedChildrenIds.length === 0 ? (
+                                    <div className="text-muted text-center p-2">
+                                        {t('folder.no_children_selected')}
+                                    </div>
+                                ) : (
+                                    sortedChildrenIds.map((childId, index) => (
+                                        <div
+                                            key={childId}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragEnd={handleDragEnd}
+                                            className={`d-flex align-items-center p-2 mb-1 rounded ${
+                                                dark ? 'bg-dark' : 'bg-light'
+                                            } ${draggedIndex === index ? 'opacity-50' : ''}`}
+                                            style={{ cursor: 'move' }}
+                                        >
+                                            <i className="bi bi-grip-vertical me-2"></i>
+                                            <span className="flex-grow-1">{getChildName(childId)}</span>
+                                            <Button
+                                                variant="outline-danger"
+                                                size="sm"
+                                                onClick={() => toggleChildInOrder(childId)}
+                                                disabled={saving}
+                                            >
+                                                <i className="bi bi-x"></i>
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* List of available children (not in sort order) */}
+                            {children.filter(child => !sortedChildrenIds.includes(child.data.id)).length > 0 && (
+                                <>
+                                    <Form.Label className="mt-2">
+                                        {t('folder.available_children')}
+                                    </Form.Label>
+                                    <div className={`border rounded p-2 ${dark ? 'border-secondary' : ''}`}>
+                                        {children
+                                            .filter(child => !sortedChildrenIds.includes(child.data.id))
+                                            .map(child => (
+                                                <div
+                                                    key={child.data.id}
+                                                    className={`d-flex align-items-center p-2 mb-1 rounded ${
+                                                        dark ? 'bg-secondary bg-opacity-25' : 'bg-light'
+                                                    }`}
+                                                >
+                                                    <span className="flex-grow-1">{child.data.name}</span>
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        onClick={() => toggleChildInOrder(child.data.id)}
+                                                        disabled={saving}
+                                                    >
+                                                        <i className="bi bi-plus"></i>
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </Form.Group>
+            )}
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.permissions')}</Form.Label>
+                <PermissionsEditor
+                    value={formData.permissions}
+                    onChange={(value) => setFormData(prev => ({ ...prev, permissions: value }))}
+                    disabled={saving}
+                    dark={dark}
+                />
+            </Form.Group>
+
+            {error && (
+                <Alert variant="danger" className="mb-3">
+                    {error}
+                </Alert>
+            )}
+
+            <div className="d-flex gap-2">
+                <Button 
+                    variant="primary" 
+                    type="submit" 
+                    disabled={saving}
+                >
+                    {saving ? (
+                        <>
+                            <Spinner animation="border" size="sm" className="me-2" />
+                            {t('common.saving')}
+                        </>
+                    ) : (
+                        t('common.save')
+                    )}
+                </Button>
+                <Button 
+                    variant="secondary" 
+                    onClick={onCancel}
+                    disabled={saving}
+                >
+                    {t('common.cancel')}
+                </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
+            </div>
+        </Form>
+    );
+}
+
 // Generic edit form for other DBObjects
 function ObjectEdit({ data, metadata, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
@@ -1404,6 +1680,9 @@ function ContentEdit() {
             break;
         case 'DBFile':
             EditComponent = FileEdit;
+            break;
+        case 'DBFolder':
+            EditComponent = FolderEdit;
             break;
         default:
             EditComponent = ObjectEdit;

@@ -119,5 +119,11 @@
     "alt_link": "Alternative Link",
     "alt_link_hint": "External URL if file is hosted elsewhere",
     "linked_object": "Linked Object"
+  },
+  "folder": {
+    "children_order": "Children Sort Order",
+    "drag_to_reorder": "Drag to reorder",
+    "no_children_selected": "No children selected for custom order",
+    "available_children": "Available Children"
   }
 }
