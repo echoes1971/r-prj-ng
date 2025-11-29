@@ -567,17 +567,23 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 // GET /api/files/{id}/download
 func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
-	if err != nil {
-		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
-		return
+
+	var dbContext dblayer.DBContext
+	if err == nil {
+		dbContext = dblayer.DBContext{
+			UserID:   claims["user_id"],
+			GroupIDs: strings.Split(claims["groups"], ","),
+			Schema:   dblayer.DbSchema,
+		}
+	} else {
+		dbContext = dblayer.DBContext{
+			UserID:   "-7",           // Anonymous user
+			GroupIDs: []string{"-4"}, // Guests group
+			Schema:   dblayer.DbSchema,
+		}
 	}
 
-	dbContext := &dblayer.DBContext{
-		UserID:   claims["user_id"],
-		GroupIDs: strings.Split(claims["groups"], ","),
-		Schema:   dblayer.DbSchema,
-	}
-	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
 
 	vars := mux.Vars(r)
 	fileID := vars["id"]

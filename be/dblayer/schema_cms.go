@@ -679,10 +679,14 @@ func (dbFile *DBFile) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
 		// Create destination directory if it does not exist
 		os.MkdirAll(dest_dir, os.FileMode(0755))
 		new_filename := dbFile.generateFilename(dbFile.GetValue("id"), filepath.Base(dbFile.GetValue("filename").(string)))
-		err := os.Rename(from_dir+"/"+dbFile.GetValue("filename").(string), dest_dir+"/"+new_filename)
-		if err != nil {
-			log.Print("DBFile.beforeUpdate: error renaming file: ", err)
-			return err
+		log.Print("DBFile.beforeUpdate: moving file from ", from_dir+"/"+myself.GetValue("filename").(string), " to ", dest_dir+"/"+myself.GetValue("filename").(string))
+		// Move the file only if it exists
+		if _, err := os.Stat(from_dir + "/" + dbFile.GetValue("filename").(string)); err == nil {
+			err := os.Rename(from_dir+"/"+dbFile.GetValue("filename").(string), dest_dir+"/"+new_filename)
+			if err != nil {
+				log.Print("DBFile.beforeUpdate: error renaming file: ", err)
+				return err
+			}
 		}
 		dbFile.SetValue("filename", new_filename)
 	} else if myself_has_a_file && myself.GetValue("path") != dbFile.GetValue("path") {
