@@ -179,9 +179,9 @@ function ObjectLinkSelector({ value, onChange, classname, fieldName, label, requ
                 </div>
             )}
             
-            <Form.Text className="text-muted">
+            {!selectedObject && <Form.Text className="text-muted">
                 {t('common.search_hint') || 'Type at least 2 characters to search'}
-            </Form.Text>
+            </Form.Text>}
         </Form.Group>
     );
 }
