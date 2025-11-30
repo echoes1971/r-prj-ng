@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from 'react-bootstrap';
+import { Alert, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,9 @@ import {
     ObjectLinkView,
     HtmlFieldView
 } from './sitenavigation_utils';
+import ObjectLinkSelector from './ObjectLinkSelector'
+import PermissionsEditor from './PermissionsEditor';
+
 import axiosInstance from './axios';
 
 export function ObjectHeaderView({ data, metadata, objectData, dark }) {
@@ -123,5 +126,129 @@ export function ObjectView({ data, metadata, objectData, dark }) {
                 <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
             </Card.Footer>
         </Card>
+    );
+}
+
+// Generic edit form for other DBObjects
+export function ObjectEdit({ data, metadata, onSave, onCancel, onDelete, saving, error, dark }) {
+    const { t } = useTranslation();
+    const [formData, setFormData] = useState({
+        name: data.name || '',
+        description: data.description || '',
+        permissions: data.permissions || 'rwxr-x---',
+        father_id: data.father_id || null,
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+    };
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <Alert variant="info" className="mb-3">
+                <i className="bi bi-info-circle me-2"></i>
+                Editing {metadata.classname} - Basic fields only
+            </Alert>
+
+            <Form.Group className="mb-3">
+                {/* <Form.Label>{t('dbobjects.parent')}</Form.Label> */}
+                <ObjectLinkSelector
+                    value={formData.father_id || '0'}
+                    onChange={handleChange}
+                    classname="DBObject"
+                    fieldName="father_id"
+                    label={t('dbobjects.parent')}
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.name')}</Form.Label>
+                <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>{t('common.description')}</Form.Label>
+                <Form.Control
+                    as="textarea"
+                    name="description"
+                    rows={10}
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+            </Form.Group>
+
+            <PermissionsEditor
+                value={formData.permissions}
+                onChange={handleChange}
+                name="permissions"
+                label={t('permissions.current') || 'Permissions'}
+                dark={dark}
+            />
+
+            {error && (
+                <Alert variant="danger" className="mb-3">
+                    {error}
+                </Alert>
+            )}
+
+            <div className="d-flex gap-2">
+                <Button 
+                    variant="primary" 
+                    type="submit"
+                    disabled={saving}
+                >
+                    {saving ? (
+                        <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                                className="me-2"
+                            />
+                            {t('common.saving')}
+                        </>
+                    ) : (
+                        <>
+                            <i className="bi bi-check-lg me-1"></i>
+                            {t('common.save')}
+                        </>
+                    )}
+                </Button>
+                <Button 
+                    variant="secondary" 
+                    onClick={onCancel}
+                    disabled={saving}
+                >
+                    <i className="bi bi-x-lg me-1"></i>
+                    {t('common.cancel')}
+                </Button>
+                <Button 
+                    variant="outline-danger" 
+                    onClick={onDelete}
+                    disabled={saving}
+                    className="ms-auto"
+                >
+                    <i className="bi bi-trash me-1"></i>
+                    {t('common.delete')}
+                </Button>
+            </div>
+        </Form>
     );
 }

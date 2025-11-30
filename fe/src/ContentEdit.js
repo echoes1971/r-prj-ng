@@ -9,6 +9,7 @@ import axiosInstance from './axios';
 import CountrySelector from './CountrySelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import PermissionsEditor from './PermissionsEditor';
+import { ObjectEdit } from './DBObject';
 import { ThemeContext } from './ThemeContext';
 
 // Polyfill for findDOMNode (removed in React 19)
@@ -1400,118 +1401,6 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                     onClick={onCancel}
                     disabled={saving}
                 >
-                    {t('common.cancel')}
-                </Button>
-                <Button 
-                    variant="outline-danger" 
-                    onClick={onDelete}
-                    disabled={saving}
-                    className="ms-auto"
-                >
-                    <i className="bi bi-trash me-1"></i>
-                    {t('common.delete')}
-                </Button>
-            </div>
-        </Form>
-    );
-}
-
-// Generic edit form for other DBObjects
-function ObjectEdit({ data, metadata, onSave, onCancel, onDelete, saving, error, dark }) {
-    const { t } = useTranslation();
-    const [formData, setFormData] = useState({
-        name: data.name || '',
-        description: data.description || '',
-        permissions: data.permissions || 'rwxr-x---',
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSave(formData);
-    };
-
-    return (
-        <Form onSubmit={handleSubmit}>
-            <Alert variant="info" className="mb-3">
-                <i className="bi bi-info-circle me-2"></i>
-                Editing {metadata.classname} - Basic fields only
-            </Alert>
-
-            <Form.Group className="mb-3">
-                <Form.Label>{t('common.name')}</Form.Label>
-                <Form.Control
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-                <Form.Label>{t('common.description')}</Form.Label>
-                <Form.Control
-                    as="textarea"
-                    name="description"
-                    rows={10}
-                    value={formData.description}
-                    onChange={handleChange}
-                />
-            </Form.Group>
-
-            <PermissionsEditor
-                value={formData.permissions}
-                onChange={handleChange}
-                name="permissions"
-                label={t('permissions.current') || 'Permissions'}
-                dark={dark}
-            />
-
-            {error && (
-                <Alert variant="danger" className="mb-3">
-                    {error}
-                </Alert>
-            )}
-
-            <div className="d-flex gap-2">
-                <Button 
-                    variant="primary" 
-                    type="submit"
-                    disabled={saving}
-                >
-                    {saving ? (
-                        <>
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                                className="me-2"
-                            />
-                            {t('common.saving')}
-                        </>
-                    ) : (
-                        <>
-                            <i className="bi bi-check-lg me-1"></i>
-                            {t('common.save')}
-                        </>
-                    )}
-                </Button>
-                <Button 
-                    variant="secondary" 
-                    onClick={onCancel}
-                    disabled={saving}
-                >
-                    <i className="bi bi-x-lg me-1"></i>
                     {t('common.cancel')}
                 </Button>
                 <Button 
