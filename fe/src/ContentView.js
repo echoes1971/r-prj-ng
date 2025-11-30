@@ -3,14 +3,15 @@ import { useState, useEffect } from 'react';
 import { Card, Container, Spinner, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ObjectHeaderView, ObjectFooterView, ObjectView } from './DBObject';
 import { 
     formateDateTimeString, 
     formatDescription, 
     classname2bootstrapIcon,
     CountryView,
     UserLinkView,
-    ObjectHeaderView,
-    ObjectFooterView,
+    // ObjectHeaderView,
+    // ObjectFooterView,
     ObjectLinkView,
     HtmlFieldView
 } from './sitenavigation_utils';
@@ -363,33 +364,33 @@ function CompanyView({ data, metadata, objectData, dark }) {
     );
 }
 
-// Generic view for DBObject
-function ObjectView({ data, metadata, objectData, dark }) {
-    const navigate = useNavigate();
-    const { t } = useTranslation();
+// // Generic view for DBObject
+// function ObjectView({ data, metadata, objectData, dark }) {
+//     const navigate = useNavigate();
+//     const { t } = useTranslation();
     
-    return (
-        <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
-            <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
-            </Card.Header>
-            <Card.Body>
-                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
-                {!data.html && data.description && <hr />}
-                {data.description && (
-                    <Card.Text dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></Card.Text>
-                )}
-                {data.html && <hr />}
-                {data.html && (
-                    <HtmlFieldView htmlContent={data.html} dark={dark} />
-                )}
-            </Card.Body>
-            <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
-            </Card.Footer>
-        </Card>
-    );
-}
+//     return (
+//         <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
+//             <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
+//                 <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
+//             </Card.Header>
+//             <Card.Body>
+//                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+//                 {!data.html && data.description && <hr />}
+//                 {data.description && (
+//                     <Card.Text dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></Card.Text>
+//                 )}
+//                 {data.html && <hr />}
+//                 {data.html && (
+//                     <HtmlFieldView htmlContent={data.html} dark={dark} />
+//                 )}
+//             </Card.Body>
+//             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
+//                 <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
+//             </Card.Footer>
+//         </Card>
+//     );
+// }
 
 // Main ContentView component - switches based on classname
 function ContentView({ data, metadata, dark }) {

@@ -347,10 +347,10 @@ function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                 />
             </Form.Group>
 
-            <h5 className="mt-4 mb-3">Address</h5>
+            <h5 className="mt-4 mb-3">{t('common.address')}</h5>
 
             <Form.Group className="mb-3">
-                <Form.Label>Street</Form.Label>
+                <Form.Label>{t('common.street')}</Form.Label>
                 <Form.Control
                     type="text"
                     name="street"
@@ -362,7 +362,7 @@ function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
             <div className="row">
                 <div className="col-md-4">
                     <Form.Group className="mb-3">
-                        <Form.Label>ZIP Code</Form.Label>
+                        <Form.Label>{t('common.zip')}</Form.Label>
                         <Form.Control
                             type="text"
                             name="zip"
@@ -373,7 +373,7 @@ function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                 </div>
                 <div className="col-md-8">
                     <Form.Group className="mb-3">
-                        <Form.Label>City</Form.Label>
+                        <Form.Label>{t('common.city')}</Form.Label>
                         <Form.Control
                             type="text"
                             name="city"
@@ -1669,6 +1669,7 @@ function ContentEdit() {
         case 'DBNote':
             EditComponent = NoteEdit;
             break;
+        case 'DBNews':
         case 'DBPage':
             EditComponent = PageEdit;
             break;
