@@ -114,12 +114,19 @@
     "upload": "Datei Hochladen",
     "drop_or_click": "Datei hier ablegen oder klicken zum Durchsuchen",
     "current": "Aktuelle Datei",
-    "hint": "Datei per Drag & Drop oder Klick durchsuchen",
+    "hint": "Datei per Drag & Drop ablegen oder klicken zum Durchsuchen",
     "filename": "Dateiname",
     "mime_type": "MIME-Typ",
     "alt_link": "Alternativer Link",
-    "alt_link_hint": "Externe URL wenn Datei woanders gehostet wird",
-    "linked_object": "Verknüpftes Objekt"
+    "alt_link_hint": "Externe URL, falls die Datei anderswo gehostet wird",
+    "linked_object": "Verknüpftes Objekt",
+    "insert_file": "Datei Einfügen",
+    "insert_image": "Bild Einfügen",
+    "select_file": "Datei Auswählen",
+    "select_image": "Bild Auswählen",
+    "search_files_hint": "Dateien suchen (nur Dateien, die Sie bearbeiten können)",
+    "search_images_hint": "Bilder suchen (nur Dateien, die Sie bearbeiten können)",
+    "type_to_search": "Mindestens 2 Zeichen eingeben zum Suchen"
   },
   "folder": {
     "children_order": "Reihenfolge der Kinder",

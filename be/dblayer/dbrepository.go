@@ -199,6 +199,7 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 	for rows.Next() {
 		// Create a new instance of the DBEntity
 		resultEntity := dbe.NewInstance()
+		resultEntity.SetMetadata("classname", dbe.GetTypeName())
 
 		// Prepare a slice of interfaces to hold column values
 		columnValues := make([]interface{}, len(columns))

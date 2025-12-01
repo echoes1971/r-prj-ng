@@ -119,7 +119,14 @@
     "mime_type": "MIME Type",
     "alt_link": "Alternative Link",
     "alt_link_hint": "External URL if file is hosted elsewhere",
-    "linked_object": "Linked Object"
+    "linked_object": "Linked Object",
+    "insert_file": "Insert File",
+    "insert_image": "Insert Image",
+    "select_file": "Select File",
+    "select_image": "Select Image",
+    "search_files_hint": "Search for files (only files you can edit)",
+    "search_images_hint": "Search for images (only files you can edit)",
+    "type_to_search": "Type at least 2 characters to search"
   },
   "folder": {
     "children_order": "Children Sort Order",

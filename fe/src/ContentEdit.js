@@ -9,6 +9,7 @@ import axiosInstance from './axios';
 import CountrySelector from './CountrySelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import PermissionsEditor from './PermissionsEditor';
+import FileSelector from './FileSelector';
 import { ObjectEdit } from './DBObject';
 import { ThemeContext } from './ThemeContext';
 
@@ -246,6 +247,9 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     });
     const [htmlWithTokens, setHtmlWithTokens] = useState(data.html || '');
     const [loadingTokens, setLoadingTokens] = useState(false);
+    const [showFileSelector, setShowFileSelector] = useState(false);
+    const [fileSelectorType, setFileSelectorType] = useState('file'); // 'file' or 'image'
+    const [quillRef, setQuillRef] = useState(null);
 
     // Load tokens for embedded files when component mounts or HTML changes
     useEffect(() => {
@@ -283,6 +287,38 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const handleHtmlChange = (value) => {
         setFormData(prev => ({...prev, html: value}));
         setHtmlWithTokens(value);
+    };
+
+    // Handle file selection from modal
+    const handleFileSelect = (file) => {
+        if (!quillRef) return;
+
+        const quill = quillRef.getEditor();
+        const range = quill.getSelection(true);
+        
+        if (fileSelectorType === 'image') {
+            // Insert image tag
+            const imageHtml = `<img src="/api/files/${file.id}/download" data-dbfile-id="${file.id}" alt="${file.name}" style="max-width: 100%;" />`;
+            quill.clipboard.dangerouslyPasteHTML(range.index, imageHtml);
+        } else {
+            // Insert link
+            const linkHtml = `<a href="/api/files/${file.id}/download" data-dbfile-id="${file.id}">${file.name}</a>`;
+            quill.clipboard.dangerouslyPasteHTML(range.index, linkHtml);
+        }
+        
+        // Update state
+        handleHtmlChange(quill.root.innerHTML);
+    };
+
+    // Open file selector modal
+    const handleInsertFile = () => {
+        setFileSelectorType('file');
+        setShowFileSelector(true);
+    };
+
+    const handleInsertImage = () => {
+        setFileSelectorType('image');
+        setShowFileSelector(true);
     };
 
     const handleSubmit = (e) => {
@@ -360,6 +396,34 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                         </Button>
                     </ButtonGroup>
                 </div>
+                
+                {/* Custom buttons for inserting files/images */}
+                {htmlMode === 'wysiwyg' && !loadingTokens && (
+                    <div className="mb-2">
+                        <ButtonGroup size="sm">
+                            <Button 
+                                variant="outline-secondary"
+                                onClick={handleInsertImage}
+                                title={t('files.insert_image') || 'Insert Image'}
+                            >
+                                <i className="bi bi-image me-1"></i>
+                                {t('files.insert_image') || 'Insert Image'}
+                            </Button>
+                            <Button 
+                                variant="outline-secondary"
+                                onClick={handleInsertFile}
+                                title={t('files.insert_file') || 'Insert File'}
+                            >
+                                <i className="bi bi-paperclip me-1"></i>
+                                {t('files.insert_file') || 'Insert File'}
+                            </Button>
+                        </ButtonGroup>
+                        <Form.Text className="text-muted ms-2">
+                            Insert files/images you have permission to edit
+                        </Form.Text>
+                    </div>
+                )}
+                
                 {loadingTokens && (
                     <div className="text-center py-3">
                         <Spinner animation="border" size="sm" className="me-2" />
@@ -368,6 +432,7 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                 )}
                 {!loadingTokens && htmlMode === 'wysiwyg' ? (
                     <ReactQuill 
+                        ref={setQuillRef}
                         value={htmlWithTokens}
                         onChange={handleHtmlChange}
                         theme="snow"
@@ -377,7 +442,7 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                                 ['bold', 'italic', 'underline', 'strike'],
                                 [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                                 [{ 'indent': '-1'}, { 'indent': '+1' }],
-                                ['link', 'image'],
+                                ['link'], // Removed 'image' - use custom buttons instead
                                 ['clean']
                             ]
                         }}
@@ -455,6 +520,14 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                     {t('common.delete')}
                 </Button>
             </div>
+            
+            {/* File Selector Modal */}
+            <FileSelector
+                show={showFileSelector}
+                onHide={() => setShowFileSelector(false)}
+                onSelect={handleFileSelect}
+                fileType={fileSelectorType}
+            />
         </Form>
     );
 }

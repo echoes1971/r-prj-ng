@@ -512,7 +512,7 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var results []dblayer.DBEntityInterface
 	// Search with LIKE and case-insensitive
-	if classname == "DBUser" || classname == "DBCountry" {
+	if classname == "DBUser" || classname == "DBCountry" || (classname != "DBObject" && searchInstance.IsDBObject()) {
 		results, err = repo.Search(searchInstance, true, false, orderBy)
 		if err != nil {
 			log.Printf("SearchObjectsHandler: Search failed: %v", err)
@@ -538,6 +538,7 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	var resultList []map[string]interface{}
 	for i := 0; i < maxResults && i < len(results); i++ {
 		entity := results[i]
+		log.Print("SearchObjectsHandler: entity=", entity.ToString())
 		// IF searched classname is != DBObject, then filter other classnames
 		if classname != "DBUser" && classname != "DBCountry" {
 			if classname != "DBObject" && entity.GetMetadata("classname") != classname {
@@ -573,6 +574,15 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		resultMap["classname"] = entity.GetMetadata("classname")
+
+		// Include mime type for DBFile objects (useful for filtering images)
+		if mime := entity.GetValue("mime"); mime != nil {
+			// if classname == "DBFile" || entity.GetMetadata("classname") == "DBFile" {
+			// if mime := entity.GetValue("mime"); mime != nil {
+			resultMap["mime"] = mime
+			// }
+		}
+		log.Print("SearchObjectsHandler: resultMap=", resultMap)
 
 		resultList = append(resultList, resultMap)
 	}

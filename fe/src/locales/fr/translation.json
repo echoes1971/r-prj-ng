@@ -119,7 +119,14 @@
         "mime_type": "Type MIME",
         "alt_link": "Lien Alternatif",
         "alt_link_hint": "URL externe si le fichier est hébergé ailleurs",
-        "linked_object": "Objet Lié"
+        "linked_object": "Objet Lié",
+        "insert_file": "Insérer Fichier",
+        "insert_image": "Insérer Image",
+        "select_file": "Sélectionner Fichier",
+        "select_image": "Sélectionner Image",
+        "search_files_hint": "Rechercher des fichiers (uniquement les fichiers que vous pouvez modifier)",
+        "search_images_hint": "Rechercher des images (uniquement les fichiers que vous pouvez modifier)",
+        "type_to_search": "Tapez au moins 2 caractères pour rechercher"
     },
     "folder": {
         "children_order": "Ordre des Enfants",
