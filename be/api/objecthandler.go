@@ -722,3 +722,87 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("DownloadFileHandler: Served file %s (%s)", filename, mime)
 }
+
+// GenerateFileTokensHandler generates temporary JWT tokens for multiple files
+// POST /api/files/preview-tokens
+// Body: {"file_ids": ["abc123", "def456", ...]}
+// Response: {"success": true, "tokens": {"abc123": "JWT_TOKEN", "def456": "JWT_TOKEN"}}
+func GenerateFileTokensHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := GetClaimsFromRequest(r)
+	if err != nil {
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	dbContext := &dblayer.DBContext{
+		UserID:   claims["user_id"],
+		GroupIDs: strings.Split(claims["groups"], ","),
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+
+	// Parse request body
+	var requestData struct {
+		FileIDs []string `json:"file_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		log.Printf("GenerateFileTokensHandler: Failed to decode request body: %v", err)
+		RespondSimpleError(w, ErrInvalidRequest, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if len(requestData.FileIDs) == 0 {
+		RespondSimpleError(w, ErrInvalidRequest, "No file IDs provided", http.StatusBadRequest)
+		return
+	}
+
+	tokens := make(map[string]string)
+
+	// Generate token for each file (only if user has read permission)
+	for _, fileID := range requestData.FileIDs {
+		// Normalize file ID
+		if len(fileID) == 18 {
+			fileID = strings.ReplaceAll(fileID, "-", "")
+		}
+
+		// Load file and check permissions
+		entity := repo.FullObjectById(fileID, true)
+		if entity == nil {
+			log.Printf("GenerateFileTokensHandler: File %s not found", fileID)
+			continue // Skip files that don't exist
+		}
+
+		// Check read permission
+		if !repo.CheckReadPermission(entity) {
+			log.Printf("GenerateFileTokensHandler: User %s has no read permission for file %s", dbContext.UserID, fileID)
+			continue // Skip files user can't access
+		}
+
+		// Generate JWT token for this file (valid for 15 minutes)
+		expirationTime := time.Now().Add(15 * time.Minute)
+		tokenClaims := jwt.MapClaims{
+			"id":      fileID,
+			"user_id": dbContext.UserID,
+			"exp":     expirationTime.Unix(),
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
+		tokenString, err := token.SignedString(JWTKey)
+		if err != nil {
+			log.Printf("GenerateFileTokensHandler: Failed to generate token for file %s: %v", fileID, err)
+			continue
+		}
+
+		tokens[fileID] = tokenString
+		log.Printf("GenerateFileTokensHandler: Generated token for file %s (user: %s, expires: %s)", fileID, dbContext.UserID, expirationTime.Format(time.RFC3339))
+	}
+
+	// Return tokens
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"tokens":  tokens,
+	})
+}

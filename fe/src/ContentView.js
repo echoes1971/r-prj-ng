@@ -17,6 +17,72 @@ import {
 } from './sitenavigation_utils';
 import axiosInstance from './axios';
 
+// Helper functions for DBFile token management in HTML content
+
+/**
+ * Extract all file IDs from HTML content that have data-dbfile-id attribute
+ */
+function extractFileIDs(html) {
+    if (!html) return [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const elements = doc.querySelectorAll('[data-dbfile-id]');
+    const fileIDs = new Set();
+    elements.forEach(el => {
+        const fileId = el.getAttribute('data-dbfile-id');
+        if (fileId && fileId !== '0') {
+            fileIDs.add(fileId);
+        }
+    });
+    return Array.from(fileIDs);
+}
+
+/**
+ * Request temporary tokens for multiple file IDs
+ */
+async function requestFileTokens(fileIDs) {
+    if (!fileIDs || fileIDs.length === 0) return {};
+    
+    try {
+        const response = await axiosInstance.post('/files/preview-tokens', {
+            file_ids: fileIDs
+        });
+        return response.data.tokens || {};
+    } catch (error) {
+        console.error('Failed to request file tokens:', error);
+        return {};
+    }
+}
+
+/**
+ * Inject tokens into HTML for viewing
+ * Adds ?token=... to src/href attributes of elements with data-dbfile-id
+ */
+function injectTokensForViewing(html, tokens) {
+    if (!html) return html;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    doc.querySelectorAll('[data-dbfile-id]').forEach(el => {
+        const fileId = el.getAttribute('data-dbfile-id');
+        const token = tokens[fileId];
+        
+        if (token) {
+            if (el.tagName === 'IMG') {
+                const currentSrc = el.src || el.getAttribute('src') || '';
+                const baseUrl = currentSrc.split('?')[0];
+                el.setAttribute('src', `${baseUrl}?token=${token}`);
+            } else if (el.tagName === 'A') {
+                const currentHref = el.href || el.getAttribute('href') || '';
+                const baseUrl = currentHref.split('?')[0];
+                el.setAttribute('href', `${baseUrl}?token=${token}`);
+            }
+        }
+    });
+    
+    return doc.body.innerHTML;
+}
+
 function FileView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -202,6 +268,33 @@ function FolderView({ data, metadata, dark }) {
 function PageView({ data, metadata, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const [htmlWithTokens, setHtmlWithTokens] = useState(data.html || '');
+    const [loadingTokens, setLoadingTokens] = useState(false);
+
+    // Load tokens for embedded files when component mounts or HTML changes
+    useEffect(() => {
+        const loadTokens = async () => {
+            const fileIDs = extractFileIDs(data.html);
+            if (fileIDs.length === 0) {
+                setHtmlWithTokens(data.html);
+                return;
+            }
+
+            setLoadingTokens(true);
+            try {
+                const tokens = await requestFileTokens(fileIDs);
+                const htmlWithTokens = injectTokensForViewing(data.html, tokens);
+                setHtmlWithTokens(htmlWithTokens);
+            } catch (error) {
+                console.error('Failed to load tokens for embedded files:', error);
+                setHtmlWithTokens(data.html);
+            } finally {
+                setLoadingTokens(false);
+            }
+        };
+
+        loadTokens();
+    }, [data.id, data.html]);
 
     return (
         <div>
@@ -211,8 +304,14 @@ function PageView({ data, metadata, dark }) {
             {data.description && (
                 <p style={{ opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></p>
             )}
-            {data.html && (
-                <div dangerouslySetInnerHTML={{ __html: data.html }}></div>
+            {loadingTokens && (
+                <div className="text-center py-3">
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    <span>Loading...</span>
+                </div>
+            )}
+            {!loadingTokens && htmlWithTokens && (
+                <div dangerouslySetInnerHTML={{ __html: htmlWithTokens }}></div>
             )}
         </div>
     );

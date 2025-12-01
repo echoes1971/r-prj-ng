@@ -25,6 +25,95 @@ if (!ReactDOM.findDOMNode) {
     };
 }
 
+// Helper functions for DBFile token management in HTML content
+
+/**
+ * Extract all file IDs from HTML content that have data-dbfile-id attribute
+ */
+function extractFileIDs(html) {
+    if (!html) return [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const elements = doc.querySelectorAll('[data-dbfile-id]');
+    const fileIDs = new Set();
+    elements.forEach(el => {
+        const fileId = el.getAttribute('data-dbfile-id');
+        if (fileId && fileId !== '0') {
+            fileIDs.add(fileId);
+        }
+    });
+    return Array.from(fileIDs);
+}
+
+/**
+ * Request temporary tokens for multiple file IDs
+ */
+async function requestFileTokens(fileIDs) {
+    if (!fileIDs || fileIDs.length === 0) return {};
+    
+    try {
+        const response = await axiosInstance.post('/files/preview-tokens', {
+            file_ids: fileIDs
+        });
+        return response.data.tokens || {};
+    } catch (error) {
+        console.error('Failed to request file tokens:', error);
+        return {};
+    }
+}
+
+/**
+ * Inject tokens into HTML for WYSIWYG editing
+ * Adds ?token=... to src/href attributes of elements with data-dbfile-id
+ */
+function injectTokensForEditing(html, tokens) {
+    if (!html) return html;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    doc.querySelectorAll('[data-dbfile-id]').forEach(el => {
+        const fileId = el.getAttribute('data-dbfile-id');
+        const token = tokens[fileId];
+        
+        if (token) {
+            if (el.tagName === 'IMG') {
+                // Remove existing token if any
+                const currentSrc = el.src || el.getAttribute('src') || '';
+                const baseUrl = currentSrc.split('?')[0];
+                el.setAttribute('src', `${baseUrl}?token=${token}`);
+            } else if (el.tagName === 'A') {
+                const currentHref = el.href || el.getAttribute('href') || '';
+                const baseUrl = currentHref.split('?')[0];
+                el.setAttribute('href', `${baseUrl}?token=${token}`);
+            }
+        }
+    });
+    
+    return doc.body.innerHTML;
+}
+
+/**
+ * Clean tokens from HTML before saving
+ * Removes ?token=... from src/href but keeps data-dbfile-id
+ */
+function cleanTokensBeforeSave(html) {
+    if (!html) return html;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    doc.querySelectorAll('[data-dbfile-id]').forEach(el => {
+        const fileId = el.getAttribute('data-dbfile-id');
+        
+        if (el.tagName === 'IMG') {
+            el.setAttribute('src', `/api/files/${fileId}/download`);
+        } else if (el.tagName === 'A') {
+            el.setAttribute('href', `/api/files/${fileId}/download`);
+        }
+    });
+    
+    return doc.body.innerHTML;
+}
+
 // Edit form for DBNote
 function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
@@ -155,6 +244,33 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
         father_id: data.father_id || '0',
         fk_obj_id: data.fk_obj_id || '0',
     });
+    const [htmlWithTokens, setHtmlWithTokens] = useState(data.html || '');
+    const [loadingTokens, setLoadingTokens] = useState(false);
+
+    // Load tokens for embedded files when component mounts or HTML changes
+    useEffect(() => {
+        const loadTokens = async () => {
+            const fileIDs = extractFileIDs(formData.html);
+            if (fileIDs.length === 0) {
+                setHtmlWithTokens(formData.html);
+                return;
+            }
+
+            setLoadingTokens(true);
+            try {
+                const tokens = await requestFileTokens(fileIDs);
+                const htmlWithTokens = injectTokensForEditing(formData.html, tokens);
+                setHtmlWithTokens(htmlWithTokens);
+            } catch (error) {
+                console.error('Failed to load tokens for embedded files:', error);
+                setHtmlWithTokens(formData.html);
+            } finally {
+                setLoadingTokens(false);
+            }
+        };
+
+        loadTokens();
+    }, [data.id]); // Only reload when page ID changes
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -164,9 +280,19 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
         }));
     };
 
+    const handleHtmlChange = (value) => {
+        setFormData(prev => ({...prev, html: value}));
+        setHtmlWithTokens(value);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(formData);
+        // Clean tokens before saving
+        const cleanedHtml = cleanTokensBeforeSave(formData.html);
+        onSave({
+            ...formData,
+            html: cleanedHtml
+        });
     };
 
     return (
@@ -234,10 +360,16 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                         </Button>
                     </ButtonGroup>
                 </div>
-                {htmlMode === 'wysiwyg' ? (
+                {loadingTokens && (
+                    <div className="text-center py-3">
+                        <Spinner animation="border" size="sm" className="me-2" />
+                        <span>Loading file tokens...</span>
+                    </div>
+                )}
+                {!loadingTokens && htmlMode === 'wysiwyg' ? (
                     <ReactQuill 
-                        value={formData.html}
-                        onChange={(value) => setFormData(prev => ({...prev, html: value}))}
+                        value={htmlWithTokens}
+                        onChange={handleHtmlChange}
                         theme="snow"
                         modules={{
                             toolbar: [
@@ -250,18 +382,18 @@ function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                             ]
                         }}
                     />
-                ) : (
+                ) : !loadingTokens ? (
                     <Form.Control
                         as="textarea"
                         name="html"
                         value={formData.html}
-                        onChange={handleChange}
+                        onChange={(e) => handleHtmlChange(e.target.value)}
                         rows={15}
                         style={{ fontFamily: 'monospace', fontSize: '0.9em' }}
                     />
-                )}
+                ) : null}
                 <Form.Text className="text-muted">
-                    HTML content for the page
+                    HTML content for the page. Use data-dbfile-id attribute to embed files (e.g., &lt;img src="/api/files/ID/download" data-dbfile-id="ID" /&gt;)
                 </Form.Text>
             </Form.Group>
 

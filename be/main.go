@@ -175,8 +175,11 @@ func main() {
 
 	// Endpoint protected: File download
 	fileRoutes := r.PathPrefix("/files").Subrouter()
-	// fileRoutes.Use(api.AuthMiddleware)
-	fileRoutes.HandleFunc("/{id}/download", api.DownloadFileHandler).Methods("GET")
+	fileRoutes.Use(api.AuthMiddleware)
+	fileRoutes.HandleFunc("/preview-tokens", api.GenerateFileTokensHandler).Methods("POST")
+
+	// File download without auth middleware (uses token or permission check)
+	r.HandleFunc("/files/{id}/download", api.DownloadFileHandler).Methods("GET")
 
 	log.Println("Server in ascolto su :", AppConfig.ServerPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", AppConfig.ServerPort), r))
