@@ -7,6 +7,8 @@
 # docker container rm rprj-ng-be-1 ; docker image rm rprj-ng-be
 # docker image prune
 # docker exec -it rprj-ng-db-1 mariadb -u root --password=mysecret rproject
+# docker exec -it rprj-ng-be-1 sh
+# docker exec -it rprj-ng-fe-1 sh
 
 services:
   proxy:
@@ -29,7 +31,7 @@ services:
     depends_on:
       - be
     environment:
-      - REACT_APP_SITE_TITLE=ρBee CMS
+      - REACT_APP_SITE_TITLE=🐝 ρ-Bee CMS 🐝
       - REACT_APP_ENDPOINT=/api
       - REACT_APP_HOME_OBJECT_ID=-10
 
@@ -41,6 +43,8 @@ services:
       - "1971"
     # environment:
     #   - DB_URL=root:mysecret@tcp(mysql:3306)/rproject
+    volumes:
+      - be_files:/root/files
     depends_on:
       db:
         condition: service_healthy
@@ -60,4 +64,5 @@ services:
       retries: 10
 
 volumes:
-  mysql_data:  # Named volume per non perdere dati tra run
+  be_files:
+  mysql_data:
