@@ -430,8 +430,8 @@ CREATE TABLE `rprj_events` (
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `fk_obj_id` varchar(16) DEFAULT NULL,
-  `start_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `end_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
   `all_day` char(1) NOT NULL DEFAULT '1',
   `url` varchar(255) DEFAULT NULL,
   `alarm` char(1) DEFAULT '0',
@@ -454,7 +454,7 @@ CREATE TABLE `rprj_events` (
   `yearly_week_day` char(1) DEFAULT '0',
   `yearly_day_of_the_year` int(11) DEFAULT 0,
   `recurrence_times` int(11) DEFAULT 0,
-  `recurrence_end_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `recurrence_end_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `rprj_events_0` (`id`),
   KEY `rprj_events_1` (`owner`),
@@ -577,11 +577,11 @@ CREATE TABLE `rprj_folders` (
 LOCK TABLES `rprj_folders` WRITE;
 /*!40000 ALTER TABLE `rprj_folders` DISABLE KEYS */;
 INSERT INTO `rprj_folders` VALUES
-('-10','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','0','Home','','0','-11,-12,-13,-14'),
-('-11','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-10','Products','','0',''),
-('-12','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-10','Services','','0',''),
-('-13','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-10','Downloads','','0',''),
-('-14','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-10','About us','','0','');
+('-10','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'0','Home','','0','-11,-12,-13,-14'),
+('-11','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-10','Products','','0',''),
+('-12','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-10','Services','','0',''),
+('-13','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-10','Downloads','','0',''),
+('-14','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-10','About us','','0','');
 /*!40000 ALTER TABLE `rprj_folders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -910,11 +910,11 @@ CREATE TABLE `rprj_pages` (
 LOCK TABLES `rprj_pages` WRITE;
 /*!40000 ALTER TABLE `rprj_pages` DISABLE KEYS */;
 INSERT INTO `rprj_pages` VALUES
-('-20','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-10','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-10','en_us'),
-('-21','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-11','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-11','en_us'),
-('-22','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-12','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-12','en_us'),
-('-23','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-13','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-13','en_us'),
-('-24','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,'0000-00-00 00:00:00','-14','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-14','en_us');
+('-20','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-10','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-10','en_us'),
+('-21','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-11','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-11','en_us'),
+('-22','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-12','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-12','en_us'),
+('-23','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-13','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-13','en_us'),
+('-24','-1','-6','rwxrw-r--','-1','2025-11-10 09:43:44','-1','2025-11-10 09:43:44',NULL,NULL,'-14','index','','<div id=\"underconstruction\"><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/><h1>Under Construction</h1><br/></div>','-14','en_us');
 /*!40000 ALTER TABLE `rprj_pages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1251,10 +1251,10 @@ CREATE TABLE `rprj_timetracks` (
   `description` text DEFAULT NULL,
   `fk_obj_id` varchar(16) DEFAULT NULL,
   `fk_progetto` varchar(16) DEFAULT NULL,
-  `dalle_ore` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `alle_ore` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `ore_intervento` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `ore_viaggio` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `dalle_ore` datetime DEFAULT NULL,
+  `alle_ore` datetime DEFAULT NULL,
+  `ore_intervento` datetime DEFAULT NULL,
+  `ore_viaggio` datetime DEFAULT NULL,
   `km_viaggio` int(11) NOT NULL DEFAULT 0,
   `luogo_di_intervento` int(11) NOT NULL DEFAULT 0,
   `stato` int(11) NOT NULL DEFAULT 0,
@@ -1306,7 +1306,7 @@ CREATE TABLE `rprj_todo` (
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `priority` int(11) NOT NULL DEFAULT 0,
-  `data_segnalazione` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `data_segnalazione` datetime DEFAULT NULL,
   `fk_segnalato_da` varchar(16) DEFAULT NULL,
   `fk_cliente` varchar(16) DEFAULT NULL,
   `fk_progetto` varchar(16) DEFAULT NULL,
@@ -1315,7 +1315,7 @@ CREATE TABLE `rprj_todo` (
   `stato` int(11) NOT NULL DEFAULT 0,
   `descrizione` text NOT NULL,
   `intervento` text NOT NULL,
-  `data_chiusura` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `data_chiusura` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `rprj_todo_0` (`id`),
   KEY `rprj_todo_1` (`owner`),

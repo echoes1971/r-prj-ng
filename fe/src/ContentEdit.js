@@ -3,7 +3,7 @@ import { Card, Container, Form, Button, Spinner, Alert, ButtonGroup } from 'reac
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ReactDOM from 'react-dom';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axiosInstance from './axios';
 import CountrySelector from './CountrySelector';
@@ -12,6 +12,52 @@ import PermissionsEditor from './PermissionsEditor';
 import FileSelector from './FileSelector';
 import { ObjectEdit } from './DBObject';
 import { ThemeContext } from './ThemeContext';
+
+// Configure Quill to preserve data-dbfile-id attribute
+const Image = Quill.import('formats/image');
+class CustomImage extends Image {
+    static formats(domNode) {
+        const formats = super.formats(domNode);
+        formats['data-dbfile-id'] = domNode.getAttribute('data-dbfile-id');
+        return formats;
+    }
+    
+    format(name, value) {
+        if (name === 'data-dbfile-id') {
+            if (value) {
+                this.domNode.setAttribute('data-dbfile-id', value);
+            } else {
+                this.domNode.removeAttribute('data-dbfile-id');
+            }
+        } else {
+            super.format(name, value);
+        }
+    }
+}
+Quill.register(CustomImage, true);
+
+// Configure Link to preserve data-dbfile-id
+const Link = Quill.import('formats/link');
+class CustomLink extends Link {
+    static formats(domNode) {
+        const formats = super.formats(domNode);
+        formats['data-dbfile-id'] = domNode.getAttribute('data-dbfile-id');
+        return formats;
+    }
+    
+    format(name, value) {
+        if (name === 'data-dbfile-id') {
+            if (value) {
+                this.domNode.setAttribute('data-dbfile-id', value);
+            } else {
+                this.domNode.removeAttribute('data-dbfile-id');
+            }
+        } else {
+            super.format(name, value);
+        }
+    }
+}
+Quill.register(CustomLink, true);
 
 // Polyfill for findDOMNode (removed in React 19)
 if (!ReactDOM.findDOMNode) {
@@ -1268,8 +1314,13 @@ function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => document.getElementById('fileInput').click()}
+                    style={{ cursor: 'pointer', minHeight: '200px' }}
+                    onClick={(e) => {
+                        // Don't trigger file input if clicking on preview image
+                        if (e.target.tagName !== 'IMG') {
+                            document.getElementById('fileInput').click();
+                        }
+                    }}
                 >
                     <input
                         id="fileInput"
@@ -1278,7 +1329,7 @@ function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                         style={{ display: 'none' }}
                     />
                     {preview ? (
-                        <div>
+                        <div style={{ pointerEvents: 'none' }}>
                             <img 
                                 src={preview} 
                                 alt="Preview" 
