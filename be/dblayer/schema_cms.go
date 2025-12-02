@@ -1043,11 +1043,14 @@ func (dbFolder *DBFolder) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	if !dbFolder.HasValue("father_id") || dbFolder.GetValue("father_id") == "" || dbFolder.GetValue("father_id") == "0" {
 		return nil
 	}
-	father := dbr.GetEntityByIDWithTx("folders", dbFolder.GetValue("father_id").(string), tx)
-	if father != nil {
-		if fatherFolder, ok := father.(*DBFolder); ok {
-			if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
-				dbFolder.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+	father_id, ok := dbFolder.GetValue("father_id").(string)
+	if ok {
+		father := dbr.GetEntityByIDWithTx("folders", father_id, tx)
+		if father != nil {
+			if fatherFolder, ok := father.(*DBFolder); ok {
+				if fatherFolder.HasValue("fk_obj_id") && fatherFolder.GetValue("fk_obj_id") != "" && fatherFolder.GetValue("fk_obj_id") != "0" {
+					dbFolder.SetValue("fk_obj_id", fatherFolder.GetValue("fk_obj_id"))
+				}
 			}
 		}
 	}
