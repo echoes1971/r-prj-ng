@@ -3,6 +3,10 @@ name: Docker Image CI
 env:
   DOCKER_IMAGE_NAME: rprj-ng
 
+permissions:
+  contents: read        # keep as needed
+  packages: write       # required to push to GHCR with GITHUB_TOKEN
+
 on:
   push:
     branches: [ "main" ]
@@ -15,16 +19,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the BE Docker image
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Read VERSION file
+      id: ver
       run: |
-        cd be
-        docker build . --file Dockerfile --tag ${DOCKER_IMAGE_NAME}-be:$(cat ../VERSION)
-    #- name: Build and push
-    #  uses: docker/build-push-action@v4
-    #  with:
-    #    context: ./path/to/context
-    #    file: ./path/to/context/Dockerfile   # optional
-    #    tags: rprj-ng:latest
-    #    push: false
-      
+        if [ ! -f VERSION ]; then
+          echo "VERSION file not found" >&2
+          exit 1
+        fi
+        # trim newline/carriage returns
+        version=$(tr -d '\r\n' < VERSION)
+        echo "tag=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push image to GHCR
+      uses: docker/build-push-action@v4
+      with:
+        context: ./be
+        file: ./be/Dockerfile        # optional if Dockerfile is named Dockerfile in ./be
+        push: true
+        tags:
+          ghcr.io/${{ github.repository_owner }}/r-prj-ng:latest
+          ghcr.io/${{ github.repository_owner }}/r-prj-ng:${{ steps.ver.outputs.tag }}
+
+    - name: Check images
+      run: docker image ls
