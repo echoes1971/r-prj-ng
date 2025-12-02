@@ -1,13 +1,13 @@
 # Some commands:
 #
-# docker compose -p rprj-ng -f docker-compose.dev.yml up --build
+# docker compose -p rprj-ng-dev -f docker-compose.dev.yml up --build
 #
-# docker container rm rprj-ng-fe-1 ; docker image rm rprj-ng-fe
-# docker container rm rprj-ng-be-1 ; docker image rm rprj-ng-be
-# docker container restart rprj-ng-be-1
-# docker exec -it rprj-ng-db-1 mariadb -u root --password=mysecret rproject
-# docker exec -it rprj-ng-be-1 bash
-# docker exec -it rprj-ng-fe-1 bash
+# docker container rm rprj-ng-dev-fe-1 ; docker image rm rprj-ng-dev-fe
+# docker container rm rprj-ng-dev-be-1 ; docker image rm rprj-ng-dev-be
+# docker container restart rprj-ng-dev-be-1
+# docker exec -it rprj-ng-dev-db-1 mariadb -u root --password=mysecret rproject
+# docker exec -it rprj-ng-dev-be-1 sh
+# docker exec -it rprj-ng-dev-fe-1 sh
 
 services:
   proxy:
@@ -42,10 +42,10 @@ services:
         condition: service_healthy
     environment:
       - APP_NAME=R-Project
-      - REACT_APP_TITLE=R-Project Dev
+      - REACT_APP_SITE_TITLE=🐝 ρ-Bee DEV 🐝
       # - REACT_APP_ENDPOINT=http://localhost:8080/api  # Per connettere FE a BE
-      - REACT_APP_API_URL=/api  # Per connettere FE a BE
-      - REACT_APP_HOME_OBJECT_ID=-10  # Object ID della home page
+      - REACT_APP_API_URL=/api
+      - REACT_APP_HOME_OBJECT_ID=-10 
       # Only for windows to force polling
       - CHOKIDAR_USEPOLLING=true  # Force polling for file changes (fix Windows/Docker)
       - CHOKIDAR_INTERVAL=1000    # Polling interval in ms (1s: balanced, non CPU-heavy)
@@ -67,6 +67,7 @@ services:
       - OLLAMA_URL=http://external.llama:11434/api/chat
       - OLLAMA_MODEL="llama3.2:latest"
     volumes:
+      - be_files:/app/files
       - ./be:/app
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:1971/ping"]
@@ -111,5 +112,6 @@ services:
   #     retries: 5
 
 volumes:
+  be_files:
   mysql_data:
-  pgdata:
+  # pgdata:
