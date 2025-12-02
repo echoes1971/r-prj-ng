@@ -17,6 +17,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the BE Docker image
-      run:
+      run: |
         cd be
         docker build . --file Dockerfile --tag ${DOCKER_IMAGE_NAME}-be:$(cat ../VERSION)
+    #- name: Build and push
+    #  uses: docker/build-push-action@v4
+    #  with:
+    #    context: ./path/to/context
+    #    file: ./path/to/context/Dockerfile   # optional
+    #    tags: rprj-ng:latest
+    #    push: false
+      
