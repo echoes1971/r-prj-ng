@@ -89,7 +89,7 @@ if (!ReactDOM.findDOMNode) {
 /**
  * Extract all file IDs from HTML content that have data-dbfile-id attribute
  */
-function extractFileIDs(html) {
+export function extractFileIDs(html) {
     if (!html) return [];
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -107,7 +107,7 @@ function extractFileIDs(html) {
 /**
  * Request temporary tokens for multiple file IDs
  */
-async function requestFileTokens(fileIDs) {
+export async function requestFileTokens(fileIDs) {
     if (!fileIDs || fileIDs.length === 0) return {};
     
     try {
@@ -125,7 +125,7 @@ async function requestFileTokens(fileIDs) {
  * Inject tokens into HTML for viewing
  * Adds ?token=... to src/href attributes of elements with data-dbfile-id
  */
-function injectTokensForViewing(html, tokens) {
+export function injectTokensForViewing(html, tokens) {
     if (!html) return html;
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -202,6 +202,51 @@ export function injectTokensForEditing(html, tokens) {
     return doc.body.innerHTML;
 }
 
+
+export function HtmlView({ html, dark }) {
+    const [htmlWithTokens, setHtmlWithTokens] = useState(html || '');
+    const [loadingTokens, setLoadingTokens] = useState(false);
+
+    // Load tokens for embedded files when component mounts or HTML changes
+    useEffect(() => {
+        const loadTokens = async () => {
+            const fileIDs = extractFileIDs(htmlWithTokens);
+            if (fileIDs.length === 0) {
+                setHtmlWithTokens(html);
+                return;
+            }
+
+            setLoadingTokens(true);
+            try {
+                const tokens = await requestFileTokens(fileIDs);
+                const htmlWithTokens = injectTokensForViewing(html, tokens);
+                setHtmlWithTokens(htmlWithTokens);
+            } catch (error) {
+                console.error('Failed to load tokens for embedded files:', error);
+                setHtmlWithTokens(html);
+            } finally {
+                setLoadingTokens(false);
+            }
+        };
+
+        loadTokens();
+    }, [html]);
+
+    return (
+        <>
+        {loadingTokens && (
+            <div className="text-center py-3">
+                <Spinner animation="border" size="sm" className="me-2" />
+                <span>Loading...</span>
+            </div>
+        )}
+        {!loadingTokens && htmlWithTokens && (
+            <div dangerouslySetInnerHTML={{ __html: htmlWithTokens }}></div>
+        )}
+        </>
+    );
+}
+
 // View for DBPage
 export function PageView({ data, metadata, dark }) {
     const navigate = useNavigate();
@@ -249,7 +294,8 @@ export function PageView({ data, metadata, dark }) {
                 </div>
             )}
             {!loadingTokens && htmlWithTokens && (
-                <div dangerouslySetInnerHTML={{ __html: htmlWithTokens }}></div>
+                <HtmlView html={htmlWithTokens} dark={dark} />
+                // <div dangerouslySetInnerHTML={{ __html: htmlWithTokens }}></div>
             )}
         </div>
     );
@@ -441,7 +487,7 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
             />
 
             <Form.Group className="mb-3">
-                <Form.Label>Language</Form.Label>
+                <Form.Label>{t('common.language')}</Form.Label>
                 <Form.Select
                     name="language"
                     value={formData.language}
@@ -494,9 +540,9 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                                 {t('files.insert_file') || 'Insert File'}
                             </Button>
                         </ButtonGroup>
-                        <Form.Text className="text-muted ms-2">
+                        {/* <Form.Text className="text-muted ms-2">
                             Insert files/images you have permission to edit
-                        </Form.Text>
+                        </Form.Text> */}
                     </div>
                 )}
                 
@@ -518,7 +564,8 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                                 ['bold', 'italic', 'underline', 'strike'],
                                 [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                                 [{ 'indent': '-1'}, { 'indent': '+1' }],
-                                ['link'], // Removed 'image' - use custom buttons instead
+                                [{ 'color': [] }, { 'background': [] }],
+                                ['link', 'blockquote', 'code-block'],
                                 ['clean']
                             ]
                         }}

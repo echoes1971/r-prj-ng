@@ -10,167 +10,16 @@ import ObjectLinkSelector from './ObjectLinkSelector';
 import PermissionsEditor from './PermissionsEditor';
 import FileSelector from './FileSelector';
 import { FileEdit } from './DBFile';
+import { NoteEdit } from './DBNote';
 import { ObjectEdit } from './DBObject';
-import { cleanTokensBeforeSave, injectTokensForEditing, PageEdit } from './DBPage';
+import { 
+    cleanTokensBeforeSave,
+    extractFileIDs,
+    injectTokensForEditing,
+    requestFileTokens,
+    PageEdit } from './DBPage';
 import { ThemeContext } from './ThemeContext';
 
-// RRA: today
-
-
-// Helper functions for DBFile token management in HTML content
-
-/**
- * Extract all file IDs from HTML content that have data-dbfile-id attribute
- */
-function extractFileIDs(html) {
-    if (!html) return [];
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const elements = doc.querySelectorAll('[data-dbfile-id]');
-    const fileIDs = new Set();
-    elements.forEach(el => {
-        const fileId = el.getAttribute('data-dbfile-id');
-        if (fileId && fileId !== '0') {
-            fileIDs.add(fileId);
-        }
-    });
-    return Array.from(fileIDs);
-}
-
-/**
- * Request temporary tokens for multiple file IDs
- */
-async function requestFileTokens(fileIDs) {
-    if (!fileIDs || fileIDs.length === 0) return {};
-    
-    try {
-        const response = await axiosInstance.post('/files/preview-tokens', {
-            file_ids: fileIDs
-        });
-        return response.data.tokens || {};
-    } catch (error) {
-        console.error('Failed to request file tokens:', error);
-        return {};
-    }
-}
-
-// Edit form for DBNote
-function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
-    const { t } = useTranslation();
-    const [formData, setFormData] = useState({
-        name: data.name || '',
-        description: data.description || '',
-        fk_obj_id: data.fk_obj_id || '0',
-        father_id: data.father_id || '0',
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSave(formData);
-    };
-
-    return (
-        <Form onSubmit={handleSubmit}>
-
-            <ObjectLinkSelector
-                value={formData.father_id || '0'}
-                onChange={handleChange}
-                classname="DBObject"
-                fieldName="father_id"
-                label={t('dbobjects.parent')}
-            />
-
-            <Form.Group className="mb-3">
-                <Form.Label>{t('common.name')}</Form.Label>
-                <Form.Control
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-                <Form.Label>{t('common.description')}</Form.Label>
-                <Form.Control
-                    as="textarea"
-                    name="description"
-                    rows={10}
-                    value={formData.description}
-                    onChange={handleChange}
-                />
-            </Form.Group>
-
-            <ObjectLinkSelector
-                value={formData.fk_obj_id}
-                onChange={handleChange}
-                classname="DBObject"
-                fieldName="fk_obj_id"
-                label={t('files.linked_object') || 'Linked Object'}
-                required={false}
-            />
-
-            {error && (
-                <Alert variant="danger" className="mb-3">
-                    {error}
-                </Alert>
-            )}
-
-            <div className="d-flex gap-2">
-                <Button 
-                    variant="primary" 
-                    type="submit"
-                    disabled={saving}
-                >
-                    {saving ? (
-                        <>
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                                className="me-2"
-                            />
-                            {t('common.saving')}
-                        </>
-                    ) : (
-                        <>
-                            <i className="bi bi-check-lg me-1"></i>
-                            {t('common.save')}
-                        </>
-                    )}
-                </Button>
-                <Button 
-                    variant="secondary" 
-                    onClick={onCancel}
-                    disabled={saving}
-                >
-                    <i className="bi bi-x-lg me-1"></i>
-                    {t('common.cancel')}
-                </Button>
-                <Button 
-                    variant="outline-danger" 
-                    onClick={onDelete}
-                    disabled={saving}
-                    className="ms-auto"
-                >
-                    <i className="bi bi-trash me-1"></i>
-                    {t('common.delete')}
-                </Button>
-            </div>
-        </Form>
-    );
-}
 
 // Edit form for DBPerson
 function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
@@ -848,9 +697,30 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
         }));
     };
 
-    const handleIndexHtmlChange = (content) => {
+    // const handleIndexHtmlChange = (content) => {
+    const handleIndexHtmlChange = async (content) => {
+        // RRA: start.
         setIndexHtml(content);
-        setIndexHtmlWithTokens(content);
+
+        // Extract file IDs and reload tokens for immediate preview
+        const fileIDs = extractFileIDs(content);
+        if (fileIDs.length === 0) {
+            setIndexHtmlWithTokens(content);
+            return;
+        }
+
+        try {
+            const tokens = await requestFileTokens(fileIDs);
+            const htmlWithTokens = injectTokensForEditing(content, tokens);
+            setIndexHtmlWithTokens(htmlWithTokens);
+        } catch (error) {
+            console.error('Failed to reload tokens after HTML change:', error);
+            setIndexHtmlWithTokens(content);
+        }
+
+        // setIndexHtml(content);
+        // setIndexHtmlWithTokens(content);
+        // RRA: end.
     };
 
     const handleFileSelectIndex = (file) => {
@@ -1034,13 +904,35 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                     </Form.Select>
                 </Form.Group>
 
-                {loadingIndexTokens ? (
-                    <div className="text-center p-3">
-                        <Spinner animation="border" />
-                    </div>
-                ) : (
-                    <>
-                        <div className="mb-2">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Form.Label className="mb-0">HTML Content</Form.Label>
+                    <ButtonGroup size="sm">
+                        <Button 
+                            variant={htmlMode === 'wysiwyg' ? 'primary' : 'outline-primary'}
+                            onClick={() => setHtmlMode('wysiwyg')}
+                        >
+                            <i className="bi bi-eye me-1"></i>WYSIWYG
+                        </Button>
+                        <Button 
+                            variant={htmlMode === 'source' ? 'primary' : 'outline-primary'}
+                            onClick={() => setHtmlMode('source')}
+                        >
+                            <i className="bi bi-code-slash me-1"></i>HTML Source
+                        </Button>
+                    </ButtonGroup>
+                </div>
+
+                {htmlMode === 'wysiwyg' && !loadingIndexTokens && (
+                    <div className="mb-2">
+                        <ButtonGroup size="sm">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                onClick={handleInsertImageIndex}
+                                disabled={savingIndex}
+                            >
+                                <i className="bi bi-image"></i> {t('files.insert_image')}
+                            </Button>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
@@ -1050,52 +942,62 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                             >
                                 <i className="bi bi-file-earmark"></i> {t('files.insert_file')}
                             </Button>
-                            <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                onClick={handleInsertImageIndex}
-                                disabled={savingIndex}
-                            >
-                                <i className="bi bi-image"></i> {t('files.insert_image')}
-                            </Button>
-                        </div>
-                        
-                        <ReactQuill
-                            ref={setQuillRefIndex}
-                            theme="snow"
-                            value={indexHtmlWithTokens}
-                            onChange={handleIndexHtmlChange}
-                            modules={{
-                                toolbar: [
-                                    [{ 'header': [1, 2, 3, false] }],
-                                    ['bold', 'italic', 'underline', 'strike'],
-                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                    [{ 'color': [] }, { 'background': [] }],
-                                    ['link', 'blockquote', 'code-block'],
-                                    ['clean']
-                                ]
-                            }}
-                        />
-                        
-                        <div className="mt-2">
-                            <Button
-                                variant="primary"
-                                onClick={handleSaveIndex}
-                                disabled={savingIndex}
-                            >
-                                {savingIndex ? (
-                                    <>
-                                        <Spinner animation="border" size="sm" className="me-2" />
-                                        {t('common.saving')}
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="bi bi-save"></i> {t('folder.save_index')}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </>
+                        </ButtonGroup>
+                    </div>
+                )}
+
+                {loadingIndexTokens && (
+                    <div className="text-center p-3">
+                        <Spinner animation="border" />
+                    </div>
+                )}
+                {!loadingIndexTokens && htmlMode === 'wysiwyg' ? (
+                    <ReactQuill
+                        ref={setQuillRefIndex}
+                        theme="snow"
+                        value={indexHtmlWithTokens}
+                        onChange={handleIndexHtmlChange}
+                        modules={{
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                ['link', 'blockquote', 'code-block'],
+                                ['clean']
+                            ]
+                        }}
+                    />
+                ) : !loadingIndexTokens ? (
+                    <Form.Control
+                        as="textarea"
+                        name="html"
+                        value={indexHtmlWithTokens}
+                        onChange={(e) => handleIndexHtmlChange(e.target.value)}
+                        rows={15}
+                        style={{ fontFamily: 'monospace', fontSize: '0.9em' }}
+                    />
+                ) : null}
+                {!loadingIndexTokens && (
+                    <div className="mt-2">
+                        <Button
+                            variant="primary"
+                            onClick={handleSaveIndex}
+                            disabled={savingIndex}
+                        >
+                            {savingIndex ? (
+                                <>
+                                    <Spinner animation="border" size="sm" className="me-2" />
+                                    {t('common.saving')}
+                                </>
+                            ) : (
+                                <>
+                                    <i className="bi bi-save"></i> {t('folder.save_index')}
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 )}
             </div>
 

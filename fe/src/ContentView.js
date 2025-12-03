@@ -4,18 +4,16 @@ import { Card, Container, Spinner, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FileView } from './DBFile';
+import { NoteView } from './DBNote';
 import { ObjectHeaderView, ObjectFooterView, ObjectView } from './DBObject';
-import { PageView } from './DBPage';
+import { HtmlView, PageView } from './DBPage';
 import { 
     formateDateTimeString, 
     formatDescription, 
     classname2bootstrapIcon,
     CountryView,
     UserLinkView,
-    // ObjectHeaderView,
-    // ObjectFooterView,
-    ObjectLinkView,
-    HtmlFieldView
+    ObjectLinkView
 } from './sitenavigation_utils';
 import axiosInstance from './axios';
 
@@ -81,14 +79,7 @@ function FolderView({ data, metadata, dark }) {
                     {indexContent.description && (
                     <small style={{ opacity: 0.7 }}>-{indexContent.description}</small>
                     )}
-                    <div dangerouslySetInnerHTML={{ __html: indexContent.html }}>
-                        {/* <h3>Indexes in this folder:</h3>
-                        <ul>
-                            {indexContent.indexes.map((index) => (
-                                <li key={index.data.id}>{index.data.name} (Language: {index.data.language}) (ID: {index.data.id})</li>
-                            ))}
-                        </ul> */}
-                    </div>
+                    <HtmlView html={indexContent.html} dark={dark} />
                 </div>
             )}
         </div>
@@ -120,35 +111,6 @@ function FolderView({ data, metadata, dark }) {
     // );
 }
 
-// View for DBNote
-function NoteView({ data, metadata, objectData, dark }) {
-    const navigate = useNavigate();
-    const { t } = useTranslation();
-
-    return (
-        <Card className="mb-3 border-warning" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
-            <Card.Header className={dark ? 'bg-warning bg-opacity-25' : 'bg-warning bg-opacity-10'}>
-                <br />
-                {/* <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} /> */}
-            </Card.Header>
-            <Card.Body>
-                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
-                <hr />
-                {data.description && (
-                    // <Card.Text>{data.description}</Card.Text>
-                    <div className="content">
-                        <p style={{ opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></p>
-                    </div>
-                )}
-            </Card.Body>
-            <Card.Footer className={dark ? 'bg-warning bg-opacity-25' : 'bg-warning bg-opacity-10'}>
-                <br />
-                {/* <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} /> */}
-            </Card.Footer>
-        </Card>
-    );
-}
-
 function PersonView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -162,7 +124,7 @@ function PersonView({ data, metadata, objectData, dark }) {
             )}
             {data.html && <hr />}
             {data.html && (
-                <HtmlFieldView htmlContent={data.html} dark={dark} />
+                <HtmlView htmlContent={data.html} dark={dark} />
             )}
             <hr />
             {data.fk_users_id && data.fk_users_id !== "0" && (
@@ -203,7 +165,7 @@ function CompanyView({ data, metadata, objectData, dark }) {
             )}
             {data.html && <hr />}
             {data.html && (
-                <HtmlFieldView htmlContent={data.html} dark={dark} />
+                <HtmlView htmlContent={data.html} dark={dark} />
             )}
             <hr />
             <p>
@@ -221,34 +183,6 @@ function CompanyView({ data, metadata, objectData, dark }) {
         </div>
     );
 }
-
-// // Generic view for DBObject
-// function ObjectView({ data, metadata, objectData, dark }) {
-//     const navigate = useNavigate();
-//     const { t } = useTranslation();
-    
-//     return (
-//         <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
-//             <Card.Header className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '1px solid rgba(255,255,255,0.1)' } : {}}>
-//                 <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} />
-//             </Card.Header>
-//             <Card.Body>
-//                 <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
-//                 {!data.html && data.description && <hr />}
-//                 {data.description && (
-//                     <Card.Text dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></Card.Text>
-//                 )}
-//                 {data.html && <hr />}
-//                 {data.html && (
-//                     <HtmlFieldView htmlContent={data.html} dark={dark} />
-//                 )}
-//             </Card.Body>
-//             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
-//                 <ObjectFooterView data={data} metadata={metadata} objectData={objectData} dark={dark} />
-//             </Card.Footer>
-//         </Card>
-//     );
-// }
 
 // Main ContentView component - switches based on classname
 function ContentView({ data, metadata, dark }) {

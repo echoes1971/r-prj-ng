@@ -32,7 +32,7 @@ function App() {
         <Route path="/c" element={<SiteNavigation />} />
 
         {/* Content Edit - edit object by ID (requires authentication) */}
-        <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to="/login" />} />
+        <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to="/c/:id" />} />
 
         {/* User profile - accessible by the user themselves or admins */}
         <Route

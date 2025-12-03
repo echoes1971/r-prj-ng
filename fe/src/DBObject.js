@@ -10,10 +10,10 @@ import {
     CountryView,
     UserLinkView,
     ObjectLinkView,
-    HtmlFieldView
 } from './sitenavigation_utils';
 import ObjectLinkSelector from './ObjectLinkSelector'
 import PermissionsEditor from './PermissionsEditor';
+import { HtmlView } from './DBPage';
 
 import axiosInstance from './axios';
 
@@ -119,7 +119,7 @@ export function ObjectView({ data, metadata, objectData, dark }) {
                 )}
                 {data.html && <hr />}
                 {data.html && (
-                    <HtmlFieldView htmlContent={data.html} dark={dark} />
+                    <HtmlView htmlContent={data.html} dark={dark} />
                 )}
             </Card.Body>
             <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
