@@ -157,6 +157,7 @@ function SiteNavigation() {
                                 showViewToggle={true}
                                 storageKey="siteNavigationChildrenViewMode"
                                 defaultView="cards"
+                                dark={dark}
                             />
                         </div>
                     )}

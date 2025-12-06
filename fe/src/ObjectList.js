@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { ListGroup, Card, Row, Col, Button, ButtonGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { ThemeContext } from './ThemeContext';
 import {
   classname2bootstrapIcon,
   ImageView
@@ -16,16 +15,18 @@ import {
  * @param {boolean} showViewToggle - Show/hide the view mode toggle buttons (default: true)
  * @param {string} storageKey - localStorage key for view mode preference (default: 'objectListViewMode')
  * @param {string} defaultView - Default view mode: 'list' or 'cards' (default: 'list')
+ * @param {boolean} dark - Whether to use dark theme styles
  */
 function ObjectList({ 
   items = [], 
   onItemClick = null, 
   showViewToggle = true,
   storageKey = 'objectListViewMode',
-  defaultView = 'list'
+  defaultView = 'list',
+  dark = false
 }) {
   const navigate = useNavigate();
-  const { dark } = useContext(ThemeContext);
+  // const { dark, themeClass } = useContext(ThemeContext);
   const [viewMode, setViewMode] = useState(
     localStorage.getItem(storageKey) || defaultView
   );
@@ -114,8 +115,11 @@ function ObjectList({
                 className="h-100"
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleItemClick(item)}
+                data-bs-theme={dark? 'dark' : 'light'}
               >
-                <Card.Body>
+                <Card.Body
+                className={dark ? 'bg-secondary bg-opacity-25' : ''}
+                >
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     { item.classname !== 'DBFile' && (
                       <i 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Container, Form, Spinner, Alert } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ThemeContext } from './ThemeContext';
 import ObjectList from './ObjectList';
 import axios from './axios';
 import './App.css';
@@ -9,6 +10,7 @@ import './App.css';
 function Search() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { dark, themeClass } = useContext(ThemeContext);
   
   const [searchText, setSearchText] = useState(searchParams.get('q') || '');
   const [results, setResults] = useState([]);
@@ -103,6 +105,7 @@ function Search() {
             items={results}
             showViewToggle={true}
             storageKey="searchViewMode"
+            dark={dark}
           />
         </>
       )}
