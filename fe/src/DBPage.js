@@ -1,11 +1,12 @@
 import React, { use } from 'react';
-import { useState, useEffect } from 'react';
-import { ButtonGroup, Form, Spinner, Button } from 'react-bootstrap';
+import { useState, useEffect, useRef } from 'react';
+import { ButtonGroup, Form, Spinner, Button, Overlay, Popover } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useTranslation } from 'react-i18next';
+import EmojiPicker from 'emoji-picker-react';
 import FileSelector from './FileSelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import PermissionsEditor from './PermissionsEditor';
@@ -318,6 +319,8 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
     const [showFileSelector, setShowFileSelector] = useState(false);
     const [fileSelectorType, setFileSelectorType] = useState('file'); // 'file' or 'image'
     const [quillRef, setQuillRef] = useState(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiButtonRef = useRef(null);
 
     // Load tokens for embedded files when component mounts or HTML changes
     useEffect(() => {
@@ -405,6 +408,20 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
     const handleInsertImage = () => {
         setFileSelectorType('image');
         setShowFileSelector(true);
+    };
+
+    const handleEmojiClick = (emojiObject) => {
+        if (!quillRef) return;
+        
+        const quill = quillRef.getEditor();
+        const range = quill.getSelection(true);
+        
+        // Insert emoji at cursor position
+        quill.insertText(range.index, emojiObject.emoji);
+        quill.setSelection(range.index + emojiObject.emoji.length);
+        
+        // Update state but keep picker open for multiple selections
+        handleHtmlChange(quill.root.innerHTML);
     };
 
     const handleSubmit = (e) => {
@@ -511,7 +528,34 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                                 <i className="bi bi-paperclip me-1"></i>
                                 {t('files.insert_file') || 'Insert File'}
                             </Button>
+                            <Button 
+                                ref={emojiButtonRef}
+                                variant="outline-secondary"
+                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                title={t('editor.insert_emoji') || 'Insert Emoji'}
+                            >
+                                <i className="bi bi-emoji-smile me-1"></i>
+                                {t('editor.insert_emoji') || 'Insert Emoji'}
+                            </Button>
                         </ButtonGroup>
+                        <Overlay
+                            show={showEmojiPicker}
+                            target={emojiButtonRef.current}
+                            // placement="bottom-start"
+                            rootClose
+                            onHide={() => setShowEmojiPicker(false)}
+                        >
+                            <Popover id="emoji-picker-popover">
+                                <Popover.Body>
+                                    <EmojiPicker
+                                        onEmojiClick={handleEmojiClick}
+                                        width={400}
+                                        height={400}
+                                        autoFocusSearch={false}
+                                    />
+                                </Popover.Body>
+                            </Popover>
+                        </Overlay>
                         {/* <Form.Text className="text-muted ms-2">
                             Insert files/images you have permission to edit
                         </Form.Text> */}

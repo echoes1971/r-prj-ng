@@ -145,5 +145,8 @@
     "index_page_editor": "Index Page Editor",
     "index_page_hint": "Edit the HTML content that will be displayed as the folder's landing page. Create one for each language.",
     "save_index": "Save Index Page"
+  },
+  "editor": {
+    "insert_emoji": "Insert Emoji"
   }
 }

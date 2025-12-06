@@ -139,11 +139,14 @@
   },
   "folder": {
     "children_order": "Reihenfolge der Kinder",
-    "drag_to_reorder": "Ziehen zum Neuordnen",
+    "drag_to_reorder": "Ziehen, um neu zu ordnen",
     "no_children_selected": "Keine Kinder für benutzerdefinierte Reihenfolge ausgewählt",
     "available_children": "Verfügbare Kinder",
     "index_page_editor": "Index-Seiten-Editor",
-    "index_page_hint": "Bearbeiten Sie den HTML-Inhalt, der als Startseite des Ordners angezeigt wird. Erstellen Sie eine für jede Sprache.",
-    "save_index": "Indexseite Speichern"
+    "index_page_hint": "Bearbeiten Sie den HTML-Inhalt, der als Landing-Page des Ordners angezeigt wird. Erstellen Sie für jede Sprache eine.",
+    "save_index": "Index-Seite Speichern"
+  },
+  "editor": {
+    "insert_emoji": "Emoji Einfügen"
   }
 }

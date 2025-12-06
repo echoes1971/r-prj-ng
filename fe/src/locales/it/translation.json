@@ -145,5 +145,8 @@
         "index_page_editor": "Editor Pagina Indice",
         "index_page_hint": "Modifica il contenuto HTML che verrà mostrato come pagina principale della cartella. Creane una per ogni lingua.",
         "save_index": "Salva Pagina Indice"
+    },
+    "editor": {
+        "insert_emoji": "Inserisci Emoji"
     }
 }

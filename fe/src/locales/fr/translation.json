@@ -145,5 +145,8 @@
         "index_page_editor": "Éditeur de Page d'Index",
         "index_page_hint": "Modifiez le contenu HTML qui sera affiché comme page d'accueil du dossier. Créez-en une pour chaque langue.",
         "save_index": "Enregistrer la Page d'Index"
+    },
+    "editor": {
+        "insert_emoji": "Insérer Emoji"
     }
 }

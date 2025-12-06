@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Card, Container, Form, Button, Spinner, Alert, ButtonGroup } from 'react-bootstrap';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Card, Container, Form, Button, Spinner, Alert, ButtonGroup, Overlay, Popover } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import EmojiPicker from 'emoji-picker-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axiosInstance from './axios';
@@ -601,6 +602,10 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const [loadingIndexTokens, setLoadingIndexTokens] = useState(false);
     const [savingIndex, setSavingIndex] = useState(false);
     const [quillRefIndex, setQuillRefIndex] = useState(null);
+    const [showEmojiPickerIndex, setShowEmojiPickerIndex] = useState(false);
+    // const [emojiButtonTarget, setEmojiButtonTarget] = useState(null);
+    const emojiButtonRef = useRef(null);
+    
     const [showFileSelectorIndex, setShowFileSelectorIndex] = useState(false);
     const [fileSelectorTypeIndex, setFileSelectorTypeIndex] = useState('file');
 
@@ -751,6 +756,20 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const handleInsertImageIndex = () => {
         setFileSelectorTypeIndex('image');
         setShowFileSelectorIndex(true);
+    };
+
+    const handleEmojiClickIndex = (emojiObject) => {
+        if (!quillRefIndex) return;
+
+        const quill = quillRefIndex.getEditor();
+        const range = quill.getSelection(true);
+        if (!range) return;
+
+        quill.insertText(range.index, emojiObject.emoji);
+        quill.setSelection(range.index + emojiObject.emoji.length);
+
+        // Update state but keep picker open for multiple selections
+        handleIndexHtmlChange(quill.root.innerHTML);
     };
 
     const handleSaveIndex = async () => {
@@ -940,11 +959,39 @@ function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
                                 size="sm"
                                 onClick={handleInsertFileIndex}
                                 disabled={savingIndex}
-                                className="me-2"
                             >
                                 <i className="bi bi-file-earmark"></i> {t('files.insert_file')}
                             </Button>
+                            <Button
+                                ref={emojiButtonRef}
+                                variant="outline-secondary"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setShowEmojiPickerIndex(!showEmojiPickerIndex);
+                                }}
+                                title={t('editor.insert_emoji') || 'Insert Emoji'}
+                            >
+                                <i className="bi bi-emoji-smile me-1"></i> {t('editor.insert_emoji')}
+                            </Button>
                         </ButtonGroup>
+                        <Overlay
+                            show={showEmojiPickerIndex}
+                            target={emojiButtonRef.current}
+                            // placement="bottom-start"
+                            rootClose
+                            onHide={() => setShowEmojiPickerIndex(false)}
+                        >
+                            <Popover id="emoji-picker-popover">
+                                <Popover.Body height="400" width="400">
+                                    <EmojiPicker
+                                        onEmojiClick={handleEmojiClickIndex}
+                                        height={350}
+                                        width={350}
+                                        autoFocusSearch={false}
+                                        />
+                                </Popover.Body>
+                            </Popover>
+                        </Overlay>
                     </div>
                 )}
 
