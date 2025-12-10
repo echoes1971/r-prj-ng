@@ -103,7 +103,6 @@
     "owner": "Owner",
     "group": "Group",
     "permissions": "Permissions",
-    "creator": "Creator",
     "created": "Created",
     "modified": "Modified",
     "deleted": "Deleted",

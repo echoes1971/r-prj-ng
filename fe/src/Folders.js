@@ -39,7 +39,7 @@ export function Folders() {
   ];
 
   const resultsColumns = [
-    { name: t("dbobjects.creator") || "Creator", attribute: "creator", type: "userLink", hideOnSmall: true },
+    { name: t("dbobjects.created") || "Created", attribute: "creator", type: "userLink", hideOnSmall: true },
     { name: t("dbobjects.group") || "Group", attribute: "group_id", type: "groupLink", hideOnSmall: true },
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
