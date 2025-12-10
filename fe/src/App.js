@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useParams } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppNavbar from "./Navbar";
 import './App.css';
@@ -15,60 +15,72 @@ import SiteNavigation from './SiteNavigation';
 import ContentEdit from './ContentEdit';
 import { FileDownload } from './DBFile';
 import Search from './Search';
+import { AppFooter } from './Footer';
 
 function App() {
   const token = localStorage.getItem("token");
   const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
   const isAdmin = groups.includes("-2");
+  const isWebmaster = groups.includes(app_cfg.webmaster_group_id);
   
   return (
-    <Router>
-      <AppNavbar />
-      <Routes>
-        <Route path="/" element={<SiteNavigation />} />
-        <Route path="/default" element={<DefaultPage />} />
-        <Route path="/login" element={<Login />} />
+    <div className="d-flex flex-column min-vh-100">
+      <main className="flex-fill">
+        <Router>
+          <AppNavbar />
+          <Routes>
+            <Route path="/" element={<SiteNavigation />} />
+            <Route path="/default" element={<DefaultPage />} />
+            <Route path="/login" element={<Login />} />
 
-        {/* Site Navigation - content by object ID */}
-        <Route path="/c/:objectId" element={<SiteNavigation />} />
-        <Route path="/c" element={<SiteNavigation />} />
+            {/* Site Navigation - content by object ID */}
+            <Route path="/c/:objectId" element={<SiteNavigation />} />
+            <Route path="/c" element={<SiteNavigation />} />
 
-        {/* Global Search */}
-        <Route path="/search" element={<Search />} />
+            {/* Global Search */}
+            <Route path="/search" element={<Search />} />
 
-        {/* File download by object ID */}
-        <Route path="/f/:objectId/download" element={<FileDownload />} />
+            {/* File download by object ID */}
+            <Route path="/f/:objectId/download" element={<FileDownload />} />
 
-        {/* Content Edit - edit object by ID (requires authentication) */}
-        <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to="/c/:id" />} />
+            {/* Content Edit - edit object by ID (requires authentication) */}
+            <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to={`/c/${window.location.pathname.split('/').pop()}`} replace />} />
 
-        {/* User profile - accessible by the user themselves or admins */}
-        <Route
-          path="/users/:userId"
-          element={token ? <UserProfile /> : <Navigate to="/login" />}
-        />
+            {/* User profile - accessible by the user themselves or admins */}
+            <Route
+              path="/users/:userId"
+              element={token ? <UserProfile /> : <Navigate to="/login" />}
+            />
 
-        {/* Group profile - only for admins */}
-        <Route
-          path="/groups/:groupId"
-          element={token ? <GroupProfile /> : <Navigate to="/" />}
-        />
+            {/* Group profile - only for admins */}
+            <Route
+              path="/groups/:groupId"
+              element={token ? <GroupProfile /> : <Navigate to="/" />}
+            />
 
-        {/* Protected routes - only for admins (group -2) */}
-        <Route
-          path="/users"
-          element={token && isAdmin ? <Users /> : <Navigate to="/" />}
-        />
+            {/* **** Webmaster **** */}
 
-        <Route
-          path="/groups"
-          element={token && isAdmin ? <Groups /> : <Navigate to="/" />}
-        />
 
-        {/* Default -> redirect to / */}
-        <Route path="*" element={<Navigate to="/default" />} />
-      </Routes>
-    </Router>
+            {/* **** Admin **** */}
+
+            {/* Protected routes - only for admins (group -2) */}
+            <Route
+              path="/users"
+              element={token && isAdmin ? <Users /> : <Navigate to="/" />}
+            />
+
+            <Route
+              path="/groups"
+              element={token && isAdmin ? <Groups /> : <Navigate to="/" />}
+            />
+
+            {/* Default -> redirect to / */}
+            <Route path="*" element={<Navigate to="/default" />} />
+          </Routes>
+        </Router>
+      </main>
+      <AppFooter />
+    </div>
   );
 }
 
