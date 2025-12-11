@@ -126,23 +126,23 @@ func main() {
 	r.HandleFunc("/nav/breadcrumb/{objectId}", api.GetBreadcrumbHandler).Methods("GET")
 	r.HandleFunc("/nav/{objectId}/indexes", api.GetIndexesHandler).Methods("GET")
 
-	// Endpoint pubblico: login
+	// Public Endpoint: login
 	r.HandleFunc("/login", api.LoginHandler).Methods("POST")
 
-	// Endpoint pubblico: hello
+	// Public Endpoint: hello
 	r.HandleFunc("/ping", api.PingHandler).Methods("GET")
 
-	// Endpoint pubblico: Ollama
+	// Public Endpoint: Ollama
 	// curl -X POST http://localhost:8080/api/ollama -H "Content-Type: application/json" -d '{"prompt":"Hello Ollama!"}'
 	r.HandleFunc("/ollama", api.OllamaHandler).Methods("POST")
-	// Endpoint pubblico: Ollama default page response
+	// Public Endpoint: Ollama default page response
 	// curl -X GET http://localhost:8080/api/ollama/defaultpage
 	r.HandleFunc("/ollama/defaultpage", api.DefaultPageOllamaHandler).Methods("GET")
 
-	// Endpoint pubblico: Get all countries
+	// Public Endpoint: Get all countries
 	r.HandleFunc("/countries", api.GetCountriesHandler).Methods("GET")
 
-	// Endpoint protected: CRUD utenti
+	// Protected Endpoint: CRUD users
 	userRoutes := r.PathPrefix("/users").Subrouter()
 	userRoutes.Use(api.AuthMiddleware) // applica il middleware
 
@@ -153,7 +153,7 @@ func main() {
 	userRoutes.HandleFunc("/{id}", api.UpdateUserHandler).Methods("PUT")
 	userRoutes.HandleFunc("/{id}", api.DeleteUserHandler).Methods("DELETE")
 
-	// Endpoint protected: CRUD gruppi
+	// Protected Endpoint: CRUD groups
 	groupRoutes := r.PathPrefix("/groups").Subrouter()
 	groupRoutes.Use(api.AuthMiddleware) // applica il middleware
 
@@ -163,7 +163,7 @@ func main() {
 	groupRoutes.HandleFunc("/{id}", api.UpdateGroupHandler).Methods("PUT")
 	groupRoutes.HandleFunc("/{id}", api.DeleteGroupHandler).Methods("DELETE")
 
-	// Endpoint protected: CRUD objects (generic DBObject operations)
+	// Protected Endpoint: CRUD objects (generic DBObject operations)
 	objectRoutes := r.PathPrefix("/objects").Subrouter()
 	objectRoutes.Use(api.AuthMiddleware) // applica il middleware
 
@@ -173,7 +173,7 @@ func main() {
 	objectRoutes.HandleFunc("/{id}", api.UpdateObjectHandler).Methods("PUT")
 	objectRoutes.HandleFunc("/{id}", api.DeleteObjectHandler).Methods("DELETE")
 
-	// Endpoint protected: File download
+	// Protected Endpoint: File download
 	fileRoutes := r.PathPrefix("/files").Subrouter()
 	fileRoutes.Use(api.AuthMiddleware)
 	fileRoutes.HandleFunc("/preview-tokens", api.GenerateFileTokensHandler).Methods("POST")
