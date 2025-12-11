@@ -135,8 +135,8 @@ function AppNavbar() {
             ) : null}
             {username && (
               <NavDropdown title={t("common.contacts")} id="webmaster-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
-                <NavDropdown.Item as={Link} to="/company">{t("company.companies")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/person">{t("person.people")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/companies">{t("company.companies")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/people">{t("person.people")}</NavDropdown.Item>
               </NavDropdown>
             )}
             {username && isAdmin ? (

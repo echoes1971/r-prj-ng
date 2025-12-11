@@ -11,7 +11,12 @@ import Users from "./Users";
 import UserProfile from "./UserProfile";
 import Groups from './Groups';
 import GroupProfile from './GroupProfile';
+import { Companies } from './Companies';
+import { Files } from './Files';
 import { Folders } from './Folders';
+import { News } from './News';
+import { Pages } from './Pages';
+import { People } from './People';
 import SiteNavigation from './SiteNavigation';
 import ContentEdit from './ContentEdit';
 import { FileDownload } from './DBFile';
@@ -60,10 +65,14 @@ function App() {
             />
 
             {/* **** Webmaster **** */}
-            <Route
-              path="/folders"
-              element={token && isWebmaster ? <Folders /> : <Navigate to="/" />}
-            />
+            <Route path="/folders" element={token && isWebmaster ? <Folders /> : <Navigate to="/" />} />
+            <Route path="/pages"   element={token && isWebmaster ?   <Pages /> : <Navigate to="/" />} />
+            <Route path="/news"    element={token && isWebmaster ?    <News /> : <Navigate to="/" />} />
+            <Route path="/files"   element={token && isWebmaster ?   <Files /> : <Navigate to="/" />} />
+
+            {/* **** Contacts **** */}
+            <Route path="/companies" element={token ? <Companies /> : <Navigate to="/" />} />
+            <Route path="/people"    element={token ?    <People /> : <Navigate to="/" />} />
 
             {/* **** Admin **** */}
 
