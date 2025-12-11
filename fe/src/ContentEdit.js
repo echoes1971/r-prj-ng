@@ -6,7 +6,9 @@ import EmojiPicker from 'emoji-picker-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axiosInstance from './axios';
-import CountrySelector from './CountrySelector';
+import {
+    CountrySelector
+} from './ContentWidgets';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import ObjectList from './ObjectList';
 import PermissionsEditor from './PermissionsEditor';

@@ -6,14 +6,17 @@ import {
     formateDateTimeString, 
     formatDescription, 
     classname2bootstrapIcon,
-    CountryView,
-    GroupLinkView,
-    ImageView,
-    ObjectLinkView,
-    UserLinkView,
 } from './sitenavigation_utils';
-import CountrySelector from './CountrySelector';
-import { LanguageSelector, LanguageView } from './Language';
+import {
+  CountryView,
+  CountrySelector,
+  GroupLinkView,
+  ImageView,
+  LanguageSelector,
+  LanguageView,
+  ObjectLinkView,
+  UserLinkView,
+} from './ContentWidgets';
 import ObjectLinkSelector from './ObjectLinkSelector'
 import PermissionsEditor from './PermissionsEditor';
 import { getErrorMessage } from "./errorHandler";

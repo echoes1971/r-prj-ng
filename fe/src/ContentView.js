@@ -7,13 +7,15 @@ import { FileView } from './DBFile';
 import { NoteView } from './DBNote';
 import { ObjectHeaderView, ObjectFooterView, ObjectView } from './DBObject';
 import { HtmlView, PageView } from './DBPage';
-import { 
-    formateDateTimeString, 
-    formatDescription, 
-    classname2bootstrapIcon,
+import {
     CountryView,
     UserLinkView,
     ObjectLinkView
+} from './ContentWidgets'
+import { 
+    formateDateTimeString, 
+    formatDescription, 
+    classname2bootstrapIcon
 } from './sitenavigation_utils';
 import axiosInstance from './axios';
 

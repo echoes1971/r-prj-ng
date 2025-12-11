@@ -6,7 +6,7 @@ import { ThemeContext } from "./ThemeContext";
 import { useTranslation } from "react-i18next";
 import AssociationManager from "./AssociationManager";
 import { getErrorMessage } from "./errorHandler";
-import {GroupLinkView} from "./sitenavigation_utils";
+import {GroupLinkView} from "./ContentWidgets";
 
 function UserProfile() {
   const { t } = useTranslation();

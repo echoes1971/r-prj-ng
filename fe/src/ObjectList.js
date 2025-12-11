@@ -3,8 +3,10 @@ import { ListGroup, Card, Row, Col, Button, ButtonGroup } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom';
 import {
   classname2bootstrapIcon,
-  ImageView
  } from './sitenavigation_utils';
+ import {
+  ImageView
+ } from './ContentWidgets';
 
 /**
  * ObjectList - Reusable component to display a list of objects
