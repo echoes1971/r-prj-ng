@@ -849,7 +849,7 @@ func (dbr *DBRepository) GetBreadcrumb(objectID string) []DBEntityInterface {
 	breadcrumb := make([]DBEntityInterface, 0)
 	currentID := objectID
 
-	for currentID != "" {
+	for currentID != "" && currentID != "0" {
 		obj := dbr.ObjectByID(currentID, true)
 		if obj == nil {
 			break
