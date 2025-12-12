@@ -6,6 +6,7 @@ const getRuntimeConfig = (key, fallback) => {
     return (window_env>"" && window_env.indexOf("${")=== -1 ? window.env?.[key] : null) || process.env[key] || fallback;
 };
 
+// Note: any env variable used here must be defined in public/env-config.js AND in docker-entrypoint.sh
 export const app_cfg = {
     site_title: getRuntimeConfig('REACT_APP_SITE_TITLE', 'R-Prj'),
     endpoint: getRuntimeConfig('REACT_APP_ENDPOINT', '/api'),
