@@ -100,6 +100,33 @@ function AppNavbar() {
               </Nav.Link>
             ))}
 
+            {username && isWebmaster ? (
+              <NavDropdown title="Webmaster 🛠️" id="webmaster-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
+                <NavDropdown.Item as={Link} to="/">{t("common.home")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/folders">{t("folder.folders")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/pages">{t("page.pages")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/news">{t("news.news")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/files">{t("files.files")}</NavDropdown.Item>
+              </NavDropdown>
+            ) : null}
+            {username && (
+              <NavDropdown title={t("common.contacts")} id="webmaster-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
+                <NavDropdown.Item as={Link} to="/companies">{t("company.companies")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/people">{t("person.people")}</NavDropdown.Item>
+              </NavDropdown>
+            )}
+            {username && isAdmin ? (
+              <NavDropdown title="Admin ⚙️" id="admin-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
+                <NavDropdown.Item as={Link} to="/dashboard" disabled>{t("common.dashboard")}</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/db" disabled>{t("common.db")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/log" disabled>{t("common.log")}</NavDropdown.Item>
+              </NavDropdown>
+            ) : null}
+
             {/* Search toggle and field */}
             {searchVisible ? (
               <form onSubmit={handleSearchSubmit} className="d-flex align-items-center me-2">
@@ -134,33 +161,6 @@ function AppNavbar() {
                 <i className="bi bi-search"></i>
               </Button>
             )}
-
-            {username && isWebmaster ? (
-              <NavDropdown title="Webmaster 🛠️" id="webmaster-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
-                <NavDropdown.Item as={Link} to="/">{t("common.home")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/folders">{t("folder.folders")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/pages">{t("page.pages")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/news">{t("news.news")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/files">{t("files.files")}</NavDropdown.Item>
-              </NavDropdown>
-            ) : null}
-            {username && (
-              <NavDropdown title={t("common.contacts")} id="webmaster-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
-                <NavDropdown.Item as={Link} to="/companies">{t("company.companies")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/people">{t("person.people")}</NavDropdown.Item>
-              </NavDropdown>
-            )}
-            {username && isAdmin ? (
-              <NavDropdown title="Admin ⚙️" id="admin-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
-                <NavDropdown.Item as={Link} to="/dashboard" disabled>{t("common.dashboard")}</NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item as={Link} to="/db" disabled>{t("common.db")}</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/log" disabled>{t("common.log")}</NavDropdown.Item>
-              </NavDropdown>
-            ) : null}
 
           
             {!username ? (
