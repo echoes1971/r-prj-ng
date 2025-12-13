@@ -53,7 +53,7 @@ function FolderView({ data, metadata, dark, onFilesUploaded }) {
                         setIndexContent(indexData.indexes[0].data);
                     }
                 } else {
-                    setIndexContent({html: data.description});
+                    // setIndexContent({html: data.description});
                 }
             } catch (err) {
                 console.error('Error loading index content:', err);
@@ -219,15 +219,22 @@ function FolderView({ data, metadata, dark, onFilesUploaded }) {
             )}
 
             {indexContent === null ? (
-                <p>No indexes found in this folder.</p>
-            ) : (
                 <div>
                     {data.name && (
                     <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
                     )}
+                    {data.description && (
+                    <small style={{ opacity: 0.7 }}>-{data.description}</small>
+                    )}
+                </div>
+            ) : (
+                <div>
+                    {/* {data.name && (
+                    <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+                    )}
                     {indexContent.description && (
                     <small style={{ opacity: 0.7 }}>-{indexContent.description}</small>
-                    )}
+                    )} */}
                     <HtmlView html={indexContent.html} dark={dark} />
                 </div>
             )}
