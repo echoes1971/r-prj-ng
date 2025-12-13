@@ -59,3 +59,21 @@ jobs:
         tags: |
           ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}-fe:latest
           ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}-fe:${{ steps.ver.outputs.tag }}
+
+    - name: Increase version number for the next release
+      run: |
+        version=$(cat VERSION)
+        IFS='.' read -r major minor patch <<< "$version"
+        patch=$((patch + 1))
+        new_version="$major.$minor.$patch"
+        echo "$new_version" > VERSION
+        echo "Next version: $new_version"
+
+    - name: Commit and push
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add VERSION
+        git commit -m "Bump version to $new_version" || echo "No changes to commit"
+        git push
+        
