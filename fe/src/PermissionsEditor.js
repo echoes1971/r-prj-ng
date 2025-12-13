@@ -114,7 +114,16 @@ function PermissionsEditor({ value = 'rwxr-x---', onChange, name = 'permissions'
         <Form.Group className="mb-3">
             {label && <Form.Label>{label}</Form.Label>}
             
-            <div className={`border rounded p-3 ${dark ? 'bg-dark border-secondary' : 'bg-light'}`}>
+            <div className={`border rounded p-3 ${dark ? 'border-secondary' : 'bg-light'}`}>
+                <div className="mb-3 pb-3 border-bottom">
+                    <small className="text-secondary">
+                        <strong>{t('permissions.current') || 'Current permissions'}:</strong>{' '}
+                        <code className={`px-2 py-1 rounded ${dark ? 'bg-secondary text-light' : 'bg-white'}`}>
+                            {permissionsToString(permissions)}
+                        </code>
+                    </small>
+                </div>
+
                 <Row>
                     <Col md={4}>
                         {renderPermissionCheckboxes('owner', t('permissions.owner') || 'Owner')}
@@ -126,18 +135,9 @@ function PermissionsEditor({ value = 'rwxr-x---', onChange, name = 'permissions'
                         {renderPermissionCheckboxes('others', t('permissions.others') || 'Others')}
                     </Col>
                 </Row>
-                
-                <div className="mt-3 pt-3 border-top">
-                    <small className="text-muted">
-                        <strong>{t('permissions.current') || 'Current permissions'}:</strong>{' '}
-                        <code className={`px-2 py-1 rounded ${dark ? 'bg-secondary text-light' : 'bg-white'}`}>
-                            {permissionsToString(permissions)}
-                        </code>
-                    </small>
-                </div>
             </div>
             
-            <Form.Text className="text-muted">
+            <Form.Text className="text-secondary">
                 {t('permissions.hint') || 'Set read, write, and execute permissions for owner, group, and others'}
             </Form.Text>
         </Form.Group>
