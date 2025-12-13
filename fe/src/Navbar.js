@@ -78,7 +78,18 @@ function AppNavbar() {
     <Navbar className={dark ? "navbar bg-gradient-dark" : "navbar bg-gradient-light"} bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"} expand="lg">
       <Container>
         <Navbar.Brand as={Link} to="/">{site_title}</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        
+        <div className="d-flex d-lg-none ms-auto">
+          <Button
+            variant={dark ? "secondary" : "outline-secondary"}
+            size="sm"
+            onClick={() => navigate('/search')}
+            className="me-2"
+          >
+            <i className="bi bi-search"></i>
+          </Button>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        </div>
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
@@ -118,7 +129,7 @@ function AppNavbar() {
                 variant={dark ? "secondary" : "outline-secondary"}
                 size="sm"
                 onClick={() => setSearchVisible(true)}
-                className="me-2"
+                className="me-2 d-none d-lg-inline"
               >
                 <i className="bi bi-search"></i>
               </Button>
