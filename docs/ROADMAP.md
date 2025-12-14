@@ -12,6 +12,10 @@ References:
 
 ## 🎯 MVP - Priority Features
 
+- [ ] ObjectList: as Admin, I have a filter to see all deleted objects and massively select the delete
+- [ ] manifest.json to make it recognisable as a PWA
+
+
 ### Search & Discovery (NEXT - MVP BLOCKER)
 - [ ] Full-text search in HTML content // 👤 Roberto: A search box in the NavBar that leads to a /nav/search with results and filters
   - [x] Anonymous user search (public content only)
@@ -31,6 +35,7 @@ References:
 - [ ] License: gpl? lgpl? apache 2.0?
 
 ### Rich Text Editor Improvements (HIGH PRIORITY)
+- [ ] Pre condition: make it a separate reusable component
 - [ ] Tables support in ReactQuill
 - [ ] Image resize (simply put width="...")
 - [ ] Text and elements alignment
