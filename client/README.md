@@ -435,12 +435,12 @@ GOOS=windows GOARCH=amd64 go build -o rhobee-windows-amd64.exe
 
 ### Phase 4 (Future) 📋 BACKLOG
 - [x] Update/Delete commands
-- [ ] Colored output (success/error/warning)
+- [ ] Colored output (success/error/warning) // eye candy?
 - [ ] Table formatting (ascii tables)
-- [ ] Batch operations (JSON manifest)
-- [ ] Clone objects between instances
-- [ ] Watch mode (auto-sync on file change)
-- [ ] Shell completion (bash, zsh, fish)
+- [ ] Batch operations (JSON manifest)      // ???
+- [ ] Clone objects between instances       // import/export is not enough?
+- [ ] Watch mode (auto-sync on file change) // ???
+- [ ] Shell completion (bash, zsh, fish)    // seems cool
 
 ## Contributing
 
