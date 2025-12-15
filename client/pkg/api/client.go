@@ -313,6 +313,108 @@ func (c *Client) UploadFile(filePath, folderID, name, description, permissions s
 	return &response.Data, nil
 }
 
+// UpdateFile updates the content and metadata of an existing DBFile
+func (c *Client) UpdateFile(obj *models.DBObject, filePath string, showProgress bool) (*models.DBObject, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Create multipart form
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add file
+	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	// Copy file with optional progress bar
+	if showProgress {
+		bar := progressbar.DefaultBytes(
+			fileInfo.Size(),
+			"Uploading",
+		)
+		if _, err := io.Copy(io.MultiWriter(part, bar), file); err != nil {
+			return nil, fmt.Errorf("failed to copy file: %w", err)
+		}
+	} else {
+		if _, err := io.Copy(part, file); err != nil {
+			return nil, fmt.Errorf("failed to copy file: %w", err)
+		}
+	}
+
+	// Add object fields to the form (if provided)
+	if obj != nil {
+		if obj.Name != "" {
+			writer.WriteField("name", obj.Name)
+		}
+		if obj.Description != "" {
+			writer.WriteField("description", obj.Description)
+		}
+		if obj.Permissions != "" {
+			writer.WriteField("permissions", obj.Permissions)
+		}
+		if obj.FatherID != "" {
+			writer.WriteField("father_id", obj.FatherID)
+		}
+		if obj.HTML != "" {
+			writer.WriteField("html", obj.HTML)
+		}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close writer: %w", err)
+	}
+
+	// Create request - use PUT to update existing file
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/objects/%s", c.BaseURL, obj.ID), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Increase timeout for large files
+	c.HTTPClient.Timeout = 5 * time.Minute
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("file update failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	// Backend returns { data: {...}, metadata: {...} }
+	var response struct {
+		Data     models.DBObject        `json:"data"`
+		Metadata map[string]interface{} `json:"metadata"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Copy classname from metadata to data if missing
+	if response.Data.Classname == "" {
+		if classname, ok := response.Metadata["classname"].(string); ok {
+			response.Data.Classname = classname
+		}
+	}
+
+	return &response.Data, nil
+}
+
 // DownloadFile downloads a file
 func (c *Client) DownloadFile(fileID, outputPath string, showProgress bool) error {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/files/%s/download", c.BaseURL, fileID), nil)

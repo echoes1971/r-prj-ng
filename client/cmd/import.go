@@ -15,6 +15,7 @@ import (
 var (
 	importFolder      string
 	importPreserveIDs bool
+	importForce       bool
 )
 
 var importCmd = &cobra.Command{
@@ -27,7 +28,10 @@ Examples:
   rhobee import ./backup/ --folder 0
 
   # Import preserving original IDs
-  rhobee import ./backup/ --folder 0 --preserve-ids`,
+  rhobee import ./backup/ --folder 0 --preserve-ids
+  
+  # Force update if objects already exist (upsert mode)
+  rhobee import ./backup/ --folder 0 --preserve-ids --force`,
 	Args: cobra.ExactArgs(1),
 	RunE: runImport,
 }
@@ -37,6 +41,7 @@ func init() {
 
 	importCmd.Flags().StringVar(&importFolder, "folder", "", "Target folder ID (required)")
 	importCmd.Flags().BoolVar(&importPreserveIDs, "preserve-ids", false, "Preserve original object IDs")
+	importCmd.Flags().BoolVar(&importForce, "force", false, "Update existing objects instead of failing")
 	importCmd.MarkFlagRequired("folder")
 }
 
@@ -78,6 +83,9 @@ func runImport(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Importing %d objects from %s...\n", manifest.TotalObjects, importDir)
 	if importPreserveIDs {
 		fmt.Println("  Preserving original IDs")
+	}
+	if importForce {
+		fmt.Println("  Force mode: will update existing objects")
 	}
 
 	// Map old IDs to new IDs
@@ -123,30 +131,65 @@ func runImport(cmd *cobra.Command, args []string) error {
 			obj.FatherID = parentID
 
 			// Handle ID preservation
+			originalID := obj.ID
 			if !importPreserveIDs {
 				obj.ID = "" // Let backend generate new ID
 			}
 
 			// Import based on type
 			var newObj *models.DBObject
+			var createErr error
+
+			// Check if object already exists (only in force mode with preserve-ids)
+			var objectExists bool
+			if importForce && importPreserveIDs {
+				existingObj, err := client.Get(originalID)
+				objectExists = (err == nil && existingObj != nil)
+			}
+
 			if obj.Classname == "DBFile" && objInfo.FilePath != "" {
 				// Upload file
 				filePath := filepath.Join(importDir, objInfo.FilePath)
-				fmt.Printf("  Uploading file: %s\n", obj.Name)
 
-				newObj, err = client.UploadFile(filePath, parentID, obj.Name, obj.Description, obj.Permissions, false)
-				if err != nil {
-					fmt.Printf("    Warning: failed to upload file: %v\n", err)
-					continue
+				if objectExists {
+					// File exists - update it with new content and metadata
+					fmt.Printf("  Updating file: %s\n", obj.Name)
+					obj.ID = originalID // Ensure ID is set for update
+					newObj, createErr = client.UpdateFile(&obj, filePath, false)
+					if createErr != nil {
+						fmt.Printf("    Warning: failed to update file: %v\n", createErr)
+						continue
+					}
+				} else {
+					// Upload new file
+					fmt.Printf("  Uploading file: %s\n", obj.Name)
+					newObj, createErr = client.UploadFile(filePath, parentID, obj.Name, obj.Description, obj.Permissions, false)
+
+					if createErr != nil {
+						fmt.Printf("    Warning: failed to import file: %v\n", createErr)
+						continue
+					}
 				}
 			} else {
-				// Create object
-				fmt.Printf("  Creating %s: %s\n", obj.Classname, obj.Name)
-
-				newObj, err = client.Create(&obj)
-				if err != nil {
-					fmt.Printf("    Warning: failed to create object: %v\n", err)
-					continue
+				if objectExists {
+					// Update existing object
+					fmt.Printf("  Updating %s: %s\n", obj.Classname, obj.Name)
+					err = client.Update(originalID, &obj)
+					if err == nil {
+						newObj = &obj
+						newObj.ID = originalID
+					} else {
+						fmt.Printf("    Warning: update failed: %v\n", err)
+						continue
+					}
+				} else {
+					// Create new object
+					fmt.Printf("  Creating %s: %s\n", obj.Classname, obj.Name)
+					newObj, createErr = client.Create(&obj)
+					if createErr != nil {
+						fmt.Printf("    Warning: failed to create object: %v\n", createErr)
+						continue
+					}
 				}
 			}
 

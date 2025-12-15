@@ -11,6 +11,7 @@ import (
 
 var (
 	uploadFolder      string
+	uploadFileID      string
 	uploadName        string
 	uploadDescription string
 	uploadPermissions string
@@ -20,11 +21,14 @@ var (
 var uploadCmd = &cobra.Command{
 	Use:   "upload <file> [file2] [file3] ...",
 	Short: "Upload one or more files",
-	Long: `Upload one or more files to ρBee.
+	Long: `Upload one or more files to ρBee, or update an existing DBFile with new content.
 	
 Examples:
-  # Upload single file
+  # Upload single file to folder
   rhobee upload photo.jpg --folder folder_id
+
+  # Update existing DBFile with new content
+  rhobee upload new_photo.jpg --file-id dbfile_id
 
   # Upload multiple files
   rhobee upload *.jpg --folder folder_id
@@ -44,17 +48,28 @@ Examples:
 func init() {
 	rootCmd.AddCommand(uploadCmd)
 
-	uploadCmd.Flags().StringVar(&uploadFolder, "folder", "", "Parent folder ID (required)")
+	uploadCmd.Flags().StringVar(&uploadFolder, "folder", "", "Parent folder ID (for new uploads)")
+	uploadCmd.Flags().StringVar(&uploadFileID, "file-id", "", "Existing DBFile ID (to update its content)")
 	uploadCmd.Flags().StringVar(&uploadName, "name", "", "File name (only for single file upload)")
 	uploadCmd.Flags().StringVar(&uploadDescription, "description", "", "File description (applies to all files)")
 	uploadCmd.Flags().StringVar(&uploadPermissions, "permissions", "rw-r-----", "Permissions (default: rw-r-----)")
 	uploadCmd.Flags().BoolVar(&uploadNoProgress, "no-progress", false, "Disable progress bar")
 
-	uploadCmd.MarkFlagRequired("folder")
+	// Make folder and file-id mutually exclusive - one must be provided
+	uploadCmd.MarkFlagsMutuallyExclusive("folder", "file-id")
 }
 
 func runUpload(cmd *cobra.Command, args []string) error {
 	filePaths := args
+
+	// Validate flags
+	if uploadFolder == "" && uploadFileID == "" {
+		return fmt.Errorf("either --folder or --file-id must be specified")
+	}
+
+	if uploadFileID != "" && len(filePaths) > 1 {
+		return fmt.Errorf("--file-id can only be used with a single file")
+	}
 
 	// Get token
 	tokenManager, err := auth.NewTokenManager()
@@ -72,6 +87,33 @@ func runUpload(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(url, token)
 
 	showProgress := !uploadNoProgress
+
+	// Handle file update mode
+	if uploadFileID != "" {
+		filePath := filePaths[0]
+		fmt.Printf("Updating DBFile %s with new content...\n", uploadFileID)
+
+		// Get existing object to preserve its metadata
+		existingObj, err := client.Get(uploadFileID)
+		if err != nil {
+			return fmt.Errorf("failed to get existing file: %w", err)
+		}
+
+		// Update with new file content
+		updated, err := client.UpdateFile(existingObj, filePath, showProgress)
+		if err != nil {
+			return fmt.Errorf("failed to update file: %w", err)
+		}
+
+		fmt.Printf("\n✓ File content updated successfully\n")
+		fmt.Printf("  ID: %s\n", updated.ID)
+		fmt.Printf("  Name: %s\n", updated.Name)
+		fmt.Printf("  Type: %s\n", updated.Mime)
+
+		return nil
+	}
+
+	// Handle normal upload mode
 	successCount := 0
 	failCount := 0
 
