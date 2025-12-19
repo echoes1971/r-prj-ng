@@ -130,7 +130,9 @@ func NewDBEvent() *DBEvent {
 		{Column: "creator", RefTable: "users", RefColumn: "id"},
 		{Column: "last_modify", RefTable: "users", RefColumn: "id"},
 		{Column: "deleted_by", RefTable: "users", RefColumn: "id"},
-
+		{Column: "father_id", RefTable: "folders", RefColumn: "id"},
+		{Column: "father_id", RefTable: "pages", RefColumn: "id"},
+		{Column: "father_id", RefTable: "news", RefColumn: "id"},
 		{Column: "fk_obj_id", RefTable: "companies", RefColumn: "id"},
 		{Column: "fk_obj_id", RefTable: "folders", RefColumn: "id"},
 		{Column: "fk_obj_id", RefTable: "people", RefColumn: "id"},
@@ -1155,6 +1157,7 @@ func NewDBLink() *DBLink {
 		{Column: "creator", RefTable: "users", RefColumn: "id"},
 		{Column: "last_modify", RefTable: "users", RefColumn: "id"},
 		{Column: "deleted_by", RefTable: "users", RefColumn: "id"},
+		{Column: "father_id", RefTable: "folders", RefColumn: "id"},
 		{Column: "father_id", RefTable: "pages", RefColumn: "id"},
 		{Column: "father_id", RefTable: "news", RefColumn: "id"},
 		{Column: "fk_obj_id", RefTable: "companies", RefColumn: "id"},

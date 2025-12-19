@@ -38,6 +38,14 @@ function NewObjectButton({ fatherId, onObjectCreated }) {
                 description: ""
             };
 
+            switch (classname) {
+                case 'DBLink':
+                    payload.href = "";
+                    break;
+                default:
+                    break;
+            }
+
             const response = await axiosInstance.post('/objects', payload);
             const newObjectId = response.data.data.id;
 

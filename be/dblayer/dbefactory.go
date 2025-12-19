@@ -33,24 +33,47 @@ func (dbef *DBEFactory) Register(dbe DBEntityInterface) {
 	if dbef.TableChildren == nil {
 		dbef.TableChildren = make(map[string][]string)
 	}
-	if !dbe.IsDBObject() {
-		return
+}
+
+func (dbef *DBEFactory) ProcessForeignKeys() {
+	if dbef.verbose {
+		log.Print("DBEFactory::ProcessForeignKeys: Processing foreign keys for all registered DBEntities")
 	}
-	for _, fk := range dbe.GetForeignKeys() {
-		parentTable := fk.RefTable
-		parentInstance := dbef.GetInstanceByTableName(parentTable)
-		if parentInstance == nil || !parentInstance.IsDBObject() {
+	for _, dbe := range dbef.classname2type {
+		if !dbe.IsDBObject() {
 			continue
 		}
-		if _, exists := dbef.TableChildren[parentTable]; !exists {
-			dbef.TableChildren[parentTable] = make([]string, 0)
+		for _, fk := range dbe.GetForeignKeys() {
+			if dbef.verbose {
+				log.Printf("DBEFactory::ProcessForeignKeys: Processing foreign key: %+v", fk)
+			}
+			parentTable := fk.RefTable
+			if dbef.verbose {
+				log.Printf("DBEFactory::ProcessForeignKeys: Parent table: %s", parentTable)
+			}
+			// Check if parent is a DBObject (if already registered), otherwise assume it is
+			parentInstance := dbef.GetInstanceByTableName(parentTable)
+			if parentInstance != nil && !parentInstance.IsDBObject() {
+				// Parent exists but is NOT a DBObject, skip
+				continue
+			}
+			// If parentInstance is nil, we proceed with "faith" - the parent will be registered later
+			// if dbef.verbose {
+			// 	log.Printf("DBEFactory::ProcessForeignKeys: Parent table children: %v", dbef.TableChildren[parentTable])
+			// }
+			if _, exists := dbef.TableChildren[parentTable]; !exists {
+				dbef.TableChildren[parentTable] = make([]string, 0)
+			}
+			childTableName := dbe.GetTableName()
+			// Use slices.Contains to check if childTableName exists
+			if slices.Contains(dbef.TableChildren[parentTable], childTableName) {
+				continue
+			}
+			if dbef.verbose {
+				log.Printf("DBEFactory::ProcessForeignKeys: Adding child table '%s' to parent table '%s'", childTableName, parentTable)
+			}
+			dbef.TableChildren[parentTable] = append(dbef.TableChildren[parentTable], childTableName)
 		}
-		childTableName := dbe.GetTableName()
-		// Use slices.Contains to check if childTableName exists
-		if slices.Contains(dbef.TableChildren[parentTable], childTableName) {
-			continue
-		}
-		dbef.TableChildren[parentTable] = append(dbef.TableChildren[parentTable], childTableName)
 	}
 }
 

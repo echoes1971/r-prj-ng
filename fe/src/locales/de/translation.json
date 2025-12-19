@@ -94,6 +94,7 @@
     "DBEvent": "Ereignis",
     "DBFile": "Datei",
     "DBFolder": "Ordner",
+    "DBLink": "Link",
     "DBNews": "Nachricht",
     "DBNote": "Notiz",
     "DBObject": "Objekt",
@@ -161,6 +162,24 @@
     "index_page_editor": "Index-Seiten-Editor",
     "index_page_hint": "Bearbeiten Sie den HTML-Inhalt, der als Landing-Page des Ordners angezeigt wird. Erstellen Sie für jede Sprache eine.",
     "save_index": "Index-Seite Speichern"
+  },
+  "link": {
+    "links": "Links",
+    "newLink": "Neuer Link",
+    "href": "URL",
+    "target": "Target",
+    "target_blank": "In neuem Tab/Fenster öffnen",
+    "target_self": "Im gleichen Frame öffnen, in dem geklickt wurde",
+    "target_parent": "Im übergeordneten Frame öffnen",
+    "target_top": "Im gesamten Fenster öffnen",
+    "url": "URL",
+    "description_placeholder": "Optionale Beschreibung",
+    "href_required": "URL ist erforderlich",
+    "delete_confirm": "Sind Sie sicher, dass Sie diesen Link löschen möchten?",
+    "open": "Link öffnen",
+    "new_tab": "öffnet in neuem Tab",
+    "name_placeholder": "Linkname (optional)",
+    "url_help": "Die URL muss mit http:// oder https:// beginnen"
   },
   "news": {
     "news": "Nachrichten"

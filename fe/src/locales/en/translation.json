@@ -94,6 +94,7 @@
     "DBEvent": "Event",
     "DBFile": "File",
     "DBFolder": "Folder",
+    "DBLink": "Link",
     "DBNews": "News",
     "DBNote": "Note",
     "DBObject": "Object",
@@ -167,6 +168,24 @@
     "index_page_editor": "Index Page Editor",
     "index_page_hint": "Edit the HTML content that will be displayed as the folder's landing page. Create one for each language.",
     "save_index": "Save Index Page"
+  },
+  "link": {
+    "links": "Links",
+    "newLink": "New Link",
+    "href": "URL",
+    "target": "Target",
+    "target_blank": "Open in new tab/window",
+    "target_self": "Open in same frame as it was clicked",
+    "target_parent": "Open in parent frame",
+    "target_top": "Open in full body of the window",
+    "url": "URL",
+    "description_placeholder": "Optional description",
+    "href_required": "URL is required",
+    "delete_confirm": "Are you sure you want to delete this link?",
+    "open": "Open Link",
+    "new_tab": "opens in new tab",
+    "name_placeholder": "Link name (optional)",
+    "url_help": "The URL must start with http:// or https://"
   },
   "news": {
     "news": "News"

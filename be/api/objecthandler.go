@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -477,7 +478,9 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Father specified - get parent object and check TableChildren
-		parentObj := repo.ObjectByID(fatherID, true)
+		parentObj := repo.FullObjectById(fatherID, true)
+		// parentObj := repo.ObjectByID(fatherID, true)
+		log.Print("GetCreatableTypesHandler: fatherID=", fatherID, " parentObj=", parentObj.ToString())
 		if parentObj == nil {
 			RespondSimpleError(w, ErrInternalServer, "Parent object not found", http.StatusNotFound)
 			return
@@ -498,7 +501,15 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 		parentTable := parentInstance.GetTableName()
 
 		// Get allowed child tables from TableChildren
+		log.Printf("GetCreatableTypesHandler: parentTable=%s, TableChildren keys=%v", parentTable, func() []string {
+			keys := make([]string, 0, len(dblayer.Factory.TableChildren))
+			for k := range dblayer.Factory.TableChildren {
+				keys = append(keys, k)
+			}
+			return keys
+		}())
 		if childTables, exists := dblayer.Factory.TableChildren[parentTable]; exists {
+			log.Printf("GetCreatableTypesHandler: Found %d child tables for %s: %v", len(childTables), parentTable, childTables)
 			for _, childTable := range childTables {
 				childInstance := dblayer.Factory.GetInstanceByTableName(childTable)
 				if childInstance != nil {
@@ -515,6 +526,9 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	// Sort types alphabetically
+	sort.Strings(creatableTypes)
 
 	// Return the list
 	w.Header().Set("Content-Type", "application/json")

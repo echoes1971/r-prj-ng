@@ -4,6 +4,7 @@ import { Card, Container, Spinner, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FileView } from './DBFile';
+import { LinkView } from './DBLink';
 import { NoteView } from './DBNote';
 import { ObjectHeaderView, ObjectFooterView, ObjectView } from './DBObject';
 import { HtmlView, PageView } from './DBPage';
@@ -224,7 +225,7 @@ function FolderView({ data, metadata, dark, onFilesUploaded }) {
                     <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
                     )}
                     {data.description && (
-                    <small style={{ opacity: 0.7 }}>-{data.description}</small>
+                    <small style={{ opacity: 0.7 }}>{data.description}</small>
                     )}
                 </div>
             ) : (
@@ -405,6 +406,8 @@ function ContentView({ data, metadata, dark, onFilesUploaded }) {
             return <FileView data={data} metadata={metadata} dark={dark} />;
         case 'DBFolder':
             return <FolderView data={data} metadata={metadata} dark={dark} onFilesUploaded={onFilesUploaded} />;
+        case 'DBLink':
+            return <LinkView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         case 'DBNote':
             return <NoteView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         case 'DBNews':

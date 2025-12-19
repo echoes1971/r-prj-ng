@@ -94,6 +94,7 @@
     "DBEvent": "Événement",
     "DBFile": "Fichier",
     "DBFolder": "Dossier",
+    "DBLink": "Lien",
     "DBNews": "Actualité",
     "DBNote": "Note",
     "DBObject": "Objet",
@@ -160,6 +161,24 @@
         "index_page_editor": "Éditeur de Page d'Index",
         "index_page_hint": "Modifiez le contenu HTML qui sera affiché comme page d'accueil du dossier. Créez-en une pour chaque langue.",
         "save_index": "Enregistrer la Page d'Index"
+  },
+  "link": {
+    "links": "Liens",
+    "newLink": "Nouveau Lien",
+    "href": "URL",
+    "target": "Cible",
+    "target_blank": "Ouvrir dans un nouvel onglet/fenêtre",
+    "target_self": "Ouvrir dans le même cadre que celui cliqué",
+    "target_parent": "Ouvrir dans le cadre parent",
+    "target_top": "Ouvrir dans le corps complet de la fenêtre",
+    "url": "URL",
+    "description_placeholder": "Description optionnelle",
+    "href_required": "L'URL est obligatoire",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce lien ?",
+    "open": "Ouvrir le lien",
+    "new_tab": "ouvre dans un nouvel onglet",
+    "name_placeholder": "Nom du lien (optionnel)",
+    "url_help": "L'URL doit commencer par http:// ou https://"
   },
   "news": {
     "news": "Actualités"

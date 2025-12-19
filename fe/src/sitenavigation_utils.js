@@ -15,6 +15,8 @@ export function classname2bootstrapIcon(classname) {
     switch (classname) {
         case 'DBCompany':
             return 'building';
+        case 'DBEvent':
+            return 'calendar-event';
         case 'DBFile':
             return 'file-earmark-fill';
         case 'DBFolder':

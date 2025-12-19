@@ -14,6 +14,7 @@ import ObjectList from './ObjectList';
 import PermissionsEditor from './PermissionsEditor';
 import FileSelector from './FileSelector';
 import { FileEdit } from './DBFile';
+import { LinkEdit } from './DBLink';
 import { NoteEdit } from './DBNote';
 import { ObjectEdit } from './DBObject';
 import { 
@@ -1375,6 +1376,9 @@ function ContentEdit() {
             break;
         case 'DBFolder':
             EditComponent = FolderEdit;
+            break;
+        case 'DBLink':
+            EditComponent = LinkEdit;
             break;
         default:
             EditComponent = ObjectEdit;

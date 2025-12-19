@@ -51,6 +51,8 @@ func InitDBLayer(config models.Config) {
 	Factory.Register(NewDBNote())
 	Factory.Register(NewDBPage())
 	Factory.Register(NewDBNews())
+	// Process foreign keys after all registrations
+	Factory.ProcessForeignKeys()
 
 	log.Print("Initializing DB connection...")
 	var err error

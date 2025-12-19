@@ -94,6 +94,7 @@
         "DBEvent": "Evento",
         "DBFile": "File",
         "DBFolder": "Cartella",
+        "DBLink": "Collegamento",
         "DBNews": "Notizia",
         "DBNote": "Nota",
         "DBObject": "Oggetto",
@@ -160,6 +161,24 @@
         "index_page_editor": "Editor Pagina Indice",
         "index_page_hint": "Modifica il contenuto HTML che verrà mostrato come pagina principale della cartella. Creane una per ogni lingua.",
         "save_index": "Salva Pagina Indice"
+  },
+  "link": {
+    "links": "Collegamenti",
+    "newLink": "Nuovo Collegamento",
+    "href": "URL",
+    "target": "Target",
+    "target_blank": "Apri in una nuova scheda/finestra",
+    "target_self": "Apri nello stesso frame in cui è stato cliccato",
+    "target_parent": "Apri nel frame genitore",
+    "target_top": "Apri nell'intero corpo della finestra",
+    "url": "URL",
+    "description_placeholder": "Descrizione opzionale",
+    "href_required": "L'URL è obbligatorio",
+    "delete_confirm": "Sei sicuro di voler eliminare questo collegamento?",
+    "open": "Apri Collegamento",
+    "new_tab": "apre in una nuova scheda",
+    "name_placeholder": "Nome collegamento (opzionale)",
+    "url_help": "L'URL deve iniziare con http:// o https://"
   },
   "news": {
     "news": "Notizie"
