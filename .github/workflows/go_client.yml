@@ -45,4 +45,4 @@ jobs:
           name: "Development Build"
           prerelease: true
           files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee
-          overwrite: true
+          overwrite_files: true
