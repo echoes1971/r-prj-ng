@@ -1,4 +1,4 @@
-name: Go Server Multi-Arch Dev Build
+name: Go Server Dev Build
 
 on:
   push:
