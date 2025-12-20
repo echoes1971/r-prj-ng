@@ -1,0 +1,52 @@
+name: Go Server Multi-Arch Dev Build
+
+on:
+  push:
+    branches:
+      - main
+    #paths:
+    #  - "be/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      #max-parallel: 1
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+        run: |
+          cd be
+          OUTDIR="../build/${{ matrix.goos }}/${{ matrix.goarch }}"
+          mkdir -p "$OUTDIR"
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+          FILENAME="rhobee-be-${{ matrix.goos }}-${{ matrix.goarch }}$EXT"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o "$OUTDIR/$FILENAME" .
+    
+      - name: Upload to dev release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev
+          name: "Development Build"
+          prerelease: true
+          overwrite_files: true
+          files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee-be-*
