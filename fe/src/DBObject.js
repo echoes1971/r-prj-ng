@@ -279,7 +279,7 @@ export function CheckWritePermission({objectData}) {
          || permissions[7] === 'w';
 }
 
-export function ObjectSearch({searchClassname, searchColumns, resultsColumns, dark, themeClass}) {
+export function ObjectSearch({searchClassname, searchColumns, resultsColumns, orderBy, dark, themeClass}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchFormData, setSearchFormData] = useState({
@@ -287,6 +287,7 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, da
     name: "",
     description: "",
   });
+  const [searchOrderBy, setSearchOrderBy] = useState(orderBy || "name");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -306,19 +307,21 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, da
     }
   }, [errorMessage]);
 
-  const fetchObjects = async (search) => {
+  const fetchObjects = async (search, orderBy) => {
     const token = localStorage.getItem("token");
     setLoading(true);
     setErrorMessage("");
 
     try {
+      console.log('Searching objects with:', search, ' order by:', orderBy);
       const response = await axios.get('/objects/search', {
         params: {
           classname: searchClassname,
-          searchJson: JSON.stringify(search)
+          searchJson: JSON.stringify(search),
+          orderBy: orderBy
         },
       });
-      console.log('Search response:', response.data);
+      // console.log('Search response:', response.data);
       // Backend returns array directly, not wrapped in results
       setResults(Array.isArray(response.data) ? response.data : response.data.objects || []);
     } catch (err) {
@@ -340,7 +343,7 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, da
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchObjects(searchFormData);
+    fetchObjects(searchFormData, searchOrderBy);
   };
 
   const handleCreateObject = async (classname) => {
@@ -459,7 +462,14 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, da
             <tr>
               <th className="d-none d-md-table-cell">#</th>
               {resultsColumns.map((col, index) => (
-                <th className={col.hideOnSmall ? "d-none d-md-table-cell" : ""} key={index}>{col.name}</th>
+                <th className={col.hideOnSmall ? "d-none d-md-table-cell" : ""} key={index}
+                  onClick={() => {
+                    const desc = searchOrderBy === col.attribute ? ' desc' : '';
+                    setSearchOrderBy(col.attribute + desc);
+                    console.log("Setting order by:", searchOrderBy);
+                    fetchObjects(searchFormData, col.attribute + desc);
+                  }}
+                >{col.name}{searchOrderBy === col.attribute+' desc' ? " ▼" : searchOrderBy === col.attribute ? " ▲" : ""}</th>
               ))}
               <th>Actions</th>
             </tr>

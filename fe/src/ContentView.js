@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { CompanyView } from './DBCompany';
+import { EventView } from './DBEvent';
 import { FileView } from './DBFile';
 import { FolderView } from './DBFolders';
 import { LinkView } from './DBLink';
@@ -82,8 +83,8 @@ export function ContentView({ data, metadata, dark, onFilesUploaded }) {
         case 'DBPerson':
             return <PersonView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         // // CMS
-        // case 'DBEvent':
-        //     return <EventView data={data} metadata={metadata} dark={dark} />;
+        case 'DBEvent':
+            return <EventView data={data} metadata={metadata} objectData={objectData} dark={dark} />;
         case 'DBFile':
             return <FileView data={data} metadata={metadata} dark={dark} />;
         case 'DBFolder':

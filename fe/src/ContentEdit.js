@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import 'react-quill/dist/quill.snow.css';
 import axiosInstance from './axios';
 import { CompanyEdit } from './DBCompany';
+import { EventEdit } from './DBEvent';
 import { FileEdit } from './DBFile';
 import { FolderEdit } from './DBFolders';
 import { LinkEdit } from './DBLink';
@@ -167,6 +168,9 @@ function ContentEdit() {
             break;
         case 'DBCompany':
             EditComponent = CompanyEdit;
+            break;
+        case 'DBEvent':
+            EditComponent = EventEdit;
             break;
         case 'DBFile':
             EditComponent = FileEdit;

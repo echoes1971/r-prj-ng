@@ -12,6 +12,7 @@ import UserProfile from "./UserProfile";
 import Groups from './Groups';
 import GroupProfile from './GroupProfile';
 import { Companies } from './DBCompany';
+import { Events } from './DBEvent';
 import { FileDownload, Files } from "./DBFile";
 import { Folders } from './DBFolders';
 import { Links } from './DBLink';
@@ -70,6 +71,7 @@ function App() {
             <Route path="/news"    element={token && isWebmaster ?    <News /> : <Navigate to="/" />} />
             <Route path="/files"   element={token && isWebmaster ?   <Files /> : <Navigate to="/" />} />
             <Route path="/links"   element={token && isWebmaster ?   <Links /> : <Navigate to="/" />} />
+            <Route path="/events"  element={token && isWebmaster ?  <Events /> : <Navigate to="/" />} />
 
             {/* **** Contacts **** */}
             <Route path="/companies" element={token ? <Companies /> : <Navigate to="/" />} />
