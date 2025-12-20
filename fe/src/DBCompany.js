@@ -321,7 +321,7 @@ export function Companies() {
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
     // { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
     { name: t("dbobjects.phone") || "Phone", attribute: "phone", type: "string", hideOnSmall: false },
-    { name: t("dbobjects.url") || "URL", attribute: "url", type: "urlView", hideOnSmall: true },
+    { name: t("common.website") || "URL", attribute: "url", type: "urlView", hideOnSmall: true },
     { name: t("dbobjects.fk_countrylist_id") || "Country", attribute: "fk_countrylist_id", type: "countryView", hideOnSmall: true },
   ]
   return (
