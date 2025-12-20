@@ -1,18 +1,16 @@
-name: Go Multi-Arch Build
+name: Go Client Multi-Arch Dev Build
 
 on:
   push:
-    branches: [ "main" ]
-    #paths:
-    #  - "client/**"
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
     #paths:
     #  - "client/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         include:
@@ -33,22 +31,18 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Build
+      - name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
         run: |
           cd client
           OUTDIR="../build/${{ matrix.goos }}/${{ matrix.goarch }}"
           mkdir -p "$OUTDIR"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o "$OUTDIR/rhobee" .
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.goos }}-${{ matrix.goarch }}
-          path: build/${{ matrix.goos }}/${{ matrix.goarch }}/
-
-      - name: Upload to Release
-        # test
+      - name: Create or update dev release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: dev
+          name: "Development Build"
+          prerelease: true
           files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee
-  
+          overwrite: true
