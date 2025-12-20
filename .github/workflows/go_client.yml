@@ -3,12 +3,12 @@ name: Go Multi-Arch Build
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - "client/**"
+    #paths:
+    #  - "client/**"
   pull_request:
     branches: [ "main" ]
-    paths:
-      - "client/**"
+    #paths:
+    #  - "client/**"
 
 jobs:
   build:
