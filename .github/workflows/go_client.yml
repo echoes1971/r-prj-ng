@@ -38,11 +38,11 @@ jobs:
           mkdir -p "$OUTDIR"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o "$OUTDIR/rhobee" .
 
-      - name: Create or update dev release
+      - name: Upload to dev release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: dev
           name: "Development Build"
           prerelease: true
-          files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee
           overwrite_files: true
+          files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee
