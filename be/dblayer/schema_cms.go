@@ -97,31 +97,49 @@ func NewDBEvent() *DBEvent {
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{}},
 		{Name: "fk_obj_id", Type: "varchar(16)", Constraints: []string{}},
+
 		{Name: "start_date", Type: "datetime", Constraints: []string{"NOT NULL"}},
 		{Name: "end_date", Type: "datetime", Constraints: []string{"NOT NULL"}},
-		{Name: "all_day", Type: "char(1)", Constraints: []string{"NOT NULL"}},
-		{Name: "url", Type: "varchar(255)", Constraints: []string{}},
-		{Name: "alarm", Type: "char(1)", Constraints: []string{}},
-		{Name: "alarm_minute", Type: "int(11)", Constraints: []string{}},
-		{Name: "alarm_unit", Type: "char(1)", Constraints: []string{}},
-		{Name: "before_event", Type: "char(1)", Constraints: []string{}},
-		{Name: "category", Type: "varchar(255)", Constraints: []string{}},
-		{Name: "recurrence", Type: "char(1)", Constraints: []string{}},
-		{Name: "recurrence_type", Type: "char(1)", Constraints: []string{}},
-		{Name: "daily_every_x", Type: "int(11)", Constraints: []string{}},
-		{Name: "weekly_every_x", Type: "int(11)", Constraints: []string{}},
-		{Name: "weekly_day_of_the_week", Type: "char(1)", Constraints: []string{}},
-		{Name: "monthly_every_x", Type: "int(11)", Constraints: []string{}},
-		{Name: "monthly_day_of_the_month", Type: "int(11)", Constraints: []string{}},
-		{Name: "monthly_week_number", Type: "int(11)", Constraints: []string{}},
-		{Name: "monthly_week_day", Type: "char(1)", Constraints: []string{}},
-		{Name: "yearly_month_number", Type: "int(11)", Constraints: []string{}},
-		{Name: "yearly_month_day", Type: "int(11)", Constraints: []string{}},
-		{Name: "yearly_week_number", Type: "int(11)", Constraints: []string{}},
-		{Name: "yearly_week_day", Type: "char(1)", Constraints: []string{}},
-		{Name: "yearly_day_of_the_year", Type: "int(11)", Constraints: []string{}},
-		{Name: "recurrence_times", Type: "int(11)", Constraints: []string{}},
-		{Name: "recurrence_end_date", Type: "datetime", Constraints: []string{"NOT NULL"}},
+
+		{Name: "all_day", Type: "char(1)", Constraints: []string{"NOT NULL"}}, // Bool - An all day event?
+
+		{Name: "url", Type: "varchar(255)", Constraints: []string{}}, // An Url associated to the event
+
+		{Name: "alarm", Type: "char(1)", Constraints: []string{}},        // Bool - Signal an alarm before?
+		{Name: "alarm_minute", Type: "int(11)", Constraints: []string{}}, // Num. time units
+		{Name: "alarm_unit", Type: "char(1)", Constraints: []string{}},   // Time unit 0-2 => minutes, hours, days
+		{Name: "before_event", Type: "char(1)", Constraints: []string{}}, // 0=before event starts 1=after
+
+		{Name: "category", Type: "varchar(255)", Constraints: []string{}}, // Event category, e.g. Personal, Work, etc.
+
+		{Name: "recurrence", Type: "char(1)", Constraints: []string{}},      // Bool - Recurrence active?
+		{Name: "recurrence_type", Type: "char(1)", Constraints: []string{}}, // 0=Daily, 1=Weekly, 2=monthly, 3=yearly
+		// 0: daily
+		{Name: "daily_every_x", Type: "int(11)", Constraints: []string{}}, // every_x_days
+		// 1: weekly
+		{Name: "weekly_every_x", Type: "int(11)", Constraints: []string{}},         // every x weeks
+		{Name: "weekly_day_of_the_week", Type: "char(1)", Constraints: []string{}}, // 0=monday ... 6=sunday
+		// 2: monthly
+		{Name: "monthly_every_x", Type: "int(11)", Constraints: []string{}}, // every x months
+		//  2.1: n-th day of the month
+		{Name: "monthly_day_of_the_month", Type: "int(11)", Constraints: []string{}}, // 0=do not, -5...-1,1 ... 31
+		//  2.2: n-th week on monday
+		{Name: "monthly_week_number", Type: "int(11)", Constraints: []string{}}, // 0=do not, 1...5
+		{Name: "monthly_week_day", Type: "char(1)", Constraints: []string{}},    // 0=monday ... 6=sunday
+		// 3: yearly
+		//  3.1: every day XX of month MM
+		{Name: "yearly_month_number", Type: "int(11)", Constraints: []string{}}, // 0=do not, 1...12
+		{Name: "yearly_month_day", Type: "int(11)", Constraints: []string{}},    // 0=do not, 1...31
+		//  3.2: every first monday of june
+		{Name: "yearly_month_number", Type: "int(11)", Constraints: []string{}}, // 0=do not, 1...12
+		{Name: "yearly_week_number", Type: "int(11)", Constraints: []string{}},  // 0=do not 1...5
+		{Name: "yearly_week_day", Type: "char(1)", Constraints: []string{}},     // 0=monday ... 6=sunday
+		// 3.3: every n-th day of the year
+		{Name: "yearly_day_of_the_year", Type: "int(11)", Constraints: []string{}}, // 0=do not, 1...366
+		// Recurrence range
+		{Name: "recurrence_times", Type: "int(11)", Constraints: []string{}}, // 0=always 1...N times
+		// Recurrence until <date>
+		{Name: "recurrence_end_date", Type: "datetime", Constraints: []string{"NOT NULL"}}, // 0=always 1...N times
 	}
 	keys := []string{"id"}
 	foreignKeys := []ForeignKey{
