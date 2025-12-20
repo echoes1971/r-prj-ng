@@ -672,6 +672,7 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
         </Form>
     );
 }
+
 export function Pages() {
   const { t } = useTranslation();
   const { dark, themeClass } = useContext(ThemeContext);

@@ -8,32 +8,6 @@ import { formatDescription } from './sitenavigation_utils';
 import { ObjectSearch } from "./DBObject";
 
 
-export function Links() {
-  const { t } = useTranslation();
-  const { dark, themeClass } = useContext(ThemeContext);
-
-  const searchClassname = "DBLink";
-
-  const searchColumns = [
-    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
-    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
-    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
-  ];
-
-  const resultsColumns = [
-    // { name: t("dbobjects.created") || "Created", attribute: "creator", type: "userLink", hideOnSmall: true },
-    // { name: t("dbobjects.group") || "Group", attribute: "group_id", type: "groupLink", hideOnSmall: true },
-    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
-    // { name: t("files.preview") || "File", attribute: "id", type: "imageView", hideOnSmall: true },
-    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
-    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
-  ]
-  return (
-    <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />
-    );
-}
-
-
 /**
  * LinkView - Display component for DBLink objects
  * Shows a link with name, description, and external link icon
@@ -256,5 +230,30 @@ export function LinkEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                 )}
             </div>
         </Form>
+    );
+}
+
+export function Links() {
+  const { t } = useTranslation();
+  const { dark, themeClass } = useContext(ThemeContext);
+
+  const searchClassname = "DBLink";
+
+  const searchColumns = [
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
+  ];
+
+  const resultsColumns = [
+    // { name: t("dbobjects.created") || "Created", attribute: "creator", type: "userLink", hideOnSmall: true },
+    // { name: t("dbobjects.group") || "Group", attribute: "group_id", type: "groupLink", hideOnSmall: true },
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
+    // { name: t("files.preview") || "File", attribute: "id", type: "imageView", hideOnSmall: true },
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
+  ]
+  return (
+    <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />
     );
 }
