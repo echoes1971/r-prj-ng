@@ -21,9 +21,63 @@ export function CountryView({ country_id, dark }) {
 
     useEffect(() => {
         const fetchCountry = async () => {
+            // Read from localStorage every time (avoid stale state)
+            const stored = localStorage.getItem('countries_cache');
+            const cacheData = stored ? JSON.parse(stored) : null;
+
+            // Check if cache exists and is not expired (24 hours)
+            const now = Date.now();
+            const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            
+            let countries = {};
+            if (cacheData && cacheData.expires_at && cacheData.expires_at > now) {
+                // Cache is valid
+                countries = cacheData.countries || {};
+                const remainingSeconds = Math.floor((cacheData.expires_at - now) / 1000);
+                console.log(`Countries cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
+            } else {
+                // Cache expired or doesn't exist - will be recreated
+                if (cacheData?.expires_at) {
+                    console.log('Countries cache EXPIRED at:', new Date(cacheData.expires_at).toLocaleTimeString(), 'now:', new Date(now).toLocaleTimeString());
+                } else {
+                    console.log('Countries cache MISSING, will rebuild');
+                }
+            }
+            
+            if (countries[country_id]) {
+                setCountry(countries[country_id]);
+                console.log('Loaded country from cache: ', country_id, "=", countries[country_id].Common_Name);
+                return;
+            }
+            
+            // Country not in cache, fetch from backend
             try {
                 const response = await axiosInstance.get(`/content/country/${country_id}`);
                 setCountry(response.data);
+                
+                // Update cache - re-read to avoid race conditions
+                const currentStored = localStorage.getItem('countries_cache');
+                const currentCache = currentStored ? JSON.parse(currentStored) : null;
+                
+                // Preserve expiry if cache is still valid, otherwise create new expiry
+                let expiresAt = now + CACHE_DURATION;
+                // TESTING: Force new expiry every time (comment out to preserve existing expiry)
+                /*
+                if (currentCache && currentCache.expires_at && currentCache.expires_at > now) {
+                    expiresAt = currentCache.expires_at; // Keep existing expiry
+                }
+                */
+                
+                const updatedCache = {
+                    expires_at: expiresAt,
+                    countries: {
+                        ...(currentCache?.countries || {}),
+                        [country_id]: response.data
+                    }
+                };
+                
+                localStorage.setItem('countries_cache', JSON.stringify(updatedCache));
+                console.log('Fetched and cached country: ', country_id, "=", response.data);
             } catch (error) {
                 console.error('Error fetching country:', error);
             }
@@ -111,9 +165,64 @@ export function UserLinkView({ user_id, dark }) {
 
     useEffect(() => {
         const fetchUser = async () => {
+            // Read from localStorage every time (avoid stale state)
+            const stored = localStorage.getItem('users_cache');
+            const cacheData = stored ? JSON.parse(stored) : null;
+
+            // Check if cache exists and is not expired (1 hour)
+            // Do localStorage.removeItem('users_cache'); // TESTING: clear cache
+            const now = Date.now();
+            const CACHE_DURATION = 1 * 60 * 60 * 1000 //24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            
+            let users = {};
+            if (cacheData && cacheData.expires_at && cacheData.expires_at > now) {
+                // Cache is valid
+                users = cacheData.users || {};
+                const remainingSeconds = Math.floor((cacheData.expires_at - now) / 1000);
+                console.log(`Users cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
+            } else {
+                // Cache expired or doesn't exist - will be recreated
+                if (cacheData?.expires_at) {
+                    console.log('Users cache EXPIRED at:', new Date(cacheData.expires_at).toLocaleTimeString(), 'now:', new Date(now).toLocaleTimeString());
+                } else {
+                    console.log('Users cache MISSING, will rebuild');
+                }
+            }
+            
+            if (users[user_id]) {
+                setUser(users[user_id]);
+                console.log('Loaded user from cache: ', user_id, "=", users[user_id].fullname);
+                return;
+            }
+            
+            // User not in cache, fetch from backend
             try {
                 const response = await axiosInstance.get(`/users/${user_id}`);
                 setUser(response.data);
+
+                // Update cache - re-read to avoid race conditions
+                const currentStored = localStorage.getItem('users_cache');
+                const currentCache = currentStored ? JSON.parse(currentStored) : null;
+                
+                // Preserve expiry if cache is still valid, otherwise create new expiry
+                let expiresAt = now + CACHE_DURATION;
+                // TESTING: Force new expiry every time (comment out to preserve existing expiry)
+                /*
+                if (currentCache && currentCache.expires_at && currentCache.expires_at > now) {
+                    expiresAt = currentCache.expires_at; // Keep existing expiry
+                }
+                */
+                
+                const updatedCache = {
+                    expires_at: expiresAt,
+                    users: {
+                        ...(currentCache?.users || {}),
+                        [user_id]: response.data
+                    }
+                };
+                
+                localStorage.setItem('users_cache', JSON.stringify(updatedCache));
+                console.log('Fetched and cached user: ', user_id, "=", response.data.fullname);
             } catch (error) {
                 console.error('Error fetching user:', error);
             }
@@ -140,9 +249,64 @@ export function GroupLinkView({ group_id, dark }) {
 
     useEffect(() => {
         const fetchGroup = async () => {
+            // Read from localStorage every time (avoid stale state)
+            const stored = localStorage.getItem('groups_cache');
+            const cacheData = stored ? JSON.parse(stored) : null;
+
+            // Check if cache exists and is not expired (1 hour)
+            // Do localStorage.removeItem('users_cache'); // TESTING: clear cache
+            const now = Date.now();
+            const CACHE_DURATION = 1 * 60 * 60 * 1000 //24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            
+            let groups = {};
+            if (cacheData && cacheData.expires_at && cacheData.expires_at > now) {
+                // Cache is valid
+                groups = cacheData.groups || {};
+                const remainingSeconds = Math.floor((cacheData.expires_at - now) / 1000);
+                console.log(`Groups cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
+            } else {
+                // Cache expired or doesn't exist - will be recreated
+                if (cacheData?.expires_at) {
+                    console.log('Groups cache EXPIRED at:', new Date(cacheData.expires_at).toLocaleTimeString(), 'now:', new Date(now).toLocaleTimeString());
+                } else {
+                    console.log('Groups cache MISSING, will rebuild');
+                }
+            }
+            
+            if (groups[group_id]) {
+                setGroup(groups[group_id]);
+                console.log('Loaded group from cache: ', group_id, "=", groups[group_id].name);
+                return;
+            }
+            
+            // Group not in cache, fetch from backend
             try {
                 const response = await axiosInstance.get(`/groups/${group_id}`);
                 setGroup(response.data);
+
+                // Update cache - re-read to avoid race conditions
+                const currentStored = localStorage.getItem('groups_cache');
+                const currentCache = currentStored ? JSON.parse(currentStored) : null;
+                
+                // Preserve expiry if cache is still valid, otherwise create new expiry
+                let expiresAt = now + CACHE_DURATION;
+                // TESTING: Force new expiry every time (comment out to preserve existing expiry)
+                /*
+                if (currentCache && currentCache.expires_at && currentCache.expires_at > now) {
+                    expiresAt = currentCache.expires_at; // Keep existing expiry
+                }
+                */
+                
+                const updatedCache = {
+                    expires_at: expiresAt,
+                    groups: {
+                        ...(currentCache?.groups || {}),
+                        [group_id]: response.data
+                    }
+                };
+                
+                localStorage.setItem('groups_cache', JSON.stringify(updatedCache));
+                console.log('Fetched and cached group: ', group_id, "=", response.data.name);
             } catch (error) {
                 console.error('Error fetching group:', error);
             }
@@ -251,9 +415,63 @@ export function ObjectLinkView({ obj_id, dark }) {
 
     useEffect(() => {
         const fetchObject = async () => {
+            // Read from localStorage every time (avoid stale state)
+            const stored = localStorage.getItem('objects_cache');
+            const cacheData = stored ? JSON.parse(stored) : null;
+
+            // Check if cache exists and is not expired (1 minute)
+            // Do localStorage.removeItem('objects_cache'); // TESTING: clear cache
+            const now = Date.now();
+            const CACHE_DURATION = 1 * 60 * 1000 //24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            
+            let objects = {};
+            if (cacheData && cacheData.expires_at && cacheData.expires_at > now) {
+                // Cache is valid
+                objects = cacheData.objects || {};
+                const remainingSeconds = Math.floor((cacheData.expires_at - now) / 1000);
+                console.log(`Objects cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
+            } else {
+                // Cache expired or doesn't exist - will be recreated
+                if (cacheData?.expires_at) {
+                    console.log('Objects cache EXPIRED at:', new Date(cacheData.expires_at).toLocaleTimeString(), 'now:', new Date(now).toLocaleTimeString());
+                } else {
+                    console.log('Objects cache MISSING, will rebuild');
+                }
+            }
+            
+            if (objects[obj_id]) {
+                setMyObject(objects[obj_id]);
+                console.log('Loaded object from cache: ', obj_id, "=", objects[obj_id].data.name);
+                return;
+            }
+            
+            // Object not in cache, fetch from backend
             try {
                 const response = await axiosInstance.get(`/content/${obj_id}`);
                 setMyObject(response.data);
+                // Update cache - re-read to avoid race conditions
+                const currentStored = localStorage.getItem('objects_cache');
+                const currentCache = currentStored ? JSON.parse(currentStored) : null;
+                
+                // Preserve expiry if cache is still valid, otherwise create new expiry
+                let expiresAt = now + CACHE_DURATION;
+                // TESTING: Force new expiry every time (comment out to preserve existing expiry)
+                /*
+                if (currentCache && currentCache.expires_at && currentCache.expires_at > now) {
+                    expiresAt = currentCache.expires_at; // Keep existing expiry
+                }
+                */
+                
+                const updatedCache = {
+                    expires_at: expiresAt,
+                    objects: {
+                        ...(currentCache?.objects || {}),
+                        [obj_id]: response.data
+                    }
+                };
+                
+                localStorage.setItem('objects_cache', JSON.stringify(updatedCache));
+                console.log('Fetched and cached object: ', obj_id, "=", response.data.data.name);
             } catch (error) {
                 console.error('Error fetching object:', error);
             }
