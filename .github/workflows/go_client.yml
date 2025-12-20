@@ -47,6 +47,7 @@ jobs:
           path: build/${{ matrix.goos }}/${{ matrix.goarch }}/
 
       - name: Upload to Release
+        # test
         uses: softprops/action-gh-release@v2
         with:
           files: build/${{ matrix.goos }}/${{ matrix.goarch }}/rhobee
