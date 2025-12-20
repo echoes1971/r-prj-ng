@@ -4,7 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosInstance from './axios';
 import { useTranslation } from 'react-i18next';
 import { app_cfg } from './app.cfg';
-import ContentView from './ContentView';
+import { ContentView } from './ContentView';
 import NewObjectButton from './NewObjectButton';
 import ObjectList from './ObjectList';
 import { getErrorMessage } from './errorHandler';
