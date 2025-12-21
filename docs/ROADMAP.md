@@ -17,9 +17,6 @@ References:
 
 
 ### Search & Discovery (NEXT - MVP BLOCKER)
-- [x] Full-text search in HTML content // 👤 Roberto: A search box in the NavBar that leads to a /nav/search with results and filters
-  - [x] Anonymous user search (public content only)
-  - [x] Logged user search (public + accessible content)
 - [ ] Advanced filters
   - [ ] Date range filter // Roberto: a generic range can be implemented, passing [_from_<name attribute>, _to_<name attribute>] in the metadata. These will be handled by SearchObjectsHandler that passes them to DBRepository.Search in the metadata of the search object
   - [ ] File type filter
@@ -32,27 +29,17 @@ References:
 ### Documentation
 - [ ] Easy steps to get the CMS up and running on your machine
 - [ ] Project description: brief description of the project, some how-to, feature list, history?
-- [ ] License: gpl? lgpl? apache 2.0?
+- [x] License: gpl? lgpl? apache 2.0?
 
-### Rich Text Editor Improvements (HIGH PRIORITY)
-- [x] Text and elements alignment
-- [x] Image resize
-- [ ] Tables support in ReactQuill
-- [ ] Markdown alternative editor // ❓ where do we store the markdown, in the html field or another? if it's the same field, how do we distinguish the 2 in View and Edit?
-  - [ ] Toggle between WYSIWYG and Markdown // 👤 Roberto: I love Markdown, I don't know why :)
-  - [ ] Markdown preview
-- [ ] Code syntax highlighting // I'd say "nice to have" (it will give a professional feeling to the end user), by now it seems redundant as we have a wysiwig editor
-- [ ] Custom CSS classes selector // 👤 Roberto: YES ! Let's customize the site colors at first (should be easy with bootstrap primary etc.). I'd like to have selectable skins for the public site, but that looks too much for now?
-- [ ] Emoji picker // 👤 Roberto: YES !
 
 ### OAuth Integration (HIGH PRIORITY - if not complicated)
 - [ ] Google OAuth login // 👤 Roberto: YES !
-- [ ] GitHub OAuth login
-- [ ] Facebook OAuth login (optional)
-- [ ] Link existing account with OAuth
 - [ ] OAuth user creation with:  // 👤 Roberto: YES !
   - [ ] default permissions rwx------
   - [ ] it will have its private group and then will be linked to the group "Guest" that has ID "-4" (use the type UserGroup)
+- [ ] Link existing account with OAuth
+- [ ] GitHub OAuth login
+- [ ] Facebook OAuth login (optional)
 
 ---
 
@@ -70,8 +57,16 @@ References:
 - [x] FileSelector with write permission filtering
 - [x] Multi-language support (EN, IT, DE, FR)
 
+### Search & Discovery
+- [x] Full-text search in HTML content // 👤 Roberto: A search box in the NavBar that leads to a /nav/search with results and filters
+  - [x] Anonymous user search (public content only)
+  - [x] Logged user search (public + accessible content)
+
 ### Rich Text Editor Improvements
 - [x] Pre condition: make it a separate reusable component
+- [x] Text and elements alignment
+- [x] Image resize
+- [x] Emoji picker
 
 ### Site Navigation
 - [x] Tree view sidebar with expandable nodes
@@ -115,8 +110,10 @@ References:
 - [ ] Rainbow table attack protection
 
 ### CMS Features
-- [x] DBLink implementation (mentioned but not implemented) // 👤 Roberto: I'm not sure if I want to port it from the old project
-- [ ] DBEvent implementation (mentioned but not implemented) // 👤 Roberto: it's basically a calendar entry, with field about recurring events too
+- [x] DBLink implementation
+- [ ] DBEvent implementation
+  - [x] basic implementation done
+  - [ ] advanced: calendar view, compute recurring events
 - [ ] Versioning/History for DBPage (track who modified what when) // 👤 Roberto: how?
 - [ ] Draft system for content (save without publishing)
 - [ ] Content scheduling (publish at specific date/time) // 👤 Roberto: simple fields with publish date start and publish date end?
@@ -130,6 +127,17 @@ References:
 - [ ] Tags system for better categorization
 - [ ] Content templates
 - [ ] Ollama integration? For assisted document redacting or automatic translation? llama3.2 seems light and efficient enough. Open to suggestions
+
+### OAuth Integration (HIGH PRIORITY - if not complicated)
+
+
+### Rich Text Editor Improvements
+- [ ] Custom CSS classes selector // 👤 Roberto: YES ! Let's customize the site colors at first (should be easy with bootstrap primary etc.). I'd like to have selectable skins for the public site, but that looks too much for now?
+- [ ] Markdown alternative editor // ❓ where do we store the markdown, in the html field or another? if it's the same field, how do we distinguish the 2 in View and Edit?
+  - [ ] Toggle between WYSIWYG and Markdown // 👤 Roberto: I love Markdown, I don't know why :)
+  - [ ] Markdown preview
+- [ ] Code syntax highlighting // I'd say "nice to have" (it will give a professional feeling to the end user), by now it seems redundant as we have a wysiwig editor
+- [ ] ~~Tables support in ReactQuill~~ quill-table not compatible with the current quill version
 
 ### File Management
 - [x] File upload progress indicator
@@ -192,6 +200,7 @@ References:
   - [ ] Handler tests
   - [ ] Permission tests
 - [ ] Pagination for large result sets
+- [ ] DB: Add indexes for name, description and html content to support text search
 - [ ] Support for PostgreSQL and SQLite3
 
 ### Developer Experience
