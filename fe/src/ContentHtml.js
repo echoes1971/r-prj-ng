@@ -175,7 +175,7 @@ export function HtmlView({ html, dark }) {
 export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
     const { t } = useTranslation();
 
-    const [htmlMode, setHtmlMode] = useState('source'); // 'wysiwyg' or 'source'
+    const [htmlMode, setHtmlMode] = useState('wysiwyg'); // 'wysiwyg' or 'source'
     const [showFileSelector, setShowFileSelector] = useState(false);
     const [fileSelectorType, setFileSelectorType] = useState('file'); // 'file' or 'image'
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
