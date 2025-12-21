@@ -11,6 +11,51 @@ import FileSelector from './FileSelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import axiosInstance from './axios';
 
+
+// **** RRA - Start: is this still needed?
+
+// Configure Quill to preserve data-dbfile-id attribute
+const Image = Quill.import('formats/image');
+class CustomImage extends Image {
+    static formats(domNode) {
+        const formats = super.formats(domNode);
+        formats['data-dbfile-id'] = domNode.getAttribute('data-dbfile-id');
+        return formats;
+    }
+    
+    format(name, value) {
+        if (name === 'data-dbfile-id') {
+            if (value) {
+                this.domNode.setAttribute('data-dbfile-id', value);
+            } else {
+                this.domNode.removeAttribute('data-dbfile-id');
+            }
+        } else {
+            super.format(name, value);
+        }
+    }
+}
+Quill.register(CustomImage, true);
+
+// Polyfill for findDOMNode (removed in React 19)
+if (!ReactDOM.findDOMNode) {
+    ReactDOM.findDOMNode = (node) => {
+        if (node == null) return null;
+        if (node instanceof HTMLElement) return node;
+        if (node._reactInternals?.stateNode instanceof HTMLElement) {
+            return node._reactInternals.stateNode;
+        }
+        console.warn('findDOMNode fallback used');
+        return null;
+    };
+}
+
+// **** RRA - End
+
+
+
+
+
 // Helper functions for DBFile token management in HTML content
 /**
  * Extract all file IDs from HTML content that have data-dbfile-id attribute
@@ -193,6 +238,8 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
 
             // Compare with currentFileIDs to avoid unnecessary reloads
             if (JSON.stringify(fileIDs) === JSON.stringify(currentFileIDs)) {
+                // No change in file IDs, skip reload
+                setHtmlWithTokens(htmlContent);
                 return;
             }
             setCurrentFileIDs(fileIDs);
@@ -200,7 +247,6 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
 
             if (fileIDs.length === 0) {
                 // No embedded files, use original HTML
-                // Will this cause infinite loop?
                 setHtmlWithTokens(htmlContent);
                 return;
             }
@@ -217,9 +263,9 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                 setLoadingTokens(false);
             }
         };
-
+        console.log('HtmlEdit useEffect: htmlContent changed, reloading tokens');
         loadTokens();
-    }, [htmlContent]); // Only reload when page ID changes
+    }, [htmlContent]); // Only reload when page HTML changes
 
     const handleHtmlChange = async (value) => {
         // TODO: how to pass it to the caller?
@@ -389,7 +435,7 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                     onChange={handleHtmlChange}
                     // onChange={(e) => handleHtmlChange(e.target.value)}
                     theme="snow"    // "snow" or "bubble"
-                    style={{ height: '600px', marginBottom: '50px' }}
+                    style={{ height: '40rem', marginBottom: '3rem' }}
                     modules={{
                         toolbar: [
                             [{ 'header': [1, 2, 3, false] }],
