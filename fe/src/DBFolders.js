@@ -10,7 +10,7 @@ import FileSelector from './FileSelector';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import ObjectList from "./ObjectList";
 import { ObjectSearch } from "./DBObject";
-import { cleanTokensBeforeSave, extractFileIDs, HtmlView } from "./DBPage";
+import { cleanTokensBeforeSave, extractFileIDs, HtmlView } from "./ContentHtml";
 import PermissionsEditor from './PermissionsEditor';
 
 

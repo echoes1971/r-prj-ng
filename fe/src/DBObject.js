@@ -20,7 +20,7 @@ import {
 import ObjectLinkSelector from './ObjectLinkSelector'
 import PermissionsEditor from './PermissionsEditor';
 import { getErrorMessage } from "./errorHandler";
-import { HtmlView } from './DBPage';
+import { HtmlView } from './ContentHtml';
 import axios from './axios';
 
 
