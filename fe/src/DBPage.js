@@ -18,43 +18,6 @@ import axiosInstance from './axios';
 import { ObjectSearch } from './DBObject';
 import { ThemeContext } from './ThemeContext';
 
-// Configure Quill to preserve data-dbfile-id attribute
-
-const Image = Quill.import('formats/image');
-class CustomImage extends Image {
-    static formats(domNode) {
-        const formats = super.formats(domNode);
-        formats['data-dbfile-id'] = domNode.getAttribute('data-dbfile-id');
-        return formats;
-    }
-    
-    format(name, value) {
-        if (name === 'data-dbfile-id') {
-            if (value) {
-                this.domNode.setAttribute('data-dbfile-id', value);
-            } else {
-                this.domNode.removeAttribute('data-dbfile-id');
-            }
-        } else {
-            super.format(name, value);
-        }
-    }
-}
-Quill.register(CustomImage, true);
-
-// Polyfill for findDOMNode (removed in React 19)
-if (!ReactDOM.findDOMNode) {
-    ReactDOM.findDOMNode = (node) => {
-        if (node == null) return null;
-        if (node instanceof HTMLElement) return node;
-        if (node._reactInternals?.stateNode instanceof HTMLElement) {
-            return node._reactInternals.stateNode;
-        }
-        console.warn('findDOMNode fallback used');
-        return null;
-    };
-}
-
 
 
 // View for DBPage
