@@ -1,6 +1,6 @@
 import React, { use, useContext } from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { ButtonGroup, Form, Spinner, Button, Overlay, Popover } from 'react-bootstrap';
+import { ButtonGroup, Form, Spinner, Button, Overlay, Popover, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import ReactQuill, { Quill } from 'react-quill';
@@ -288,6 +288,7 @@ export function HtmlView({ html, dark }) {
     );
 }
 
+
 /**
  * HTML Editor Component with WYSIWYG and Source modes
  * 
@@ -302,10 +303,17 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [htmlWithTokens, setHtmlWithTokens] = useState(htmlContent || '');
     const [loadingTokens, setLoadingTokens] = useState(false);
+    // const quillRef = useRef(null);
     const [quillRef, setQuillRef] = useState(null);
     const emojiButtonRef = useRef(null);
 
     const [currentFileIDs, setCurrentFileIDs] = useState([]);
+
+    // Resize modal states
+    const [showResizeModal, setShowResizeModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [resizeWidth, setResizeWidth] = useState('');
+    const [resizeHeight, setResizeHeight] = useState('');
 
     // Load tokens for embedded files when component mounts or HTML changes
     useEffect(() => {
@@ -339,12 +347,11 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                 setLoadingTokens(false);
             }
         };
-        console.log('HtmlEdit useEffect: htmlContent changed, reloading tokens');
+
         loadTokens();
     }, [htmlContent]); // Only reload when page HTML changes
 
     const handleHtmlChange = async (value) => {
-        // TODO: how to pass it to the caller?
         onHtmlContentChange(value);
         
         // Extract file IDs and reload tokens for immediate preview
@@ -422,6 +429,56 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
         handleHtmlChange(quill.root.innerHTML);
     };
 
+    // Handle image resize
+    const handleResizeImage = () => {
+        if (!quillRef) return;
+
+        const quill = quillRef.getEditor();
+        const range = quill.getSelection();
+        if (!range) {
+            alert('Please select an image first.');
+            return;
+        }
+
+        // Check if the current position contains an image
+        const contents = quill.getContents(range.index, 1);
+        const isImage = contents.ops && contents.ops[0] && contents.ops[0].insert && typeof contents.ops[0].insert === 'object' && contents.ops[0].insert.image;
+
+        if (!isImage) {
+            alert('Please select an image first.');
+            return;
+        }
+
+        // Find the image DOM node
+        const [leaf] = quill.getLeaf(range.index);
+        if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+            setSelectedImage(leaf.domNode);
+            // Pre-fill with current dimensions
+            setResizeWidth(leaf.domNode.style.width || '');
+            setResizeHeight(leaf.domNode.style.height || '');
+            setShowResizeModal(true);
+        } else {
+            alert('Unable to find the selected image.');
+        }
+    };
+
+    // Apply resize to selected image
+    const applyResize = () => {
+        if (!selectedImage) return;
+
+        if (resizeWidth) selectedImage.style.width = resizeWidth;
+        if (resizeHeight) selectedImage.style.height = resizeHeight;
+
+        // Update the editor content
+        const quill = quillRef.getEditor();
+        handleHtmlChange(quill.root.innerHTML);
+
+        setShowResizeModal(false);
+        setSelectedImage(null);
+        setResizeWidth('');
+        setResizeHeight('');
+    };
+
 
     return (
         <>
@@ -462,6 +519,14 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                         >
                             <i className="bi bi-paperclip me-1"></i>
                             {t('files.insert_file') || 'Insert File'}
+                        </Button>
+                        <Button 
+                            variant="outline-secondary"
+                            onClick={handleResizeImage}
+                            title="Resize Image"
+                        >
+                            <i className="bi bi-arrows-angle-expand me-1"></i>
+                            Resize Image
                         </Button>
                         <Button 
                             ref={emojiButtonRef}
@@ -508,7 +573,6 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                     ref={setQuillRef}
                     value={htmlWithTokens}
                     onChange={handleHtmlChange}
-                    // onChange={(e) => handleHtmlChange(e.target.value)}
                     theme="snow"    // "snow" or "bubble"
                     style={{ height: '40rem', marginBottom: '3rem' }}
                     modules={{
@@ -519,7 +583,7 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                             [{ 'indent': '-1'}, { 'indent': '+1' }],
                             [{ 'color': [] }, { 'background': [] }],
-                            ['link', 'blockquote', 'code-block'],
+                            ['blockquote', 'code-block'],
                             ['clean']
                         ]
                     }}
@@ -529,7 +593,6 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                     as="textarea"
                     name="html"
                     value={htmlWithTokens}
-                    // onChange={(e) => onHtmlContentChange(e.target.value)}
                     onChange={(e) => handleHtmlChange(e.target.value)}
                     rows={15}
                     style={{ fontFamily: 'monospace', fontSize: '0.9em' }}
@@ -546,6 +609,41 @@ export function HtmlEdit({objID, htmlContent, onHtmlContentChange, dark}) {
                 onSelect={handleFileSelect}
                 fileType={fileSelectorType}
             />
+
+            {/* Image Resize Modal */}
+            <Modal show={showResizeModal} onHide={() => setShowResizeModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Resize Image</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Width (e.g., 200px or 50%)</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={resizeWidth}
+                            onChange={(e) => setResizeWidth(e.target.value)}
+                            placeholder="e.g., 200px"
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Height (e.g., 150px or auto)</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={resizeHeight}
+                            onChange={(e) => setResizeHeight(e.target.value)}
+                            placeholder="e.g., 150px"
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowResizeModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={applyResize}>
+                        Apply
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
         </>
     );

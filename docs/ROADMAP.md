@@ -36,7 +36,7 @@ References:
 
 ### Rich Text Editor Improvements (HIGH PRIORITY)
 - [x] Text and elements alignment
-- [ ] Image resize (simply put width="...")
+- [x] Image resize
 - [ ] Tables support in ReactQuill
 - [ ] Markdown alternative editor // ❓ where do we store the markdown, in the html field or another? if it's the same field, how do we distinguish the 2 in View and Edit?
   - [ ] Toggle between WYSIWYG and Markdown // 👤 Roberto: I love Markdown, I don't know why :)
