@@ -4,7 +4,7 @@
 [![Headless CMS](https://img.shields.io/badge/Type-Headless%20CMS-blue)](https://github.com/your-repo/r-prj-ng)
 [![Go](https://img.shields.io/badge/Go-1.21+-blue)](https://golang.org/)
 [![React](https://img.shields.io/badge/React-19+-blue)](https://reactjs.org/)
-[![License](https://img.shields.io/github/license/your-repo/r-prj-ng)](LICENSE)
+[![License](https://img.shields.io/github/license/echoes1971/rhobee)](LICENSE)
 
 **ρBee** is a lightweight, flexible Headless Content Management System (CMS) built with a modular DBObject architecture. It supports multi-language content, user permissions, file management, and more – ideal for small to medium websites or as a foundation for custom web applications.
 
