@@ -429,7 +429,7 @@ export function ObjectLinkView({ obj_id, dark }) {
                 // Cache is valid
                 objects = cacheData.objects || {};
                 const remainingSeconds = Math.floor((cacheData.expires_at - now) / 1000);
-                console.log(`Objects cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
+                // console.log(`Objects cache VALID - expires in ${remainingSeconds}s at:`, new Date(cacheData.expires_at).toLocaleTimeString());
             } else {
                 // Cache expired or doesn't exist - will be recreated
                 if (cacheData?.expires_at) {
@@ -441,7 +441,7 @@ export function ObjectLinkView({ obj_id, dark }) {
             
             if (objects[obj_id]) {
                 setMyObject(objects[obj_id]);
-                console.log('Loaded object from cache: ', obj_id, "=", objects[obj_id].data.name);
+                // console.log('Loaded object from cache: ', obj_id, "=", objects[obj_id].data.name);
                 return;
             }
             
@@ -471,7 +471,7 @@ export function ObjectLinkView({ obj_id, dark }) {
                 };
                 
                 localStorage.setItem('objects_cache', JSON.stringify(updatedCache));
-                console.log('Fetched and cached object: ', obj_id, "=", response.data.data.name);
+                // console.log('Fetched and cached object: ', obj_id, "=", response.data.data.name);
             } catch (error) {
                 console.error('Error fetching object:', error);
             }

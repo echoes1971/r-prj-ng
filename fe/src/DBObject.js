@@ -292,6 +292,10 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [limit, setLimit] = useState(5); // Change to 20 for production
+  const [offset, setOffset] = useState(0);
+
   // Load folders on start
   useEffect(() => {
     // fetchObjects(searchFormData);
@@ -307,7 +311,7 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
     }
   }, [errorMessage]);
 
-  const fetchObjects = async (search, orderBy) => {
+  const fetchObjects = async (search, orderBy, newOffset) => {
     const token = localStorage.getItem("token");
     setLoading(true);
     setErrorMessage("");
@@ -318,12 +322,21 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
         params: {
           classname: searchClassname,
           searchJson: JSON.stringify(search),
-          orderBy: orderBy
+          limit: limit,
+          offset: newOffset,
+          orderBy: orderBy,
+          includeDeleted: includeDeleted ? "true" : "false"
         },
       });
       // console.log('Search response:', response.data);
       // Backend returns array directly, not wrapped in results
-      setResults(Array.isArray(response.data) ? response.data : response.data.objects || []);
+      // IF offset is 0, replace results, else append
+      if (newOffset === 0) {
+        setResults(Array.isArray(response.data) ? response.data : response.data.objects || []);
+      } else {
+        setResults(results => [...results, ...(Array.isArray(response.data) ? response.data : response.data.objects || [])]);
+      }
+      setOffset(newOffset + limit);
     } catch (err) {
       console.error('Search error:', err);
       setErrorMessage(err.response?.data?.error || 'Search failed');
@@ -343,7 +356,7 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchObjects(searchFormData, searchOrderBy);
+    fetchObjects(searchFormData, searchOrderBy, 0);
   };
 
   const handleCreateObject = async (classname) => {
@@ -467,14 +480,14 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
                     const desc = searchOrderBy === col.attribute ? ' desc' : '';
                     setSearchOrderBy(col.attribute + desc);
                     console.log("Setting order by:", searchOrderBy);
-                    // sort results
-                    results.sort((a, b) => {
-                      if (a[col.attribute] < b[col.attribute]) return desc ? 1 : -1;
-                      if (a[col.attribute] > b[col.attribute]) return desc ? -1 : 1;
-                      return 0;
-                    });
-                    setResults([...results]);
-                    //fetchObjects(searchFormData, col.attribute + desc);
+                    // // sort results
+                    // results.sort((a, b) => {
+                    //   if (a[col.attribute] < b[col.attribute]) return desc ? 1 : -1;
+                    //   if (a[col.attribute] > b[col.attribute]) return desc ? -1 : 1;
+                    //   return 0;
+                    // });
+                    // setResults([...results]);
+                    fetchObjects(searchFormData, col.attribute + desc, 0);
                   }}
                 >{col.name}{searchOrderBy === col.attribute+' desc' ? " ▼" : searchOrderBy === col.attribute ? " ▲" : ""}</th>
               ))}
@@ -547,7 +560,21 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
           </tbody>
         </table>
       )}
-
+        {/* Show load more button if results length equals limit */}
+        <div className="text-center mb-3">
+          {results.length > 0 && (results.length % limit) === 0 ? (
+            <Button
+              variant="outline-primary"
+              className="mt-2 ms-auto"
+              onClick={() => {
+                // Load more results
+                fetchObjects(searchFormData, searchOrderBy, offset);
+              }}
+            >
+              {t("common.load_more") || "Load More"}
+            </Button>
+          ) : null}
+      </div>
     </div>
   );
 }

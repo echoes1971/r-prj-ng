@@ -53,7 +53,8 @@
         "showing": "Visualizzati",
         "of": "di",
         "no_items_found": "Nessun elemento trovato",
-        "no_matches": "Nessuna corrispondenza"
+        "no_matches": "Nessuna corrispondenza",
+        "load_more": "Carica di più"
     },
     "users": {
         "user_profile": "Profilo Utente",

@@ -53,7 +53,8 @@
     "showing": "Affichage",
     "of": "de",
     "no_items_found": "Aucun élément trouvé",
-    "no_matches": "Aucune correspondance"
+    "no_matches": "Aucune correspondance",
+    "load_more": "Charger plus"
   },
   "users": {
     "user_profile": "Profil Utilisateur",

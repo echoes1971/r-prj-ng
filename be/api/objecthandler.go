@@ -584,6 +584,11 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Print("SearchObjectsHandler: searchParams=", searchParams)
 	limit := r.URL.Query().Get("limit")
+	offset := 0
+	if r.URL.Query().Get("offset") != "" {
+		fmt.Sscanf(r.URL.Query().Get("offset"), "%d", &offset)
+	}
+
 	searchType := r.URL.Query().Get("type") // optional, "link" to filter only linkable objects i.e. objects I can write
 
 	if classname == "" {
@@ -669,9 +674,19 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 				results = append(results, resDesc)
 			}
 		}
+		// IF search instance is DBObject and !includeDeleted, filter out deleted objects
+		if searchInstance.IsDBObject() && !includeDeleted {
+			var filteredResults []dblayer.DBEntityInterface
+			for _, res := range results {
+				if res.GetValue("deleted_date") == nil {
+					filteredResults = append(filteredResults, res)
+				}
+			}
+			results = filteredResults
+		}
 	} else {
 		// Search by name AND description for better results
-		results = repo.SearchByNameAndDescription(namePattern, orderBy, true)
+		results = repo.SearchByNameAndDescription(namePattern, orderBy, !includeDeleted)
 	}
 
 	// Apply limit if specified
@@ -683,13 +698,18 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 			maxResults = limitInt
 		}
 	}
+	log.Print("SearchObjectsHandler: offset=", offset)
 	log.Print("SearchObjectsHandler: maxResults=", maxResults)
 
 	log.Print("SearchObjectsHandler: results=", len(results))
 	log.Print("SearchObjectsHandler: classname=", classname)
 	// Convert results to map array
 	var resultList []map[string]interface{}
-	for i := 0; len(resultList) < maxResults && i < len(results); i++ {
+	for i := 0; i < len(results); i++ {
+		// TODO: verify this is correct with offset and limit
+		// for i := offset; len(resultList) < maxResults && i < len(results); i++ {
+		log.Print("SearchObjectsHandler: i=", i, " len(resultList)=", len(resultList), " maxResults=", maxResults)
+		// for i := 0; len(resultList) < maxResults && i < len(results); i++ {
 		// for i := 0; i < maxResults && i < len(results); i++ {
 		// log.Printf("SearchObjectsHandler: results[%d]=%s\n", i, results[i].ToJSON())
 		entity := results[i]
@@ -761,13 +781,19 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 		resultList = append(resultList, resultMap)
 	}
 
+	// Apply offset and limit to resultList
+	returnList := []map[string]interface{}{}
+	for i := offset; len(returnList) < maxResults && i < len(resultList); i++ {
+		returnList = append(returnList, resultList[i])
+	}
+
 	// log.Printf("SearchObjectsHandler: Found %d %s objects matching '%s'", len(resultList), classname, namePattern)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"objects": resultList,
+		"objects": returnList,
 	})
 }
 
@@ -842,7 +868,7 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 		RespondSimpleError(w, ErrInternalServer, "Invalid file entity", http.StatusInternalServerError)
 		return
 	}
-	log.Print("DownloadFileHandler: dbFile=", dbFile.ToJSON())
+	// log.Print("DownloadFileHandler: dbFile=", dbFile.ToJSON())
 
 	// Get file metadata
 	filename := dbFile.GetValue("filename")
@@ -862,7 +888,7 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 	// e.g. PDF first page preview, video snapshot, etc.
 	if previewParam == "yes" || previewParam == "true" {
 		filePath = dbFile.GetThumbnailFullpath(nil)
-		log.Print("DownloadFileHandler: thumbnail filePath=", filePath)
+		// log.Print("DownloadFileHandler: thumbnail filePath=", filePath)
 	}
 
 	// Open file from disk
@@ -899,7 +925,7 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("DownloadFileHandler: Served file %s (%s)", filename, mime)
+	// log.Printf("DownloadFileHandler: Served file %s (%s)", filename, mime)
 }
 
 // GenerateFileTokensHandler generates temporary JWT tokens for multiple files
