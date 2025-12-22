@@ -1,7 +1,7 @@
-# R-Project NextGen: Roadmap
+# ρBee (rhobee): Roadmap
 
 ## Project Name: ρBee (rhobee)
-A lightweight CMS framework based on a flexible DBObject architecture.
+A lightweight Headless CMS framework based on a flexible DBObject architecture.
 
 References:
 - Link to the old project: https://github.com/echoes1971/r-prj
