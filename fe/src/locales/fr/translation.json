@@ -113,7 +113,8 @@
     "name": "Nom",
     "description": "Description",
     "linked_to": "Lié à",
-    "download_file": "Télécharger le Fichier"
+    "download_file": "Télécharger le Fichier",
+    "include_deleted": "Inclure les supprimés"
   },
   "permissions": {
     "read": "Lecture",

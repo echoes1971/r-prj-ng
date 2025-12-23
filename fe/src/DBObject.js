@@ -296,6 +296,10 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
   const [limit, setLimit] = useState(20); // Change to 20 for production
   const [offset, setOffset] = useState(0);
 
+  const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+  const isAdmin = groups.includes("-2");
+  // const isWebmaster = groups.includes(app_cfg.webmaster_group_id);
+
   // Load folders on start
   useEffect(() => {
     // fetchObjects(searchFormData);
@@ -453,6 +457,21 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
             </Form.Group>
             </Col>
         ))}
+        { isAdmin && (
+          <Col xs={12} md={6} lg={4} xl={3}>
+            <Form.Group className="mb-3">
+              <Form.Label className="d-none d-md-block"></Form.Label>
+              <Form.Check 
+                type="checkbox"
+                name="includeDeleted"
+                checked={includeDeleted}
+                onChange={(e) => setIncludeDeleted(e.target.checked)}
+                label={t("dbobjects.include_deleted")}
+                className="mt-4"
+              />
+            </Form.Group>
+          </Col>
+        )}
         </Row>
       </Form>
       <div className="row">
@@ -496,7 +515,7 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
           </thead>
           <tbody>
             {results.map((result, index) => (
-              <tr key={result.id}>
+              <tr key={result.id} title={result['deleted_date'] ? t("dbobjects.deleted") : ''} style={result['deleted_date'] ? { opacity: 0.5 } : {}}>
                 <td className="d-none d-md-table-cell">{index+1}</td>
                 {resultsColumns.map((col, cindex) => (
                   col.type === "objectLink" ? (

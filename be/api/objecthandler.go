@@ -427,7 +427,7 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get existing object to check permissions
-	existingObj := repo.ObjectByID(objectID, true)
+	existingObj := repo.ObjectByID(objectID, false)
 	if existingObj == nil {
 		RespondSimpleError(w, ErrObjectNotFound, "Object not found", http.StatusNotFound)
 		return
@@ -447,7 +447,7 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get full object
-	fullObj := repo.FullObjectById(objectID, true)
+	fullObj := repo.FullObjectById(objectID, false)
 	if fullObj == nil {
 		RespondSimpleError(w, ErrObjectNotFound, "Full object not found", http.StatusNotFound)
 		return
@@ -626,11 +626,7 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	namePattern := strings.TrimSpace(r.URL.Query().Get("name"))
-	if namePattern == "" || len(namePattern) < 2 {
-		RespondSimpleError(w, ErrInvalidRequest, "Name parameter must be at least 2 characters", http.StatusBadRequest)
-		return
-	}
-
+	// includeDeleted
 	includeDeletedParam := r.URL.Query().Get("includeDeleted")
 	includeDeleted := includeDeletedParam != "" && includeDeletedParam != "0" && strings.ToLower(includeDeletedParam) != "false"
 	log.Print("SearchObjectsHandler: includeDeletedParam=", includeDeletedParam, " includeDeleted=", includeDeleted)

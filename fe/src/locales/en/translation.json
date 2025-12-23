@@ -117,7 +117,8 @@
     "name": "Name",
     "description": "Description",
     "linked_to": "Linked to",
-    "download_file": "Download File"
+    "download_file": "Download File",
+    "include_deleted": "Include Deleted"
   },
   "permissions": {
     "read": "Read",

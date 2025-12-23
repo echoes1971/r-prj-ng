@@ -82,9 +82,9 @@ function ObjectList({
               style={{ cursor: 'pointer' }}
               variant={dark ? 'dark' : undefined}
             >
-              <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex justify-content-between align-items-center" style={{ opacity: item.isDeleted ? 0.6 : 1 }}>
                 <div>
-                  <strong>{item.name || 'Untitled'}</strong>
+                  <strong>{item.name || 'Untitled'}{item.isDeleted ? ' (Deleted)' : ''}</strong>
                   {item.description && (
                     <div className="small" style={{ opacity: 0.7 }}>
                       {item.description.length > 200
@@ -115,7 +115,7 @@ function ObjectList({
             <Col key={item.id} xs={12} md={6} lg={4} className="mb-3">
               <Card 
                 className="h-100"
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', ...(item.isDeleted ? { opacity: 0.6 } : {}) }}
                 onClick={() => handleItemClick(item)}
                 data-bs-theme={dark? 'dark' : 'light'}
               >
@@ -138,7 +138,7 @@ function ObjectList({
                   </div>
                   
                   <Card.Title className="mb-2">
-                    {item.name || 'Untitled'}
+                    {item.name || 'Untitled'}{item.isDeleted ? ' (Deleted)' : ''}
                   </Card.Title>
                   
                   {item.description && (

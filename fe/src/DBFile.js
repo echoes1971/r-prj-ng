@@ -65,6 +65,9 @@ export function FileView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [preview, setPreview] = useState(null);
+
+    const isDeleted = data && data.deleted_date;
+
     
     useEffect(() => {
         console.log('FileEdit useEffect:', { id: data.id, filename: data.filename });
@@ -101,9 +104,9 @@ export function FileView({ data, metadata, objectData, dark }) {
     }, [data.id, data.filename]);
 
     return (
-        <div>
+        <div style={isDeleted ? { opacity: 0.5 } : {}}>
             {data.name && (
-                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}</h2>
             )}
             {data.description && (
                 <p style={{ opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></p>
@@ -158,6 +161,8 @@ export function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark
     const [selectedFile, setSelectedFile] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [preview, setPreview] = useState(null);
+
+    const isDeleted = data && data.deleted_date;
 
     useEffect(() => {
         console.log('FileEdit useEffect:', { id: data.id, filename: data.filename, selectedFile });
@@ -433,7 +438,7 @@ export function FileEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                 <Button 
                     variant="primary" 
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>

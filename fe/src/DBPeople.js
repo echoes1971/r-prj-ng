@@ -13,9 +13,11 @@ export function PersonView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
     
+    const isDeleted = data && data.deleted_date;
+
     return (
-        <div>
-            <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+        <div style={isDeleted ? { opacity: 0.5 } : {}}>
+            <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}</h2>
             {!data.html && data.description && <hr />}
             {data.description && (
                 <Card.Text dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></Card.Text>
@@ -75,6 +77,8 @@ export function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, da
         permissions: data.permissions || 'rwxr-x---',
         father_id: data.father_id || '0',
     });
+
+    const isDeleted = data && data.deleted_date;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -328,7 +332,7 @@ export function PersonEdit({ data, onSave, onCancel, onDelete, saving, error, da
                 <Button 
                     variant="primary" 
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>

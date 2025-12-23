@@ -23,6 +23,42 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/content/{objectId}": {
+            "get": {
+                "description": "Returns the navigation object specified by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "navigation"
+                ],
+                "summary": "returns a navigation object by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Object ID",
+                        "name": "objectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Navigation object data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Object not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/countries": {
             "get": {
                 "description": "Returns a list of all countries from the countrylist table",
@@ -622,42 +658,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/nav/{objectId}": {
-            "get": {
-                "description": "Returns the navigation object specified by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "navigation"
-                ],
-                "summary": "returns a navigation object by its ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Object ID",
-                        "name": "objectId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Navigation object data",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Object not found",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }

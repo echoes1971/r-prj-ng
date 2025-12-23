@@ -43,6 +43,30 @@ info:
   title: ρBee (rhobee) API
   version: "1.0"
 paths:
+  /content/{objectId}:
+    get:
+      description: Returns the navigation object specified by its ID
+      parameters:
+      - description: Object ID
+        in: path
+        name: objectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Navigation object data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Object not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: returns a navigation object by its ID
+      tags:
+      - navigation
   /countries:
     get:
       description: Returns a list of all countries from the countrylist table
@@ -372,30 +396,6 @@ paths:
       summary: User login
       tags:
       - auth
-  /nav/{objectId}:
-    get:
-      description: Returns the navigation object specified by its ID
-      parameters:
-      - description: Object ID
-        in: path
-        name: objectId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Navigation object data
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Object not found
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-      summary: returns a navigation object by its ID
-      tags:
-      - navigation
   /nav/{objectId}/indexes:
     get:
       description: Returns index pages located directly under the specified object

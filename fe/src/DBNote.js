@@ -12,8 +12,10 @@ export function NoteView({ data, metadata, objectData, dark }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
+    const isDeleted = data && data.deleted_date;
+
     return (
-        <Card className="mb-3 border-warning" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
+        <Card style={isDeleted ? { opacity: 0.5 } : {}} className="mb-3 border-warning" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
             <Card.Header className={dark ? 'bg-warning bg-opacity-25' : 'bg-warning bg-opacity-10'}>
                 <br />
                 {/* <ObjectHeaderView data={data} metadata={metadata} objectData={objectData} dark={dark} /> */}
@@ -46,6 +48,8 @@ export function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark
         fk_obj_id: data.fk_obj_id || '0',
         father_id: data.father_id || '0',
     });
+
+    const isDeleted = data && data.deleted_date;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -120,7 +124,7 @@ export function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                 <Button 
                     variant="primary" 
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>

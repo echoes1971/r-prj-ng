@@ -845,12 +845,12 @@ func (dbr *DBRepository) GetChildren(parentID string, ignoreDeleted bool) []DBEn
 
 // GetBreadcrumb returns the path from root to the specified object
 // Each element is a DBObject with id, name, and father_id
-func (dbr *DBRepository) GetBreadcrumb(objectID string) []DBEntityInterface {
+func (dbr *DBRepository) GetBreadcrumb(objectID string, ignoreDeleted bool) []DBEntityInterface {
 	breadcrumb := make([]DBEntityInterface, 0)
 	currentID := objectID
 
 	for currentID != "" && currentID != "0" {
-		obj := dbr.ObjectByID(currentID, true)
+		obj := dbr.ObjectByID(currentID, ignoreDeleted)
 		if obj == nil {
 			break
 		}

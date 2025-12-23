@@ -154,7 +154,8 @@ function SiteNavigation() {
                                     id: child.data.id,
                                     name: child.data.name,
                                     description: child.metadata.classname !== 'DBNote' ? child.data.description : '',
-                                    classname: child.metadata.classname
+                                    classname: child.metadata.classname,
+                                    isDeleted: child.data.deleted_date ? true : false,
                                 }))}
                                 showViewToggle={true}
                                 storageKey="siteNavigationChildrenViewMode"

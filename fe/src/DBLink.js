@@ -15,15 +15,17 @@ import { ObjectSearch } from "./DBObject";
 export function LinkView({ data, metadata, objectData, dark }) {
     const { t } = useTranslation();
 
+    const isDeleted = data && data.deleted_date;
+
     // Default target if not specified
     const target = data.target || '_blank';
     const isExternal = target === '_blank';
 
     return (
-        <div>
+        <div style={isDeleted ? { opacity: 0.5 } : {}}>
             <h2 className={dark ? 'text-light' : 'text-dark'}>
                 <i className="bi bi-link-45deg me-2"></i>
-                {data.name}
+                {data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}
             </h2>
             
             {data.description && (
@@ -80,6 +82,8 @@ export function LinkEdit({ data, onSave, onCancel, onDelete, saving, error, dark
         permissions: data.permissions || 'rwxr-x---',
         father_id: data.father_id || '0',
     });
+
+    const isDeleted = data && data.deleted_date;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -198,7 +202,7 @@ export function LinkEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                 <Button 
                     variant="primary" 
                     type="submit" 
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <><Spinner animation="border" size="sm" className="me-2" />{t('common.saving') || 'Saving...'}</>

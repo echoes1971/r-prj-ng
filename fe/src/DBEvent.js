@@ -15,6 +15,8 @@ import { formatDescription } from './sitenavigation_utils';
 export function EventView({ data, metadata, objectData, dark }) {
     const { t } = useTranslation();
 
+    const isDeleted = data && data.deleted_date;
+
     // Parse dates
     const startDate = data.start_date ? new Date(data.start_date) : null;
     const endDate = data.end_date ? new Date(data.end_date) : null;
@@ -32,10 +34,10 @@ export function EventView({ data, metadata, objectData, dark }) {
     const endFormatted = endDate ? formatDateTime(endDate) : null;
 
     return (
-        <div>
+        <div style={isDeleted ? { opacity: 0.5 } : {}}>
             <h2 className={dark ? 'text-light' : 'text-dark'}>
                 <i className="bi bi-calendar-event me-2"></i>
-                {data.name}
+                {data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}
             </h2>
 
             {data.description && (
@@ -231,6 +233,8 @@ export function EventView({ data, metadata, objectData, dark }) {
 export function EventEdit({ data, onSave, onCancel, onDelete, saving, error, dark }) {
     const { t } = useTranslation();
     
+    const isDeleted = data && data.deleted_date;
+
     // Helper to format datetime for input[type="datetime-local"]
     const formatDateTimeLocal = (dateStr) => {
         if (!dateStr) return '';
@@ -793,7 +797,7 @@ export function EventEdit({ data, onSave, onCancel, onDelete, saving, error, dar
                 <Button 
                     variant="primary" 
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>

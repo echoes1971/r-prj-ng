@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -22,7 +23,7 @@ import (
 //	@Param objectId path string true "Object ID"
 //	@Success 200 {object} map[string]interface{} "Navigation object data"
 //	@Failure 404 {object} ErrorResponse "Object not found"
-//	@Router /nav/{objectId} [get]
+//	@Router /content/{objectId} [get]
 func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	objectID := vars["objectId"]
@@ -49,10 +50,16 @@ func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	isAdmin := slices.Contains(dbContext.GroupIDs, "-2")
+	ignoreDeleted := true
+	if isAdmin {
+		ignoreDeleted = false
+	}
+
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
 	repo.Verbose = false
 
-	obj := repo.FullObjectById(objectID, true)
+	obj := repo.FullObjectById(objectID, ignoreDeleted)
 	if obj == nil {
 		RespondSimpleError(w, ErrObjectNotFound, "Object not found", http.StatusNotFound)
 		return
@@ -132,10 +139,16 @@ func GetChildrenHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	isAdmin := slices.Contains(dbContext.GroupIDs, "-2")
+	ignoreDeleted := true
+	if isAdmin {
+		ignoreDeleted = false
+	}
+
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
 	repo.Verbose = false
 
-	children := repo.GetChildren(folderId, true)
+	children := repo.GetChildren(folderId, ignoreDeleted)
 
 	// Convert to response format
 	childrenData := make([]map[string]interface{}, 0, len(children))
@@ -197,10 +210,16 @@ func GetBreadcrumbHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	isAdmin := slices.Contains(dbContext.GroupIDs, "-2")
+	ignoreDeleted := true
+	if isAdmin {
+		ignoreDeleted = false
+	}
+
 	repo := dblayer.NewDBRepository(&dbContext, dblayer.Factory, dblayer.DbConnection)
 	repo.Verbose = false
 
-	breadcrumb := repo.GetBreadcrumb(objectID)
+	breadcrumb := repo.GetBreadcrumb(objectID, ignoreDeleted)
 
 	// Convert to response format
 	breadcrumbData := make([]map[string]interface{}, 0, len(breadcrumb))

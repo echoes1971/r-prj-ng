@@ -17,6 +17,9 @@ export function FolderView({ data, metadata, dark, onFilesUploaded }) {
     const { i18n } = useTranslation();
     const currentLanguage = i18n.language; // 'it', 'en', 'de', 'fr'
 
+    const isDeleted = data && data.deleted_date;
+
+
     const navigate = useNavigate();
     const { t } = useTranslation();
     
@@ -163,6 +166,7 @@ export function FolderView({ data, metadata, dark, onFilesUploaded }) {
                 padding: isDragging ? '10px' : '0',
                 backgroundColor: isDragging ? (dark ? 'rgba(13, 110, 253, 0.1)' : 'rgba(13, 110, 253, 0.05)') : 'transparent',
                 transition: 'all 0.2s ease',
+                opacity: isDeleted ? 0.5 : 1,
             }}
         >
             {isDragging && metadata.can_edit && (
@@ -213,7 +217,7 @@ export function FolderView({ data, metadata, dark, onFilesUploaded }) {
             {indexContent === null ? (
                 <div>
                     {data.name && (
-                    <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+                    <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}</h2>
                     )}
                     {data.description && (
                     <small style={{ opacity: 0.7 }}>{data.description}</small>
@@ -272,6 +276,8 @@ export function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, da
     const [selectedIndexLanguage, setSelectedIndexLanguage] = useState('en');
     const [indexHtml, setIndexHtml] = useState('');
     const [savingIndex, setSavingIndex] = useState(false);
+
+    const isDeleted = data && data.deleted_date;
 
     // Load children and index pages on mount
     useEffect(() => {
@@ -620,7 +626,7 @@ export function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, da
                 <Button 
                     variant="primary" 
                     type="submit" 
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>

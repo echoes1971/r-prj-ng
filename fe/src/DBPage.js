@@ -27,6 +27,8 @@ export function PageView({ data, metadata, dark }) {
     const [htmlWithTokens, setHtmlWithTokens] = useState(data.html || '');
     const [loadingTokens, setLoadingTokens] = useState(false);
 
+    const isDeleted = data && data.deleted_date;
+
     // Load tokens for embedded files when component mounts or HTML changes
     // useEffect(() => {
     //     const loadTokens = async () => {
@@ -51,9 +53,9 @@ export function PageView({ data, metadata, dark }) {
     // }, [data.id, data.html]);
 
     return (
-        <div>
+        <div style={isDeleted ? { opacity: 0.5 } : {}}>
             {data.name && (
-                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
+                <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}{isDeleted ? ' ('+t('dbobjects.deleted')+')' : ''}</h2>
             )}
             {data.description && (
                 <p style={{ opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: formatDescription(data.description) }}></p>
@@ -70,36 +72,6 @@ export function PageView({ data, metadata, dark }) {
             )}
         </div>
     );
-    // return (
-    //     <Card className="mb-3" bg={dark ? 'dark' : 'light'} text={dark ? 'light' : 'dark'}>
-    //         <Card.Header>
-    //             <h2 className={dark ? 'text-light' : 'text-dark'}>{data.name}</h2>
-    //             <small style={{ opacity: 0.7 }}>Page · ID: {data.id}</small>
-    //         </Card.Header>
-    //         <Card.Body>
-    //             {data.description && (
-    //                 <Card.Text className="lead">{data.description}</Card.Text>
-    //             )}
-    //             {data.content && (
-    //                 <div 
-    //                     className="content"
-    //                     dangerouslySetInnerHTML={{ __html: data.content }}
-    //                 />
-    //             )}
-    //             <div className="text-secondary mt-3">
-    //                 <small>Owner: {data.owner} | Group: {data.group_id}</small>
-    //                 <br />
-    //                 <small>Permissions: {data.permissions}</small>
-    //                 {data.last_modify_date && (
-    //                     <>
-    //                         <br />
-    //                         <small>Last modified: {data.last_modify_date}</small>
-    //                     </>
-    //                 )}
-    //             </div>
-    //         </Card.Body>
-    //     </Card>
-    // );
 }
 
 // Edit form for DBPage
@@ -115,28 +87,7 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
         fk_obj_id: data.fk_obj_id || '0',
     });
 
-    // // Load tokens for embedded files when component mounts or HTML changes
-    // useEffect(() => {
-    //     const loadTokens = async () => {
-    //         const fileIDs = extractFileIDs(formData.html);
-    //         if (fileIDs.length === 0) {
-    //             setHtmlWithTokens(formData.html);
-    //             return;
-    //         }
-    //         setLoadingTokens(true);
-    //         try {
-    //             const tokens = await requestFileTokens(fileIDs);
-    //             const htmlWithTokens = injectTokensForEditing(formData.html, tokens);
-    //             setHtmlWithTokens(htmlWithTokens);
-    //         } catch (error) {
-    //             console.error('Failed to load tokens for embedded files:', error);
-    //             setHtmlWithTokens(formData.html);
-    //         } finally {
-    //             setLoadingTokens(false);
-    //         }
-    //     };
-    //     loadTokens();
-    // }, [data.id]); // Only reload when page ID changes
+    const isDeleted = data && data.deleted_date;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -236,7 +187,7 @@ export function PageEdit({ data, onSave, onCancel, onDelete, saving, error, dark
                 <Button 
                     variant="primary" 
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || isDeleted}
                 >
                     {saving ? (
                         <>
