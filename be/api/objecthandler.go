@@ -620,7 +620,17 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	repo.Verbose = false
 
 	classname := r.URL.Query().Get("classname")
-	namePattern := r.URL.Query().Get("name")
+	if classname == "" {
+		RespondSimpleError(w, ErrInvalidRequest, "Missing classname parameter", http.StatusBadRequest)
+		return
+	}
+
+	namePattern := strings.TrimSpace(r.URL.Query().Get("name"))
+	if namePattern == "" || len(namePattern) < 2 {
+		RespondSimpleError(w, ErrInvalidRequest, "Name parameter must be at least 2 characters", http.StatusBadRequest)
+		return
+	}
+
 	includeDeletedParam := r.URL.Query().Get("includeDeleted")
 	includeDeleted := includeDeletedParam != "" && includeDeletedParam != "0" && strings.ToLower(includeDeletedParam) != "false"
 	log.Print("SearchObjectsHandler: includeDeletedParam=", includeDeletedParam, " includeDeleted=", includeDeleted)
@@ -629,6 +639,11 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	if orderByParam != "" {
 		orderByParam = strings.TrimSpace(orderByParam)
 	}
+	orderBy := strings.TrimSpace("name")
+	if orderBy == "" {
+		orderBy = "name"
+	}
+
 	// searchJson
 	searchJson := r.URL.Query().Get("searchJson")
 	log.Print("SearchObjectsHandler: searchJson=", searchJson)
@@ -649,60 +664,30 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	// type
 	searchType := r.URL.Query().Get("type") // optional, "link" to filter only linkable objects i.e. objects I can write
 
-	if classname == "" {
-		RespondSimpleError(w, ErrInvalidRequest, "Missing classname parameter", http.StatusBadRequest)
-		return
-	}
-
 	// Get instance for the requested classname
 	searchInstance := repo.GetInstanceByClassName(classname)
 	if searchInstance == nil {
 		RespondSimpleError(w, ErrInvalidRequest, "Unknown classname: "+classname, http.StatusBadRequest)
 		return
 	}
+	if !searchInstance.IsDBObject() {
+		RespondSimpleError(w, ErrInvalidRequest, "Classname is not a DBObject: "+classname, http.StatusBadRequest)
+		return
+	}
 	searchInstanceDescription := repo.GetInstanceByClassName(classname)
 
-	// if !searchInstance.IsDBObject() {
-	// 	RespondSimpleError(w, ErrInvalidRequest, "Classname is not a DBObject: "+classname, http.StatusBadRequest)
-	// 	return
-	// }
-
 	// Set search criteria
-	if namePattern != "" {
-		switch classname {
-		case "DBCountry":
-			// For countries, search by Common_Name field
-			searchInstance.SetValue("Common_Name", namePattern)
-			searchInstanceDescription.SetValue("Formal_Name", namePattern)
-		case "DBUser":
-			// For users, search by login field
-			searchInstance.SetValue("login", namePattern)
-			searchInstanceDescription.SetValue("fullname", namePattern)
-		default:
-			searchInstance.SetValue("name", namePattern)
-			searchInstanceDescription.SetValue("description", namePattern)
-		}
-	}
+	searchInstance.SetValue("name", namePattern)
+	searchInstanceDescription.SetValue("description", namePattern)
 	if searchJson != "" {
 		for key, val := range searchParams {
 			searchInstance.SetValue(key, val)
 		}
 	}
 
-	orderBy := "name"
-	if orderByParam != "" {
-		orderBy = orderByParam
-	}
-	switch classname {
-	case "DBUser":
-		orderBy = "login"
-	case "DBCountry":
-		orderBy = "Common_Name"
-	}
-
 	var results []dblayer.DBEntityInterface
 	// Search with LIKE and case-insensitive
-	if classname == "DBUser" || classname == "DBCountry" || (classname != "DBObject" && searchInstance.IsDBObject()) {
+	if classname != "DBObject" {
 		repo.Verbose = true
 		results, err = repo.Search(searchInstance, true, false, orderBy)
 		repo.Verbose = false
@@ -732,8 +717,8 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 				results = append(results, resDesc)
 			}
 		}
-		// IF search instance is DBObject and !includeDeleted, filter out deleted objects
-		if searchInstance.IsDBObject() && !includeDeleted {
+		// IF !includeDeleted, filter out deleted objects
+		if !includeDeleted {
 			var filteredResults []dblayer.DBEntityInterface
 			for _, res := range results {
 				if res.GetValue("deleted_date") == nil {
@@ -764,57 +749,39 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert results to map array
 	var resultList []map[string]interface{}
 	for i := 0; i < len(results); i++ {
-		// TODO: verify this is correct with offset and limit
-		// for i := offset; len(resultList) < maxResults && i < len(results); i++ {
-		log.Print("SearchObjectsHandler: i=", i, " len(resultList)=", len(resultList), " maxResults=", maxResults)
-		// for i := 0; len(resultList) < maxResults && i < len(results); i++ {
-		// for i := 0; i < maxResults && i < len(results); i++ {
-		// log.Printf("SearchObjectsHandler: results[%d]=%s\n", i, results[i].ToJSON())
 		entity := results[i]
 		if entity.HasMetadata("classname") && entity.GetMetadata("classname") == "DBFile" {
 			// read the full object to get file metadata, so we can display an image preview
 			entity = repo.FullObjectById(entity.GetValue("id").(string), !includeDeleted)
+			// TODO verify that this should be redundant with the includeDeleted above
 			if entity == nil {
-				// It has been soft deleted
 				log.Printf("SearchObjectsHandler: It has been soft deleted ID=%s", results[i].GetValue("id").(string))
 				continue
 			}
 		}
 		// IF searched classname is != DBObject, then filter other classnames
-		if classname != "DBUser" && classname != "DBCountry" {
-			// log.Print("SearchObjectsHandler: entity=", entity)
-			if classname != "DBObject" && entity.GetMetadata("classname") != classname {
-				log.Printf("SearchObjectsHandler: Skipping object ID=%s with classname=%s", entity.GetValue("id").(string), entity.GetMetadata("classname"))
-				continue
-			}
+		// TODO: this should not happen, verify and remove if confirmed
+		if classname != "DBObject" && entity.GetMetadata("classname") != classname {
+			log.Printf("SearchObjectsHandler: Skipping object ID=%s with classname=%s", entity.GetValue("id").(string), entity.GetMetadata("classname"))
+			continue
+		}
 
-			// Check read permission
-			if !repo.CheckReadPermission(entity) {
-				log.Printf("SearchObjectsHandler: No read permission for object ID=%s", entity.GetValue("id").(string))
-				continue
-			}
+		// Check read permission
+		if !repo.CheckReadPermission(entity) {
+			log.Printf("SearchObjectsHandler: No read permission for object ID=%s", entity.GetValue("id").(string))
+			continue
+		}
 
-			// If type=link, check write permission (I want only objects that I can attach to)
-			if searchType == "link" && !repo.CheckWritePermission(entity) {
-				log.Printf("SearchObjectsHandler: No write permission for object ID=%s (type=link)", entity.GetValue("id").(string))
-				continue
-			}
+		// If type=link, check write permission (I want only objects that I can attach to)
+		if searchType == "link" && !repo.CheckWritePermission(entity) {
+			log.Printf("SearchObjectsHandler: No write permission for object ID=%s (type=link)", entity.GetValue("id").(string))
+			continue
 		}
 
 		resultMap := make(map[string]interface{})
 		resultMap["id"] = entity.GetValue("id")
-		switch classname {
-		case "DBCountry":
-			resultMap["name"] = entity.GetValue("Common_Name")
-		case "DBUser":
-			resultMap["name"] = entity.GetValue("login")
-		default:
-			resultMap["name"] = entity.GetValue("name")
-		}
+		resultMap["name"] = entity.GetValue("name")
 		if desc := entity.GetValue("description"); desc != nil {
-			resultMap["description"] = desc
-		}
-		if desc := entity.GetValue("fullname"); desc != nil {
 			resultMap["description"] = desc
 		}
 
@@ -829,12 +796,8 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Include mime type for DBFile objects (useful for filtering images)
 		if mime := entity.GetValue("mime"); mime != nil {
-			// if classname == "DBFile" || entity.GetMetadata("classname") == "DBFile" {
-			// if mime := entity.GetValue("mime"); mime != nil {
 			resultMap["mime"] = mime
-			// }
 		}
-		// log.Print("SearchObjectsHandler: resultMap=", resultMap)
 
 		resultList = append(resultList, resultMap)
 	}
@@ -844,8 +807,6 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	for i := offset; len(returnList) < maxResults && i < len(resultList); i++ {
 		returnList = append(returnList, resultList[i])
 	}
-
-	// log.Printf("SearchObjectsHandler: Found %d %s objects matching '%s'", len(resultList), classname, namePattern)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
