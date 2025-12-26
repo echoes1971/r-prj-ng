@@ -239,7 +239,8 @@ export function UserLinkView({ user_id, dark }) {
 
     return (
         <a href={'/users/'+user_id} rel="noopener noreferrer">
-            <i className="bi bi-person-circle" title={user ? user.fullname : ''}></i> {user ? user.fullname : user_id}
+            {/* <i className="bi bi-person-circle" title={user ? user.fullname : ''}></i> */}
+            {user ? user.fullname : user_id}
         </a>
     );
 }
