@@ -35,6 +35,11 @@ export function classname2bootstrapIcon(classname) {
             return 'file-richtext-fill';
         case 'DBPerson':
             return 'person-fill';
+
+        case 'DBUser':
+            return 'person-fill';
+        case 'DBGroup':
+            return 'people-fill';
         default:
             return 'question-circle-fill';
     }
