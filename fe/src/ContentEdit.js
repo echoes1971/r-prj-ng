@@ -10,11 +10,11 @@ import { FileEdit } from './DBFile';
 import { FolderEdit } from './DBFolders';
 import { LinkEdit } from './DBLink';
 import { NoteEdit } from './DBNote';
-import { ObjectEdit } from './DBObject';
+import { ObjectEdit, ObjectFooterView } from './DBObject';
 import { PageEdit } from './DBPage';
 import { PersonEdit } from './DBPeople';
 import { ThemeContext } from './ThemeContext';
-
+import { classname2bootstrapIcon } from './sitenavigation_utils';
 
 // Main ContentEdit component
 function ContentEdit() {
@@ -194,9 +194,14 @@ function ContentEdit() {
                         <i className="bi bi-pencil me-2"></i>
                         {t('common.edit')}: {data.name}
                     </h2>
-                    <small style={{ opacity: 0.7 }}>
-                        {classname} · ID: {id}
-                    </small>
+                    <div className="row">
+                        <div className="col-md-2 col-4 text-end">
+                            <small style={{ opacity: 0.7 }}><i className={`bi bi-${classname2bootstrapIcon(metadata.classname)}`} title={metadata.classname}></i> {t('dbobjects.' + metadata.classname)}</small>
+                        </div>
+                        <div className="col-md-3 col-8">
+                            <small style={{ opacity: 0.7 }}>{t('dbobjects.id')}: {data.id}</small>
+                        </div>
+                    </div>
                 </Card.Header>
                 <Card.Body className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderBottom: '0px solid rgba(255,255,255,0.1)' } : {}}>
                     <EditComponent
@@ -210,6 +215,9 @@ function ContentEdit() {
                         dark={dark}
                     />
                 </Card.Body>
+                <Card.Footer className={dark ? 'bg-secondary bg-opacity-10' : ''} style={dark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}}>
+                    <ObjectFooterView data={data} metadata={metadata} objectData={null} dark={dark} />
+                </Card.Footer>
             </Card>
         </Container>
     );
