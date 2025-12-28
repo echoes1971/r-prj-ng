@@ -1,5 +1,15 @@
 basePath: /
 definitions:
+  api.CreatableTypesResponse:
+    description: Response structure for creatable types
+    properties:
+      success:
+        type: boolean
+      types:
+        items:
+          type: string
+        type: array
+    type: object
   api.Credentials:
     properties:
       login:
@@ -23,10 +33,36 @@ definitions:
         description: Dynamic parameters for interpolation
         type: object
     type: object
+  api.OllamaRequest:
+    properties:
+      prompt:
+        type: string
+    type: object
+  api.OllamaResponse:
+    properties:
+      error:
+        type: string
+      response:
+        type: string
+    type: object
   api.PingResponse:
     properties:
       ping:
         type: string
+    type: object
+  api.objectResponse:
+    description: Standard response structure for object operations
+    properties:
+      data:
+        additionalProperties: true
+        type: object
+      message:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      success:
+        type: boolean
     type: object
 host: localhost:1971
 info:
@@ -165,6 +201,11 @@ paths:
               type: string
             type: array
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -196,6 +237,11 @@ paths:
       - description: Field to order the results by
         in: query
         name: order_by
+        type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
         type: string
       produces:
       - application/json
@@ -229,6 +275,11 @@ paths:
         required: true
         schema:
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -265,6 +316,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "204":
           description: No Content
@@ -293,6 +349,11 @@ paths:
       - description: Group ID
         in: path
         name: id
+        required: true
+        type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -338,6 +399,11 @@ paths:
         required: true
         schema:
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -394,6 +460,34 @@ paths:
           schema:
             $ref: '#/definitions/api.ErrorResponse'
       summary: User login
+      tags:
+      - auth
+  /logout:
+    post:
+      description: Invalidate the current JWT token. The token must be provided in
+        the Authorization header.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: logout message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: User logout
       tags:
       - auth
   /nav/{objectId}/indexes:
@@ -511,14 +605,18 @@ paths:
         schema:
           additionalProperties: true
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "201":
           description: Created object data
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/api.objectResponse'
         "400":
           description: Invalid request
           schema:
@@ -543,14 +641,18 @@ paths:
         name: id
         required: true
         type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: Deletion success message
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/api.objectResponse'
         "400":
           description: Invalid request
           schema:
@@ -591,14 +693,18 @@ paths:
         schema:
           additionalProperties: true
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: Updated object data
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/api.objectResponse'
         "400":
           description: Invalid request
           schema:
@@ -631,14 +737,18 @@ paths:
         in: query
         name: father_id
         type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: List of creatable types
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/api.CreatableTypesResponse'
         "400":
           description: Invalid request
           schema:
@@ -719,30 +829,26 @@ paths:
         name: request
         required: true
         schema:
-          additionalProperties:
-            type: string
-          type: object
+          $ref: '#/definitions/api.OllamaRequest'
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: Ollama response
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.OllamaResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.OllamaResponse'
         "503":
           description: Ollama service not configured
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.OllamaResponse'
       summary: sends a prompt to Ollama and returns the response
       tags:
       - ollama
@@ -762,15 +868,11 @@ paths:
         "200":
           description: Default page response
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.OllamaResponse'
         "503":
           description: Ollama service not configured
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.OllamaResponse'
       summary: returns default page response generated by Ollama
       tags:
       - ollama
@@ -798,6 +900,11 @@ paths:
       - description: Field to order the results by
         in: query
         name: order_by
+        type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
         type: string
       produces:
       - application/json
@@ -836,6 +943,11 @@ paths:
         schema:
           additionalProperties: true
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -876,6 +988,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "204":
           description: No Content
@@ -904,6 +1021,11 @@ paths:
       - description: User ID
         in: path
         name: id
+        required: true
+        type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -952,6 +1074,11 @@ paths:
         schema:
           additionalProperties: true
           type: object
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -991,6 +1118,11 @@ paths:
       - description: User ID
         in: path
         name: userId
+        required: true
+        type: string
+      - description: Bearer {token}
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:

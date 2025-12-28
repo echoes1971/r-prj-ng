@@ -157,7 +157,7 @@ function ObjectLinkSelector({ value, onChange, classname, fieldName, label, requ
         onChange({
             target: {
                 name: fieldName,
-                value: '0'
+                value: ''  // it was '0', but it's a problem when resetting the parent selector and then search for objects again
             }
         });
     };

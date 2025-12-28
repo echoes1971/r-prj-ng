@@ -11,18 +11,25 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
-
+func GetTokenFromRequest(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return nil, http.ErrNoCookie
+		return "", http.ErrNoCookie
 	}
-
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return nil, http.ErrNoCookie
+		return "", http.ErrNoCookie
 	}
 	tokenString := parts[1]
+	return tokenString, nil
+}
+
+func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
+
+	tokenString, err := GetTokenFromRequest(r)
+	if err != nil {
+		return nil, err
+	}
 
 	dbContext := &dblayer.DBContext{
 		UserID:   "-1",           // DANGEROUS!!!! Think of something better here!!!
@@ -54,17 +61,17 @@ func GetClaimsFromRequest(r *http.Request) (map[string]string, error) {
 	return result, nil
 }
 
-// Middleware che controlla il token JWT
+// Middleware check token JWT
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Legge l'header Authorization
+		// Read Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			RespondSimpleError(w, ErrMissingAuthorization, "Missing Authorization header", http.StatusUnauthorized)
 			return
 		}
 
-		// Deve essere nel formato "Bearer <token>"
+		// it must be in the format "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			RespondSimpleError(w, ErrInvalidToken, "Invalid Authorization header format", http.StatusUnauthorized)

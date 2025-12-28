@@ -31,27 +31,36 @@ function AppNavbar() {
     de: "🇩🇪",
   };
 
+  const loadChildren = async () => {
+    try {
+      const response = await axios.get(`/nav/children/${site_root}`);
+      // filter those with metadata DBFolder
+      const filteredChildren = (response.data.children || []).filter(child => child.metadata && child.metadata.classname === "DBFolder");
+      // alert(JSON.stringify(filteredChildren));
+      setChildren(filteredChildren);
+    } catch (error) {
+      console.error("Error loading root children:", error);
+    }
+  };
+
   // Load root children
   useEffect(() => {
-    const loadChildren = async () => {
-      try {
-        const response = await axios.get(`/nav/children/${site_root}`);
-        // filter those with metadata DBFolder
-        const filteredChildren = (response.data.children || []).filter(child => child.metadata && child.metadata.classname === "DBFolder");
-        // alert(JSON.stringify(filteredChildren));
-        setChildren(filteredChildren);
-      } catch (error) {
-        console.error("Error loading root children:", error);
-      }
-    };
     loadChildren();
   }, [site_root]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    setUsername(null);
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post("/logout");
+      console.log("Logout response:", response.data);
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      setUsername(null);
+      setChildren([]);
+      loadChildren();
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   const handleProfileClick = async () => {

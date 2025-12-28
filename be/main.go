@@ -174,8 +174,9 @@ func main() {
 	r.HandleFunc("/nav/{objectId}/indexes", api.GetIndexesHandler).Methods("GET")
 	r.HandleFunc("/nav/search", api.NavigationSearchHandler).Methods("GET")
 
-	// Public Endpoint: login
+	// Public Endpoints: login, logout
 	r.HandleFunc("/login", api.LoginHandler).Methods("POST")
+	r.HandleFunc("/logout", api.LogoutHandler).Methods("POST")
 
 	// Public Endpoint: hello
 	r.HandleFunc("/ping", api.PingHandler).Methods("GET")

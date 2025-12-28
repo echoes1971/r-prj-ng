@@ -19,6 +19,7 @@ import (
 //	@Produce json
 //	@Param search query string false "Search term to filter users by login or fullname"
 //	@Param order_by query string false "Field to order the results by"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Success 200 {array} map[string]interface{} "List of users"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"
@@ -78,6 +79,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Retrieves the user specified by the given ID
 //	@Tags users
 //	@Param id path string true "User ID"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Produce json
 //	@Success 200 {object} map[string]interface{} "User data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
@@ -164,6 +166,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Accept json
 //	@Produce json
 //	@Param request body map[string]interface{} true "Request body containing user details"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Success 201 {object} map[string]interface{} "Created user data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
@@ -251,6 +254,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags users
 //	@Param id path string true "User ID"
 //	@Param request body map[string]interface{} true "Request body containing user fields to update"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Produce json
 //	@Success 200 {object} map[string]interface{} "Updated user data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
@@ -338,6 +342,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Deletes the user specified by the given ID
 //	@Tags users
 //	@Param id path string true "User ID"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Success 204 "No Content"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
@@ -390,6 +395,7 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags users
 //	@Produce json
 //	@Param userId path string true "User ID"
+//	@Param Authorization header string true "Bearer {token}"
 //	@Success 200 {object} map[string]interface{} "Person data"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"

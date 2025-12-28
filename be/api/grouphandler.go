@@ -17,6 +17,7 @@ import (
 // @Produce json
 // @Param search query string false "Search term to filter groups by name"
 // @Param order_by query string false "Field to order the results by"
+// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {array} map[string]interface{}
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
@@ -74,6 +75,7 @@ func GetAllGroupsHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags groups
 // @Produce json
 // @Param id path string true "Group ID"
+// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} ErrorResponse "Bad Request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -156,6 +158,7 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param group body object true "Group details"
+// @Param Authorization header string true "Bearer {token}"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} ErrorResponse "Bad Request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -233,6 +236,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path string true "Group ID"
 // @Param group body object true "Group details"
+// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} ErrorResponse "Bad Request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -307,6 +311,7 @@ func UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 // @Description Delete a group by its ID
 // @Tags groups
 // @Param id path string true "Group ID"
+// @Param Authorization header string true "Bearer {token}"
 // @Success 204 "No Content"
 // @Failure 400 {object} ErrorResponse "Bad Request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"

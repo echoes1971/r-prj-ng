@@ -81,6 +81,14 @@ func OllamaFolderInit(folderName string) {
 	log.Printf("Created Ollama folder '%s' with ID %s\n", folderName, ollamaFolder.GetValue("id"))
 }
 
+type OllamaRequest struct {
+	Prompt string `json:"prompt"`
+}
+type OllamaResponse struct {
+	Response string `json:"response"`
+	Error    string `json:"error,omitempty"`
+}
+
 // OllamaHandler godoc
 //
 //	@Summary sends a prompt to Ollama and returns the response
@@ -88,28 +96,31 @@ func OllamaFolderInit(folderName string) {
 //	@Tags ollama
 //	@Accept json
 //	@Produce json
-//	@Param request body map[string]string true "Request body containing the prompt"
+//	@Param request body OllamaRequest true "Request body containing the prompt"
+//	@Param Authorization header string false "Bearer {token}"
 //	@Success 200 {object} map[string]string "Ollama response"
-//	@Failure 400 {object} map[string]string "Invalid request"
-//	@Failure 503 {object} map[string]string "Ollama service not configured"
+//	@Success 200 {object} OllamaResponse "Ollama response"
+//	@Failure 400 {object} OllamaResponse "Invalid request"
+//	@Failure 503 {object} OllamaResponse "Ollama service not configured"
 //	@Router /ollama [post]
 func OllamaHandler(w http.ResponseWriter, r *http.Request) {
-	type Request struct {
-		Prompt string `json:"prompt"`
-	}
-	type Response struct {
-		Response string `json:"response"`
-		Error    string `json:"error,omitempty"`
-	}
 
-	var req Request
+	// Rule: we DO NOT want unauthenticated access to Ollama
+	claims, err := GetClaimsFromRequest(r)
+	if err != nil {
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	log.Printf("OllamaHandler called by user ID: %s\n", claims["user_id"])
+
+	var req OllamaRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondSimpleError(w, ErrInvalidRequest, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	if ollamaURL == "" || ollamaModel == "" {
-		res := Response{Error: "Ollama service not configured"}
+		res := OllamaResponse{Error: "Ollama service not configured"}
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(res)
@@ -118,13 +129,13 @@ func OllamaHandler(w http.ResponseWriter, r *http.Request) {
 
 	respText, err := CallOllama(req.Prompt)
 	if err != nil {
-		res := Response{Error: err.Error()}
+		res := OllamaResponse{Error: err.Error()}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	res := Response{Response: respText}
+	res := OllamaResponse{Response: respText}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }
@@ -138,8 +149,8 @@ var lastDefaultPageResponse string
 //	@Tags ollama
 //	@Produce json
 //	@Param lang query string false "Language tag (e.g., en, it, fr, de)" default(en)
-//	@Success 200 {object} map[string]string "Default page response"
-//	@Failure 503 {object} map[string]string "Ollama service not configured"
+//	@Success 200 {object} OllamaResponse "Default page response"
+//	@Failure 503 {object} OllamaResponse "Ollama service not configured"
 //	@Router /ollama/default-page [get]
 func DefaultPageOllamaHandler(w http.ResponseWriter, r *http.Request) {
 	// Get lang query parameter

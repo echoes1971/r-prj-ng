@@ -33,7 +33,8 @@ function Login() {
   };
 
   return (
-    <div className={`container mt-3  ${themeClass}`}>
+    // Center horizontally and vertically, expand fields to reasonable size
+    <div className={`container mt-3 d-flex justify-content-center align-items-center ${themeClass}`}>
       <form onSubmit={handleSubmit} className="p-3">
         {errorMessage && (
           <div className="alert alert-danger" role="alert">
@@ -41,18 +42,23 @@ function Login() {
           </div>
         )}
         <div className="form-group row">
-          <label className="col-md-1 col-form-label">Login</label>
-          <div className="col-sm-3">
+          <label className="col-md-4 col-form-label text-md-end">Login</label>
+          <div className="col-md-8 col-sm-3">
             <input className="form-control mb-2" placeholder="Login" value={login} onChange={e => setLogin(e.target.value)} />
           </div>
         </div>
         <div className="form-group row">
-          <label className="col-md-1 col-form-label">Password</label>
-          <div className="col-sm-3">
+          <label className="col-md-4 col-form-label text-md-end">Password</label>
+          <div className="col-md-8 col-sm-3">
             <input className="form-control mb-2" type="password" placeholder="Password" value={pwd} onChange={e => setPwd(e.target.value)} />
           </div>
         </div>
-        <button className="btn btn-primary">{t("common.login")}</button>
+        <div className="form-group row">
+          <div className="col-md-4"></div>
+          <div className="col-md-8">
+            <button className="btn btn-primary">{t("common.login")}</button>
+          </div>
+        </div>
       </form>
     </div>
   );

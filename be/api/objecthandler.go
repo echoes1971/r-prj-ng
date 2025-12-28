@@ -19,6 +19,42 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CreatableTypesResponse godoc
+// @Description Response structure for creatable types
+type CreatableTypesResponse struct {
+	Success bool     `json:"success"`
+	Types   []string `json:"types"`
+}
+
+// FileTokensRequest godoc
+// @Description Request structure for file tokens
+type FileTokensRequest struct {
+	FileIDs []string `json:"file_ids"`
+}
+
+// FileTokensResponse godoc
+// @Description Response structure for file tokens
+type FileTokensResponse struct {
+	Success bool              `json:"success"`
+	Tokens  map[string]string `json:"tokens"`
+}
+
+// ObjectResponse godoc
+// @Description Standard response structure for object operations
+type ObjectResponse struct {
+	Success  bool                   `json:"success"`
+	Data     map[string]interface{} `json:"data"`
+	Metadata map[string]interface{} `json:"metadata"`
+	Message  string                 `json:"message,omitempty"`
+}
+
+// ObjectsSearchResponse godoc
+// @Description Response structure for object search
+type ObjectsSearchResponse struct {
+	Success bool                     `json:"success"`
+	Objects []map[string]interface{} `json:"objects"`
+}
+
 // CreateObjectHandler godoc
 // @Summary Create a new DBObject
 // @Description Creates a new DBObject based on the provided classname and fields
@@ -26,7 +62,8 @@ import (
 // @Accept json
 // @Produce json
 // @Param object body map[string]interface{} true "Object data"
-// @Success 201 {object} map[string]interface{} "Created object data"
+// @Param Authorization header string true "Bearer {token}"
+// @Success 201 {object} ObjectResponse "Created object data"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 500 {object} ErrorResponse "Internal server error"
@@ -193,10 +230,10 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	// Return created object
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    resultMap,
-		"metadata": map[string]interface{}{
+	json.NewEncoder(w).Encode(ObjectResponse{
+		Success: true,
+		Data:    resultMap,
+		Metadata: map[string]interface{}{
 			"classname": classname,
 		},
 	})
@@ -211,7 +248,8 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path string true "Object ID"
 // @Param object body map[string]interface{} true "Object fields to update"
-// @Success 200 {object} map[string]interface{} "Updated object data"
+// @Param Authorization header string true "Bearer {token}"
+// @Success 200 {object} ObjectResponse "Updated object data"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -387,10 +425,10 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	// Return updated object
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    resultMap,
-		"metadata": map[string]interface{}{
+	json.NewEncoder(w).Encode(ObjectResponse{
+		Success: true,
+		Data:    resultMap,
+		Metadata: map[string]interface{}{
 			"classname": classname,
 		},
 	})
@@ -402,7 +440,8 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags objects
 // @Produce json
 // @Param id path string true "Object ID"
-// @Success 200 {object} map[string]interface{} "Deletion success message"
+// @Param Authorization header string true "Bearer {token}"
+// @Success 200 {object} ObjectResponse "Deletion success message"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
@@ -479,10 +518,11 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	// Return success
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Object deleted successfully",
-		"data":    resultMap,
+	json.NewEncoder(w).Encode(ObjectResponse{
+		Success:  true,
+		Message:  "Object deleted successfully",
+		Data:     resultMap,
+		Metadata: deleted.GetAllMetadata(),
 	})
 }
 
@@ -492,7 +532,8 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags objects
 // @Produce json
 // @Param father_id query string false "Father object ID"
-// @Success 200 {object} map[string]interface{} "List of creatable types"
+// @Param Authorization header string true "Bearer {token}"
+// @Success 200 {object} CreatableTypesResponse "List of creatable types"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /objects/creatable-types [get]
@@ -585,9 +626,9 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 	// Return the list
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"types":   creatableTypes,
+	json.NewEncoder(w).Encode(CreatableTypesResponse{
+		Success: true,
+		Types:   creatableTypes,
 	})
 }
 
@@ -604,7 +645,7 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 // @Param offset query int false "Offset for pagination"
 // @Param type query string false "Filter type (e.g., 'link' for linkable objects)"
 // @Param includeDeleted query string false "Include deleted objects"
-// @Success 200 {array} map[string]interface{} "List of matching objects"
+// @Success 200 {object} ObjectsSearchResponse "List of matching objects"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 500 {object} ErrorResponse "Internal error"
 // @Router /objects/search [get]
@@ -656,6 +697,13 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("SearchObjectsHandler: Failed to parse searchJson: %v", err)
 		}
 	}
+	// var searchParams map[string]any
+	// if searchJson != "" {
+	// 	err := json.Unmarshal([]byte(searchJson), &searchParams)
+	// 	if err != nil {
+	// 		log.Printf("SearchObjectsHandler: Failed to parse searchJson: %v", err)
+	// 	}
+	// }
 	log.Print("SearchObjectsHandler: searchParams=", searchParams)
 	// limit and offset
 	limit := r.URL.Query().Get("limit")
@@ -672,11 +720,10 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 		RespondSimpleError(w, ErrInvalidRequest, "Unknown classname: "+classname, http.StatusBadRequest)
 		return
 	}
-
 	// searchParams has key "$or" ?
-	if _, hasOr := searchParams["$or"]; hasOr {
+	if _, ok := searchParams["$or"]; ok {
 		log.Print("SearchObjectsHandler: searchParams has $or")
-		searchInstance.SetMetadata("or", searchParams["$or"].([]interface{}))
+		searchInstance.SetMetadata("or", searchParams["$or"])
 	}
 
 	// if !searchInstance.IsDBObject() {
@@ -825,9 +872,9 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"objects": returnList,
+	json.NewEncoder(w).Encode(ObjectsSearchResponse{
+		Success: true,
+		Objects: returnList,
 	})
 }
 
@@ -981,6 +1028,7 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 //	@Accept json
 //	@Produce json
 //	@Param request body map[string][]string true "List of file IDs" `{"file_ids": ["abc123", "def456"]}`
+//	@Param Authorization header string true "Bearer {token}"
 //	@Success 200 {object} map[string]interface{} "Generated tokens" {"success": true, "tokens": {"abc123": "JWT_TOKEN", "def456": "JWT_TOKEN"}}
 //	@Failure 400 {object} ErrorResponse "Invalid request"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
@@ -1001,9 +1049,7 @@ func GenerateFileTokensHandler(w http.ResponseWriter, r *http.Request) {
 	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
 
 	// Parse request body
-	var requestData struct {
-		FileIDs []string `json:"file_ids"`
-	}
+	var requestData FileTokensRequest
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		log.Printf("GenerateFileTokensHandler: Failed to decode request body: %v", err)
 		RespondSimpleError(w, ErrInvalidRequest, "Invalid request body", http.StatusBadRequest)
@@ -1059,8 +1105,8 @@ func GenerateFileTokensHandler(w http.ResponseWriter, r *http.Request) {
 	// Return tokens
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"tokens":  tokens,
+	json.NewEncoder(w).Encode(FileTokensResponse{
+		Success: true,
+		Tokens:  tokens,
 	})
 }

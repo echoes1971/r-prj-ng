@@ -160,3 +160,47 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
+
+// LogoutHandler godoc
+// @Summary User logout
+// @Description Invalidate the current JWT token. The token must be provided in the Authorization header.
+// @Tags auth
+// @Param Authorization header string true "Bearer {token}"
+// @Produce json
+// @Success 200 {object} map[string]string "logout message"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /logout [post]
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	tokenString, err := GetTokenFromRequest(r)
+	if err != nil {
+		RespondSimpleError(w, ErrUnauthorized, "Missing or invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := GetClaimsFromRequest(r)
+	if err != nil {
+		RespondSimpleError(w, ErrUnauthorized, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	log.Printf("Logging out user %s with token %s", claims["user_id"], tokenString)
+
+	dbContext := &dblayer.DBContext{
+		UserID:   claims["user_id"],
+		GroupIDs: strings.Split(claims["groups"], ","),
+		Schema:   dblayer.DbSchema,
+	}
+
+	repo := dblayer.NewDBRepository(dbContext, dblayer.Factory, dblayer.DbConnection)
+	repo.Verbose = false
+
+	// Elimina il token dalla tabella oauth_tokens
+	if err := DeleteToken(repo, tokenString); err != nil {
+		log.Print("Error deleting token:", err)
+		RespondSimpleError(w, ErrInternalServer, "Could not delete token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+}
