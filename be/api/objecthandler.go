@@ -62,11 +62,11 @@ type ObjectsSearchResponse struct {
 // @Accept json
 // @Produce json
 // @Param object body map[string]interface{} true "Object data"
-// @Param Authorization header string true "Bearer {token}"
 // @Success 201 {object} ObjectResponse "Created object data"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 500 {object} ErrorResponse "Internal server error"
+// @Security BearerAuth
 // @Router /objects [post]
 func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
@@ -248,13 +248,13 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path string true "Object ID"
 // @Param object body map[string]interface{} true "Object fields to update"
-// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {object} ObjectResponse "Updated object data"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Object not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
+// @Security BearerAuth
 // @Router /objects/{id} [put]
 func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
@@ -440,13 +440,13 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags objects
 // @Produce json
 // @Param id path string true "Object ID"
-// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {object} ObjectResponse "Deletion success message"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 404 {object} ErrorResponse "Object not found"
 // @Failure 500 {object} ErrorResponse "Internal server error"
+// @Security BearerAuth
 // @Router /objects/{id} [delete]
 func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
@@ -532,10 +532,10 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags objects
 // @Produce json
 // @Param father_id query string false "Father object ID"
-// @Param Authorization header string true "Bearer {token}"
 // @Success 200 {object} CreatableTypesResponse "List of creatable types"
 // @Failure 400 {object} ErrorResponse "Invalid request"
 // @Failure 500 {object} ErrorResponse "Internal server error"
+// @Security BearerAuth
 // @Router /objects/creatable-types [get]
 func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
@@ -637,6 +637,7 @@ func GetCreatableTypesHandler(w http.ResponseWriter, r *http.Request) {
 // @Description Search for objects by classname, name pattern and other filters
 // @Tags objects
 // @Produce json
+// @Param token header string false "Temporary JWT token for access"
 // @Param classname query string true "Class name (e.g., DBCompany, DBNote)"
 // @Param name query string false "Name pattern for search"
 // @Param searchJson query string false "JSON object with additional search parameters"
@@ -883,8 +884,8 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 // @Description Downloads the file content for a given DBFile object ID
 // @Tags files
 // @Produce octet-stream
+// @Param token header string false "Temporary JWT token for access"
 // @Param id path string true "File ID"
-// @Param token query string false "Temporary JWT token for access"
 // @Param preview query string false "Set to 'yes' or 'true' to get thumbnail preview if available"
 // @Success 200 {file} file "File content"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
@@ -1021,18 +1022,17 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GenerateFileTokensHandler godoc
-//
-//	@Summary generates temporary JWT tokens for multiple files
-//	@Description Generates temporary JWT tokens for multiple files specified by their IDs
-//	@Tags files
-//	@Accept json
-//	@Produce json
-//	@Param request body map[string][]string true "List of file IDs" `{"file_ids": ["abc123", "def456"]}`
-//	@Param Authorization header string true "Bearer {token}"
-//	@Success 200 {object} map[string]interface{} "Generated tokens" {"success": true, "tokens": {"abc123": "JWT_TOKEN", "def456": "JWT_TOKEN"}}
-//	@Failure 400 {object} ErrorResponse "Invalid request"
-//	@Failure 401 {object} ErrorResponse "Unauthorized"
-//	@Router /files/preview-tokens [post]
+// @Summary generates temporary JWT tokens for multiple files
+// @Description Generates temporary JWT tokens for multiple files specified by their IDs
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param request body map[string][]string true "List of file IDs" `{"file_ids": ["abc123", "def456"]}`
+// @Success 200 {object} map[string]interface{} "Generated tokens" {"success": true, "tokens": {"abc123": "JWT_TOKEN", "def456": "JWT_TOKEN"}}
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Security BearerAuth
+// @Router /files/preview-tokens [post]
 func GenerateFileTokensHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := GetClaimsFromRequest(r)
 	if err != nil {

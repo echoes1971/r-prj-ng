@@ -91,18 +91,17 @@ type OllamaResponse struct {
 
 // OllamaHandler godoc
 //
-//	@Summary sends a prompt to Ollama and returns the response
-//	@Description Sends a prompt to the Ollama API and returns the generated response
-//	@Tags ollama
-//	@Accept json
-//	@Produce json
-//	@Param request body OllamaRequest true "Request body containing the prompt"
-//	@Param Authorization header string false "Bearer {token}"
-//	@Success 200 {object} map[string]string "Ollama response"
-//	@Success 200 {object} OllamaResponse "Ollama response"
-//	@Failure 400 {object} OllamaResponse "Invalid request"
-//	@Failure 503 {object} OllamaResponse "Ollama service not configured"
-//	@Router /ollama [post]
+//		@Summary sends a prompt to Ollama and returns the response
+//		@Description Sends a prompt to the Ollama API and returns the generated response
+//		@Tags ollama
+//		@Accept json
+//		@Produce json
+//		@Param request body OllamaRequest true "Request body containing the prompt"
+//		@Success 200 {object} OllamaResponse "Ollama response"
+//		@Failure 400 {object} OllamaResponse "Invalid request"
+//		@Failure 503 {object} OllamaResponse "Ollama service not configured"
+//	 @Security BearerAuth
+//		@Router /ollama [post]
 func OllamaHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Rule: we DO NOT want unauthenticated access to Ollama

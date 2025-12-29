@@ -36,6 +36,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Object ID",
                         "name": "objectId",
                         "in": "path",
@@ -124,6 +130,11 @@ const docTemplate = `{
         },
         "/files/preview-tokens": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Generates temporary JWT tokens for multiple files specified by their IDs",
                 "consumes": [
                     "application/json"
@@ -150,13 +161,6 @@ const docTemplate = `{
                                 }
                             }
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -195,16 +199,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "File ID",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Temporary JWT token for access",
-                        "name": "token",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -243,6 +247,11 @@ const docTemplate = `{
         },
         "/groups": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of all groups",
                 "produces": [
                     "application/json"
@@ -263,13 +272,6 @@ const docTemplate = `{
                         "description": "Field to order the results by",
                         "name": "order_by",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -298,6 +300,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new group with the provided details",
                 "consumes": [
                     "application/json"
@@ -318,13 +325,6 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -364,6 +364,11 @@ const docTemplate = `{
         },
         "/groups/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a group by its ID",
                 "produces": [
                     "application/json"
@@ -378,13 +383,6 @@ const docTemplate = `{
                         "description": "Group ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -423,6 +421,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a group's details by its ID",
                 "consumes": [
                     "application/json"
@@ -450,13 +453,6 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -494,6 +490,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a group by its ID",
                 "tags": [
                     "groups"
@@ -505,13 +506,6 @@ const docTemplate = `{
                         "description": "Group ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -608,15 +602,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "User logout",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "logout message",
@@ -647,6 +632,12 @@ const docTemplate = `{
                 ],
                 "summary": "returns breadcrumb for a given object",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Object ID",
@@ -685,6 +676,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Folder ID",
                         "name": "folderId",
                         "in": "path",
@@ -719,6 +716,12 @@ const docTemplate = `{
                 ],
                 "summary": "searches navigation objects by name pattern",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Name pattern to search for (at least 2 characters)",
@@ -763,6 +766,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Object ID",
                         "name": "objectId",
                         "in": "path",
@@ -788,6 +797,11 @@ const docTemplate = `{
         },
         "/objects": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new DBObject based on the provided classname and fields",
                 "consumes": [
                     "application/json"
@@ -809,20 +823,13 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created object data",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -848,6 +855,11 @@ const docTemplate = `{
         },
         "/objects/creatable-types": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns the list of DBObject types that can be created as children of a given parent object, returns all DBObject types if no father_id",
                 "produces": [
                     "application/json"
@@ -862,13 +874,6 @@ const docTemplate = `{
                         "description": "Father object ID",
                         "name": "father_id",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -904,6 +909,12 @@ const docTemplate = `{
                 ],
                 "summary": "Search objects",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Class name (e.g., DBCompany, DBNote)",
@@ -958,11 +969,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of matching objects",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
-                            }
+                            "$ref": "#/definitions/api.ObjectsSearchResponse"
                         }
                     },
                     "400": {
@@ -982,6 +989,11 @@ const docTemplate = `{
         },
         "/objects/{id}": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates an existing DBObject by its ID",
                 "consumes": [
                     "application/json"
@@ -1010,20 +1022,13 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Updated object data",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -1059,6 +1064,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Soft-deletes a DBObject by its ID",
                 "produces": [
                     "application/json"
@@ -1074,20 +1084,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Deletion success message",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -1125,6 +1128,11 @@ const docTemplate = `{
         },
         "/ollama": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Sends a prompt to the Ollama API and returns the generated response",
                 "consumes": [
                     "application/json"
@@ -1145,12 +1153,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/api.OllamaRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1232,6 +1234,11 @@ const docTemplate = `{
         },
         "/users": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves a list of all users, with optional search and ordering",
                 "produces": [
                     "application/json"
@@ -1252,13 +1259,6 @@ const docTemplate = `{
                         "description": "Field to order the results by",
                         "name": "order_by",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1293,6 +1293,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new user with the provided details",
                 "consumes": [
                     "application/json"
@@ -1314,13 +1319,6 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1366,6 +1364,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves the user specified by the given ID",
                 "produces": [
                     "application/json"
@@ -1380,13 +1383,6 @@ const docTemplate = `{
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1431,6 +1427,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates the user specified by the given ID",
                 "produces": [
                     "application/json"
@@ -1456,13 +1457,6 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1506,6 +1500,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes the user specified by the given ID",
                 "tags": [
                     "users"
@@ -1517,13 +1516,6 @@ const docTemplate = `{
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1560,6 +1552,11 @@ const docTemplate = `{
         },
         "/users/{userId}/person": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves the Person record associated with the specified user ID, or creates one if it doesn't exist",
                 "produces": [
                     "application/json"
@@ -1574,13 +1571,6 @@ const docTemplate = `{
                         "description": "User ID",
                         "name": "userId",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1669,6 +1659,42 @@ const docTemplate = `{
                 }
             }
         },
+        "api.ObjectResponse": {
+            "description": "Standard response structure for object operations",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "message": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "api.ObjectsSearchResponse": {
+            "description": "Response structure for object search",
+            "type": "object",
+            "properties": {
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "api.OllamaRequest": {
             "type": "object",
             "properties": {
@@ -1693,26 +1719,6 @@ const docTemplate = `{
             "properties": {
                 "ping": {
                     "type": "string"
-                }
-            }
-        },
-        "api.objectResponse": {
-            "description": "Standard response structure for object operations",
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "message": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "success": {
-                    "type": "boolean"
                 }
             }
         }

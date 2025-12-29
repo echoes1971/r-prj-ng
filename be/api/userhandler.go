@@ -19,11 +19,11 @@ import (
 //	@Produce json
 //	@Param search query string false "Search term to filter users by login or fullname"
 //	@Param order_by query string false "Field to order the results by"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Success 200 {array} map[string]interface{} "List of users"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users [get]
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	searchBy := r.URL.Query().Get("search")
@@ -79,7 +79,6 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Retrieves the user specified by the given ID
 //	@Tags users
 //	@Param id path string true "User ID"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Produce json
 //	@Success 200 {object} map[string]interface{} "User data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
@@ -87,6 +86,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 404 {object} ErrorResponse "User not found"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users/{id} [get]
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -166,13 +166,13 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Accept json
 //	@Produce json
 //	@Param request body map[string]interface{} true "Request body containing user details"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Success 201 {object} map[string]interface{} "Created user data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 409 {object} ErrorResponse "User already exists"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users [post]
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -254,7 +254,6 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags users
 //	@Param id path string true "User ID"
 //	@Param request body map[string]interface{} true "Request body containing user fields to update"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Produce json
 //	@Success 200 {object} map[string]interface{} "Updated user data"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
@@ -262,6 +261,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 404 {object} ErrorResponse "User not found"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users/{id} [put]
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -342,12 +342,12 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Deletes the user specified by the given ID
 //	@Tags users
 //	@Param id path string true "User ID"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Success 204 "No Content"
 //	@Failure 400 {object} ErrorResponse "Invalid request"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users/{id} [delete]
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -395,12 +395,12 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags users
 //	@Produce json
 //	@Param userId path string true "User ID"
-//	@Param Authorization header string true "Bearer {token}"
 //	@Success 200 {object} map[string]interface{} "Person data"
 //	@Failure 401 {object} ErrorResponse "Unauthorized"
 //	@Failure 403 {object} ErrorResponse "Forbidden"
 //	@Failure 404 {object} ErrorResponse "User not found"
 //	@Failure 500 {object} ErrorResponse "Internal server error"
+//	@Security BearerAuth
 //	@Router /users/{userId}/person [get]
 func GetUserPersonHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

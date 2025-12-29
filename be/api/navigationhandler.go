@@ -20,6 +20,7 @@ import (
 //	@Description Returns the navigation object specified by its ID
 //	@Tags navigation
 //	@Produce json
+//	@Param token header string false "Temporary JWT token for access"
 //	@Param objectId path string true "Object ID"
 //	@Success 200 {object} map[string]interface{} "Navigation object data"
 //	@Failure 404 {object} ErrorResponse "Object not found"
@@ -110,6 +111,7 @@ func GetNavigationHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Returns the list of child objects under the specified folder ID
 //	@Tags navigation
 //	@Produce json
+//	@Param token header string false "Temporary JWT token for access"
 //	@Param folderId path string true "Folder ID"
 //	@Success 200 {object} map[string]interface{} "List of child objects"
 //	@Failure 404 {object} ErrorResponse "Folder not found"
@@ -181,6 +183,7 @@ func GetChildrenHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Returns the breadcrumb trail for the specified object ID
 //	@Tags navigation
 //	@Produce json
+//	@Param token header string false "Temporary JWT token for access"
 //	@Param objectId path string true "Object ID"
 //	@Success 200 {object} map[string]interface{} "Breadcrumb data"
 //	@Failure 404 {object} ErrorResponse "Object not found"
@@ -248,6 +251,7 @@ func GetBreadcrumbHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Returns index pages located directly under the specified object ID
 //	@Tags navigation
 //	@Produce json
+//	@Param token header string false "Temporary JWT token for access"
 //	@Param objectId path string true "Object ID"
 //	@Success 200 {object} map[string]interface{} "List of index pages"
 //	@Failure 404 {object} ErrorResponse "Object not found"
@@ -404,6 +408,7 @@ func GetCountriesHandler(w http.ResponseWriter, r *http.Request) {
 //	@Description Searches navigation objects whose name or description matches the given pattern
 //	@Tags navigation
 //	@Produce json
+//	@Param token header string false "Temporary JWT token for access"
 //	@Param name query string true "Name pattern to search for (at least 2 characters)"
 //	@Param orderBy query string false "Field to order results by (default: name)"
 //	@Success 200 {object} map[string]interface{} "List of matching objects"

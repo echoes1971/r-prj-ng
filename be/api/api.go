@@ -165,7 +165,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary User logout
 // @Description Invalidate the current JWT token. The token must be provided in the Authorization header.
 // @Tags auth
-// @Param Authorization header string true "Bearer {token}"
 // @Produce json
 // @Success 200 {object} map[string]string "logout message"
 // @Failure 500 {object} ErrorResponse "Internal server error"

@@ -34,6 +34,12 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Object ID",
                         "name": "objectId",
                         "in": "path",
@@ -122,6 +128,11 @@
         },
         "/files/preview-tokens": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Generates temporary JWT tokens for multiple files specified by their IDs",
                 "consumes": [
                     "application/json"
@@ -148,13 +159,6 @@
                                 }
                             }
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -193,16 +197,16 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "File ID",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Temporary JWT token for access",
-                        "name": "token",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -241,6 +245,11 @@
         },
         "/groups": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of all groups",
                 "produces": [
                     "application/json"
@@ -261,13 +270,6 @@
                         "description": "Field to order the results by",
                         "name": "order_by",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -296,6 +298,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new group with the provided details",
                 "consumes": [
                     "application/json"
@@ -316,13 +323,6 @@
                         "schema": {
                             "type": "object"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -362,6 +362,11 @@
         },
         "/groups/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a group by its ID",
                 "produces": [
                     "application/json"
@@ -376,13 +381,6 @@
                         "description": "Group ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -421,6 +419,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a group's details by its ID",
                 "consumes": [
                     "application/json"
@@ -448,13 +451,6 @@
                         "schema": {
                             "type": "object"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -492,6 +488,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a group by its ID",
                 "tags": [
                     "groups"
@@ -503,13 +504,6 @@
                         "description": "Group ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -606,15 +600,6 @@
                     "auth"
                 ],
                 "summary": "User logout",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "logout message",
@@ -645,6 +630,12 @@
                 ],
                 "summary": "returns breadcrumb for a given object",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Object ID",
@@ -683,6 +674,12 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Folder ID",
                         "name": "folderId",
                         "in": "path",
@@ -717,6 +714,12 @@
                 ],
                 "summary": "searches navigation objects by name pattern",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Name pattern to search for (at least 2 characters)",
@@ -761,6 +764,12 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "Object ID",
                         "name": "objectId",
                         "in": "path",
@@ -786,6 +795,11 @@
         },
         "/objects": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new DBObject based on the provided classname and fields",
                 "consumes": [
                     "application/json"
@@ -807,20 +821,13 @@
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created object data",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -846,6 +853,11 @@
         },
         "/objects/creatable-types": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns the list of DBObject types that can be created as children of a given parent object, returns all DBObject types if no father_id",
                 "produces": [
                     "application/json"
@@ -860,13 +872,6 @@
                         "description": "Father object ID",
                         "name": "father_id",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -902,6 +907,12 @@
                 ],
                 "summary": "Search objects",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Temporary JWT token for access",
+                        "name": "token",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "Class name (e.g., DBCompany, DBNote)",
@@ -956,11 +967,7 @@
                     "200": {
                         "description": "List of matching objects",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
-                            }
+                            "$ref": "#/definitions/api.ObjectsSearchResponse"
                         }
                     },
                     "400": {
@@ -980,6 +987,11 @@
         },
         "/objects/{id}": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates an existing DBObject by its ID",
                 "consumes": [
                     "application/json"
@@ -1008,20 +1020,13 @@
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Updated object data",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -1057,6 +1062,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Soft-deletes a DBObject by its ID",
                 "produces": [
                     "application/json"
@@ -1072,20 +1082,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Deletion success message",
                         "schema": {
-                            "$ref": "#/definitions/api.objectResponse"
+                            "$ref": "#/definitions/api.ObjectResponse"
                         }
                     },
                     "400": {
@@ -1123,6 +1126,11 @@
         },
         "/ollama": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Sends a prompt to the Ollama API and returns the generated response",
                 "consumes": [
                     "application/json"
@@ -1143,12 +1151,6 @@
                         "schema": {
                             "$ref": "#/definitions/api.OllamaRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -1230,6 +1232,11 @@
         },
         "/users": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves a list of all users, with optional search and ordering",
                 "produces": [
                     "application/json"
@@ -1250,13 +1257,6 @@
                         "description": "Field to order the results by",
                         "name": "order_by",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1291,6 +1291,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new user with the provided details",
                 "consumes": [
                     "application/json"
@@ -1312,13 +1317,6 @@
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1364,6 +1362,11 @@
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves the user specified by the given ID",
                 "produces": [
                     "application/json"
@@ -1378,13 +1381,6 @@
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1429,6 +1425,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates the user specified by the given ID",
                 "produces": [
                     "application/json"
@@ -1454,13 +1455,6 @@
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1504,6 +1498,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes the user specified by the given ID",
                 "tags": [
                     "users"
@@ -1515,13 +1514,6 @@
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1558,6 +1550,11 @@
         },
         "/users/{userId}/person": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves the Person record associated with the specified user ID, or creates one if it doesn't exist",
                 "produces": [
                     "application/json"
@@ -1572,13 +1569,6 @@
                         "description": "User ID",
                         "name": "userId",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -1667,6 +1657,42 @@
                 }
             }
         },
+        "api.ObjectResponse": {
+            "description": "Standard response structure for object operations",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "message": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "api.ObjectsSearchResponse": {
+            "description": "Response structure for object search",
+            "type": "object",
+            "properties": {
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "api.OllamaRequest": {
             "type": "object",
             "properties": {
@@ -1691,26 +1717,6 @@
             "properties": {
                 "ping": {
                     "type": "string"
-                }
-            }
-        },
-        "api.objectResponse": {
-            "description": "Standard response structure for object operations",
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "message": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "success": {
-                    "type": "boolean"
                 }
             }
         }
