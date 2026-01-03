@@ -22,3 +22,41 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+
+/* **** RHOBEE THEME STYLES **** */
+
+/* Accordion component styles */
+
+.rhobee-theme .accordion-button {
+    padding: 0.5rem 1rem;
+    /* background-color: transparent; */
+}
+
+.rhobee-theme .accordion-button:not(.collapsed) {
+    background-color: transparent;
+}
+
+
+
+
+.dark-theme .rhobee-theme .accordion-item {
+  background-color: #212529; /* colore sfondo item */
+  color: #fff;
+  border-color: #343a40;
+}
+
+.dark-theme .rhobee-theme .accordion-button,
+.dark-theme .rhobee-theme .accordion-button.collapsed {
+  /* background-color: #212529; */
+  background-color: #495057;
+  color: #fff;
+  box-shadow: none;
+  border: 1px solid #212529;
+  /* border: 1px solid #343a40; */
+}
+
+.dark-theme .rhobee-theme .accordion-body {
+  background-color: #343a40;
+  color: #fff;
+}

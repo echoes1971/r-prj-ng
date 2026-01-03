@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Form, Row, Col, Accordion } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from "./ThemeContext";
-import './PermissionsEditor.css';
 
 /**
  * Permissions editor component for Unix-style permissions (rwxr-x---)
@@ -116,16 +115,16 @@ function PermissionsEditor({ value = 'rwxr-x---', onChange, name = 'permissions'
     return (
         // <Form.Group className={`mb-3 ${themeClass}`}>
             // {label && <Form.Label>{label}</Form.Label>}
-            <Accordion className="mb-3 permissions-editor">
-                <Accordion.Item eventKey="0" className='permissions-editor'>
-                    <Accordion.Header className='permissions-editor'>
+            <Accordion className="mb-3 rhobee-theme">
+                <Accordion.Item eventKey="0" className='rhobee-theme'>
+                    <Accordion.Header className='rhobee-theme'>
                         <i className="bi bi-shield-lock me-2"></i>
                         { label ? label :
                             t('permissions.current') || 'Current permissions'
                         }: 
                             <code className={`ms-2 me-2 ${dark ? 'text-light' : 'text-dark'}`} style={{opacity: 0.7}}>{permissionsToString(permissions)}</code>
                     </Accordion.Header>
-                    <Accordion.Body className='permissions-editor'>
+                    <Accordion.Body className='rhobee-theme'>
                         <Row>
                             <Col md={4}>
                                 {renderPermissionCheckboxes('owner', t('permissions.owner') || 'Owner')}

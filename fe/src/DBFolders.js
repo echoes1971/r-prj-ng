@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Alert, Container, Form, Button, Spinner } from 'react-bootstrap';
+import { Accordion, Alert, Container, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from "./ThemeContext";
 import { useTranslation } from "react-i18next";
@@ -613,7 +613,31 @@ export function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, da
                             {/* List of available children (not in sort order) */}
                             {children.filter(child => !sortedChildrenIds.includes(child.data.id)).length > 0 && (
                                 <>
-                                    <Form.Label className="mt-3 mb-2">
+                                    <Accordion className="mb-3 rhobee-theme">
+                                        <Accordion.Item eventKey="0" className='rhobee-theme'>
+                                            <Accordion.Header className='rhobee-theme'>
+                                                {t('folder.available_children')} ({children.filter(child => !sortedChildrenIds.includes(child.data.id)).length})
+                                            </Accordion.Header>
+                                            <Accordion.Body className='rhobee-theme'>
+                                                <ObjectList
+                                                    items={children
+                                                        .filter(child => !sortedChildrenIds.includes(child.data.id))
+                                                        .map(child => ({
+                                                            id: child.data.id,
+                                                            name: child.data.name,
+                                                            description: child.data.description,
+                                                            classname: child.metadata?.classname
+                                                        }))
+                                                    }
+                                                    onItemClick={(item) => toggleChildInOrder(item.id)}
+                                                    showViewToggle={true}
+                                                    storageKey="folderChildrenViewMode"
+                                                    defaultView="list"
+                                                />
+                                            </Accordion.Body>
+                                        </Accordion.Item>
+                                    </Accordion>
+                                    {/* <Form.Label className="mt-3 mb-2">
                                         {t('folder.available_children')}
                                     </Form.Label>
                                     
@@ -631,7 +655,7 @@ export function FolderEdit({ data, onSave, onCancel, onDelete, saving, error, da
                                         showViewToggle={true}
                                         storageKey="folderChildrenViewMode"
                                         defaultView="list"
-                                    />
+                                    /> */}
                                 </>
                             )}
                         </>
