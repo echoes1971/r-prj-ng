@@ -18,4 +18,6 @@ export const app_cfg = {
     app_copyright: getRuntimeConfig('REACT_APP_SITE_COPYRIGHT', ''),    // Empty fallback
     enable_google_oauth: getRuntimeConfig('REACT_APP_ENABLE_GOOGLE_OAUTH', 'false'),
     enable_github_oauth: getRuntimeConfig('REACT_APP_ENABLE_GITHUB_OAUTH', 'false'),
+    enable_telegram_oauth: getRuntimeConfig('REACT_APP_ENABLE_TELEGRAM_OAUTH', 'false'),
+    telegram_bot_id: getRuntimeConfig('REACT_APP_TELEGRAM_BOT_ID', ''),
 };

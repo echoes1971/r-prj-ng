@@ -274,6 +274,7 @@
     }
     ,"auth": {
       "sign_in_with_google": "Accedi con Google",
-      "sign_in_with_github": "Accedi con GitHub"
+        "sign_in_with_github": "Accedi con GitHub",
+        "sign_in_with_telegram": "Accedi con Telegram"
     }
 }

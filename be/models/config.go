@@ -26,6 +26,8 @@ type Config struct {
 	GitHubClientID     string `json:"github_client_id"`
 	GitHubClientSecret string `json:"github_client_secret"`
 	GitHubRedirectURL  string `json:"github_redirect_url"`
+	TelegramBotToken   string `json:"telegram_bot_token"`
+	TelegramBotID      string `json:"telegram_bot_id"`
 }
 
 func LoadConfig(filename string, config *Config) error {

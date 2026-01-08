@@ -275,6 +275,7 @@
   }
   ,"auth": {
     "sign_in_with_google": "Mit Google anmelden",
-    "sign_in_with_github": "Mit GitHub anmelden"
+    "sign_in_with_github": "Mit GitHub anmelden",
+    "sign_in_with_telegram": "Mit Telegram anmelden"
   }
 }

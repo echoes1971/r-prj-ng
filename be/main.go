@@ -173,6 +173,16 @@ func main() {
 	if githubRedirectURL := os.Getenv("GITHUB_REDIRECT_URL"); githubRedirectURL != "" {
 		AppConfig.GitHubRedirectURL = githubRedirectURL
 	}
+	if telegramBotToken := os.Getenv("TELEGRAM_BOT_TOKEN"); telegramBotToken != "" {
+		AppConfig.TelegramBotToken = telegramBotToken
+	}
+	// Extract bot_id from token (format: "123456789:ABCdef...")
+	if AppConfig.TelegramBotToken != "" && AppConfig.TelegramBotID == "" {
+		parts := strings.Split(AppConfig.TelegramBotToken, ":")
+		if len(parts) > 0 {
+			AppConfig.TelegramBotID = parts[0]
+		}
+	}
 
 	dblayer.InitDBLayer(AppConfig)
 	// dblayer.EnsureDBSchema()
@@ -198,11 +208,12 @@ func main() {
 	r.HandleFunc("/login", api.LoginHandler).Methods("POST")
 	r.HandleFunc("/logout", api.LogoutHandler).Methods("POST")
 
-	// OAuth endpoints (Google, GitHub)
+	// OAuth endpoints (Google, GitHub, Telegram)
 	r.HandleFunc("/oauth/google/start", api.GoogleOAuthStart).Methods("GET")
 	r.HandleFunc("/oauth/google/callback", api.GoogleOAuthCallback).Methods("GET")
 	r.HandleFunc("/oauth/github/start", api.GitHubOAuthStart).Methods("GET")
 	r.HandleFunc("/oauth/github/callback", api.GitHubOAuthCallback).Methods("GET")
+	r.HandleFunc("/oauth/telegram/callback", api.TelegramOAuthCallback).Methods("GET")
 
 	// Public Endpoint: hello
 	r.HandleFunc("/ping", api.PingHandler).Methods("GET")

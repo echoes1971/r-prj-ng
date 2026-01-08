@@ -36,6 +36,9 @@ services:
       - REACT_APP_HOME_OBJECT_ID=-10
       - REACT_APP_ENABLE_GOOGLE_OAUTH=false
       - REACT_APP_ENABLE_GITHUB_OAUTH=false
+      - REACT_APP_ENABLE_TELEGRAM_OAUTH=false
+      - REACT_APP_TELEGRAM_BOT_ID=
+    restart: unless-stopped
 
   be:
     build:
@@ -52,12 +55,15 @@ services:
       - GITHUB_CLIENT_ID=
       - GITHUB_CLIENT_SECRET=
       - GITHUB_REDIRECT_URL=
+      - TELEGRAM_BOT_TOKEN=
+      - TELEGRAM_REDIRECT_URL=
       - APP_NAME=ρBee
     volumes:
       - be_files:/root/files
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: mariadb:12.0

@@ -56,6 +56,8 @@ var GoogleRedirectURL string
 var GitHubClientID string
 var GitHubClientSecret string
 var GitHubRedirectURL string
+var TelegramBotToken string
+var TelegramBotID string
 
 func InitAPI(config models.Config) {
 	JWTKey = []byte(config.JWTSecret)
@@ -67,6 +69,8 @@ func InitAPI(config models.Config) {
 	GitHubClientID = config.GitHubClientID
 	GitHubClientSecret = config.GitHubClientSecret
 	GitHubRedirectURL = config.GitHubRedirectURL
+	TelegramBotToken = config.TelegramBotToken
+	TelegramBotID = config.TelegramBotID
 	log.Print("API initialized with JWT key from config")
 }
 
