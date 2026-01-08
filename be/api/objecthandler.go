@@ -807,6 +807,7 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	var results []dblayer.DBEntityInterface
 	// Search with LIKE and case-insensitive
 	if classname != "DBObject" {
+		log.Print("SearchObjectsHandler: searchInstance=", searchInstance.ToString())
 		repo.Verbose = true
 		results, err = repo.Search(searchInstance, true, false, orderBy)
 		repo.Verbose = false
@@ -846,9 +847,35 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			results = filteredResults
 		}
+	} else if searchJson != "" {
+		// className == DBObject and searchJson provided
+		repo.Verbose = true
+		results, err = repo.Search(searchInstance, true, false, orderBy)
+		repo.Verbose = false
+		if err != nil {
+			log.Printf("SearchObjectsHandler: Search failed: %v", err)
+			RespondSimpleError(w, ErrInternalServer, "Search failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Print("SearchObjectsHandler: Search results=", len(results))
+		// IF !includeDeleted, filter out deleted objects
+		if !includeDeleted {
+			var filteredResults []dblayer.DBEntityInterface
+			for _, res := range results {
+				if res.GetValue("deleted_date") == nil {
+					filteredResults = append(filteredResults, res)
+				}
+			}
+			results = filteredResults
+		}
 	} else if searchInstance.IsDBObject() {
+		// className == DBObject and no searchJson
+		log.Print("SearchObjectsHandler: search name or description like=", namePattern)
 		// Search by name AND description for better results
+		repo.Verbose = true
 		results = repo.SearchByNameAndDescription(namePattern, orderBy, !includeDeleted)
+		repo.Verbose = false
+		log.Print("SearchObjectsHandler: SearchByNameAndDescription results=", len(results))
 	}
 
 	// Apply limit if specified
