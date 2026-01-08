@@ -142,6 +142,8 @@ function AppNavbar() {
                 <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
                 <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/objects">{t("object.objects")}</NavDropdown.Item>
+                <NavDropdown.Divider />
                 <NavDropdown.Item as={Link} to="/db" disabled>{t("common.db")}</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/log" disabled>{t("common.log")}</NavDropdown.Item>
               </NavDropdown>
@@ -198,6 +200,8 @@ function AppNavbar() {
                 <NavDropdown.Item as={Link} to="/settings" disabled>
                   <i className="bi bi-gear me-2"></i>{t("common.settings")}
                 </NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={Link} to="/notes">{t("note.notes")}</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout}>{t("common.logout")}</NavDropdown.Item>
               </NavDropdown>

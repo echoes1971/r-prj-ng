@@ -6,6 +6,8 @@ import axiosInstance from './axios';
 import ObjectLinkSelector from './ObjectLinkSelector';
 import PermissionsEditor from './PermissionsEditor';
 import { formatDescription } from './sitenavigation_utils';
+import { ObjectSearch } from './DBObject';
+import { ThemeContext } from './ThemeContext';
 
 // View for DBNote
 export function NoteView({ data, metadata, objectData, dark }) {
@@ -193,3 +195,26 @@ export function NoteEdit({ data, onSave, onCancel, onDelete, saving, error, dark
     );
 }
 
+export function Notes() {
+  const { t } = useTranslation();
+  const { dark, themeClass } = useContext(ThemeContext);
+  // const [query, setQuery] = useState("");
+  // const [editingFolder, setEditingFolder] = useState(null); // folder in editing
+
+  const searchClassname = "DBNote";
+
+  const searchColumns = [
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
+  ];
+
+  const resultsColumns = [
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
+  ]
+  return (
+    <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />
+    );
+}

@@ -17,6 +17,8 @@ import { FileDownload, Files } from "./DBFile";
 import { Folders } from './DBFolders';
 import { Links } from './DBLink';
 import { News } from './DBNews';
+import { Notes } from './DBNote';
+import { Objects } from "./DBObject";
 import { Pages } from "./DBPage";
 import { People } from './DBPeople';
 import SiteNavigation from './SiteNavigation';
@@ -54,16 +56,10 @@ function App() {
             <Route path="/e/:id" element={token ? <ContentEdit /> : <Navigate to={`/c/${window.location.pathname.split('/').pop()}`} replace />} />
 
             {/* User profile - accessible by the user themselves or admins */}
-            <Route
-              path="/users/:userId"
-              element={token ? <UserProfile /> : <Navigate to="/login" />}
-            />
+            <Route path="/users/:userId" element={token ? <UserProfile /> : <Navigate to="/login" />} />
 
             {/* Group profile - only for admins */}
-            <Route
-              path="/groups/:groupId"
-              element={token ? <GroupProfile /> : <Navigate to="/" />}
-            />
+            <Route path="/groups/:groupId" element={token ? <GroupProfile /> : <Navigate to="/" />} />
 
             {/* **** Webmaster **** */}
             <Route path="/folders" element={token && isWebmaster ? <Folders /> : <Navigate to="/" />} />
@@ -77,6 +73,9 @@ function App() {
             <Route path="/companies" element={token ? <Companies /> : <Navigate to="/" />} />
             <Route path="/people"    element={token ?    <People /> : <Navigate to="/" />} />
 
+            {/* **** User menu **** */}
+            <Route path="/notes"    element={token ?    <Notes /> : <Navigate to="/" />} />
+
             {/* **** Admin **** */}
 
             {/* Protected routes - only for admins (group -2) */}
@@ -89,6 +88,8 @@ function App() {
               path="/groups"
               element={token && isAdmin ? <Groups /> : <Navigate to="/" />}
             />
+
+            <Route path="/objects"    element={token ?    <Objects /> : <Navigate to="/" />} />
 
             {/* Default -> redirect to / */}
             <Route path="*" element={<Navigate to="/default" />} />

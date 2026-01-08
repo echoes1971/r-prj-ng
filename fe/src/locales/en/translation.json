@@ -270,6 +270,12 @@
   "news": {
     "news": "News"
   },
+  "note": {
+    "notes": "Notes"
+  },
+  "object": {
+    "objects": "Objects"
+  },
   "page": {
     "pages": "Pages"
   },

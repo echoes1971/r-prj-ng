@@ -264,6 +264,12 @@
   "news": {
     "news": "Nachrichten"
   },
+  "note": {
+    "notes": "Notizen"
+  },
+  "object": {
+    "objects": "Objekte"
+  },
   "page": {
     "pages": "Seiten"
   },

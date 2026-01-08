@@ -263,6 +263,12 @@
   "news": {
     "news": "Notizie"
   },
+  "note": {
+    "notes": "Note"
+  },
+  "object": {
+    "objects": "Oggetti"
+  },
   "page": {
     "pages": "Pagine"
   },

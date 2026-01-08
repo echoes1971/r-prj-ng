@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,7 @@ import PermissionsEditor from './PermissionsEditor';
 import { getErrorMessage } from "./errorHandler";
 import { HtmlView } from './ContentHtml';
 import axiosInstance from './axios';
+import { ThemeContext } from './ThemeContext';
 
 
 export function ObjectHeaderView({ data, metadata, objectData, dark }) {
@@ -674,3 +675,26 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
   );
 }
 
+export function Objects() {
+  const { t } = useTranslation();
+  const { dark, themeClass } = useContext(ThemeContext);
+  // const [query, setQuery] = useState("");
+  // const [editingFolder, setEditingFolder] = useState(null); // folder in editing
+
+  const searchClassname = "DBObject";
+
+  const searchColumns = [
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
+  ];
+
+  const resultsColumns = [
+    { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
+    { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
+    { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
+  ]
+  return (
+    <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />
+    );
+}
