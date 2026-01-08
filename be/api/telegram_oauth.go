@@ -143,6 +143,7 @@ func telegramVerifyAndLogin(w http.ResponseWriter, r *http.Request) {
 		userInst.SetValue("pwd", "")
 		// userInst.SetValue("group_id", "-4")
 		// userInst.SetValue("permissions", "rwx------")
+		userInst.SetMetadata("group_ids", []string{"-4"})
 		created, err := repo.Insert(userInst)
 		if err != nil {
 			log.Printf("TelegramOAuthCallback: failed to create user: %v", err)
