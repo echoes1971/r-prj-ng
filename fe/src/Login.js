@@ -67,13 +67,13 @@ function Login() {
         )}
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-md-end">Login</label>
-          <div className="col-md-8 col-sm-3">
+          <div className="col-md-8">
             <input className="form-control mb-2" placeholder="Login" value={login} onChange={e => setLogin(e.target.value)} />
           </div>
         </div>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-md-end">Password</label>
-          <div className="col-md-8 col-sm-3">
+          <div className="col-md-8">
             <input className="form-control mb-2" type="password" placeholder="Password" value={pwd} onChange={e => setPwd(e.target.value)} />
           </div>
         </div>

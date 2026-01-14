@@ -289,5 +289,19 @@
     "sign_in_with_google": "Sign in with Google",
     "sign_in_with_github": "Sign in with GitHub",
     "sign_in_with_telegram": "Sign in with Telegram"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "system_overview": "System Overview",
+    "total_users": "Total Users",
+    "total_groups": "Total Groups",
+    "total_companies": "Total Companies",
+    "total_objects": "Total Objects",
+    "recent_activity": "Recent Activity",
+    "user_registrations": "User Registrations",
+    "system_health": "System Health",
+    "storage_usage": "Storage Usage",
+    "active_sessions": "Active Sessions",
+    "server_uptime": "Server Uptime"
   }
 }

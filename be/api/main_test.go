@@ -20,7 +20,7 @@ var testAdminLogin string
 var testAdminPwd string
 var testUser dblayer.DBEntityInterface
 
-// TestMain viene eseguito prima di tutti i test del package
+// TestMain is executed before running tests
 func TestMain(m *testing.M) {
 
 	err := models.LoadConfig("../config.json", &AppConfig)

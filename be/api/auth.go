@@ -166,9 +166,24 @@ func DeleteToken(repo *dblayer.DBRepository, tokenString string) error {
 		return nil
 	}
 	search.SetValue("token_id", tokenString)
-	_, err := repo.Delete(search)
+	results, err := repo.Search(search, false, false, "")
+	if err != nil {
+		log.Println("Errore ricerca token:", err)
+		return nil
+	}
+	if len(results) == 0 {
+		return nil
+	}
+	mytoken := results[0]
+	mytoken.SetValue("access_token", "")
+	_, err = repo.Update(mytoken)
 	if err != nil {
 		log.Println("Errore cancellazione token:", err)
 	}
+
+	// _, err := repo.Delete(search)
+	// if err != nil {
+	// 	log.Println("Errore cancellazione token:", err)
+	// }
 	return err
 }

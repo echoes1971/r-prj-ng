@@ -268,6 +268,11 @@ func main() {
 	r.HandleFunc("/files/{id}/download", api.DownloadFileHandler).Methods("GET")
 	r.HandleFunc("/objects/search", api.SearchObjectsHandler).Methods("GET")
 
+	// Protected Endpoint: Admin
+	adminRoutes := r.PathPrefix("/admin").Subrouter()
+	adminRoutes.Use(api.AuthMiddleware)
+	adminRoutes.HandleFunc("/dashboard", api.DashboardHandler).Methods("GET")
+
 	// Swagger documentation - only in development
 	enableSwagger := os.Getenv("ENABLE_SWAGGER")
 	if enableSwagger == "true" || enableSwagger == "1" {

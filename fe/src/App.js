@@ -6,6 +6,7 @@ import './App.css';
 import { app_cfg } from './app.cfg';
 
 import DefaultPage from "./DefaultPage";
+import { AdminDashboard } from './admin/Dashboard';
 import Login from "./Login";
 import Users from "./Users";
 import UserProfile from "./UserProfile";
@@ -79,15 +80,10 @@ function App() {
             {/* **** Admin **** */}
 
             {/* Protected routes - only for admins (group -2) */}
-            <Route
-              path="/users"
-              element={token && isAdmin ? <Users /> : <Navigate to="/" />}
-            />
+            <Route path="/admin/dashboard" element={token && isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
 
-            <Route
-              path="/groups"
-              element={token && isAdmin ? <Groups /> : <Navigate to="/" />}
-            />
+            <Route path="/users" element={token && isAdmin ? <Users /> : <Navigate to="/" />} />
+            <Route path="/groups" element={token && isAdmin ? <Groups /> : <Navigate to="/" />} />
 
             <Route path="/objects"    element={token ?    <Objects /> : <Navigate to="/" />} />
 

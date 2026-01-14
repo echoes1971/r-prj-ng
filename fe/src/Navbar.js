@@ -137,7 +137,7 @@ function AppNavbar() {
             )}
             {username && isAdmin ? (
               <NavDropdown title="Admin ⚙️" id="admin-nav-dropdown" align="end" {...(dark ? { menuVariant: 'dark' } : {})}>
-                <NavDropdown.Item as={Link} to="/dashboard" disabled>{t("common.dashboard")}</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/admin/dashboard">{t("common.dashboard")}</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as={Link} to="/users">{t("users.users")}</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/groups">{t("groups.groups")}</NavDropdown.Item>
