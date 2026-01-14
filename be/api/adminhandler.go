@@ -75,6 +75,10 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
+		if objectStats == nil {
+			// No stats for this object type (e.g., zero count), skip it
+			continue
+		}
 		response.ObjectStats[className] = objectStats
 	}
 
@@ -217,6 +221,10 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		}
 		objectStats["count"] = tmpInt
 	}
+	if objectStats["count"] == 0 {
+		// No objects of this type, skip further stats
+		return nil, nil
+	}
 	// Count deleted objects of this type
 	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date is not null")
 	if len(results) == 1 {
@@ -248,6 +256,17 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 			return nil, err
 		}
 		objectStats["modified_last_week"] = tmpInt
+	}
+	// COunt deleted last week
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date >= NOW() - INTERVAL 7 day")
+	if len(results) == 1 {
+		fmt.Printf("objectStatistics: %s deleted last week count = %v\n", className, results[0].GetValue("num"))
+		tmpStr = results[0].GetValue("num").(string)
+		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
+		if err != nil {
+			return nil, err
+		}
+		objectStats["deleted_last_week"] = tmpInt
 	}
 	return objectStats, nil
 }

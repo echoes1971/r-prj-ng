@@ -65,3 +65,19 @@ export function formateDateTimeString(dateTimeString) {
     return date.toLocaleString();
 }
 
+export function isAdminUser() {
+    const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+    return groups.includes("-2");
+}
+
+export function isWebmasterUser() {
+    const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+    const webmasterGroupId = process.env.REACT_APP_WEBMASTER_GROUP_ID || "-3";
+    return groups.includes(webmasterGroupId);
+}
+
+export function isGuestUser() {
+    const token = localStorage.getItem("token");
+    const groupIDs = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
+    return !token || token === "" || (groupIDs.length <= 2 && groupIDs.includes("-4"));
+}

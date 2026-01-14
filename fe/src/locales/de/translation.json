@@ -283,5 +283,29 @@
     "sign_in_with_google": "Mit Google anmelden",
     "sign_in_with_github": "Mit GitHub anmelden",
     "sign_in_with_telegram": "Mit Telegram anmelden"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "system_overview": "Systemübersicht",
+    "total_users": "Benutzer Gesamt",
+    "total_groups": "Gruppen Gesamt",
+    "total_companies": "Unternehmen Gesamt",
+    "total_objects": "Objekte Gesamt",
+    "recent_activity": "Letzte Aktivitäten",
+    "user_registrations": "Benutzerregistrierungen",
+    "system_health": "Systemzustand",
+    "storage_usage": "Speichernutzung",
+    "active_sessions": "Aktive Sitzungen",
+    "server_uptime": "Server-Betriebszeit",
+    "welcome_message": "Willkommen im Admin-Dashboard. Hier können Sie die Anwendungseinstellungen verwalten und den Systemstatus überwachen.",
+    "active_users": "Aktive Benutzer",
+    "last_24h": "Letzte 24 Stunden",
+    "last_7_days": "Letzte 7 Tage",
+    "last_30_days": "Letzte 30 Tage",
+    "objects_distribution": "Objektverteilung",
+    "object_activity": "Objektaktivität (Letzte Woche)",
+    "created": "Erstellt",
+    "modified": "Geändert",
+    "deleted": "Gelöscht"
   }
 }

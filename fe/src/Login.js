@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "./ThemeContext";
 import { getErrorMessage } from "./errorHandler";
 import { app_cfg } from "./app.cfg";
+import { isAdminUser } from "./sitenavigation_utils";
 
 function Login() {
   const { t } = useTranslation();
@@ -48,7 +49,11 @@ function Login() {
       localStorage.setItem("user_id", res.data.user_id);
       localStorage.setItem("groups", JSON.stringify(res.data.groups));
       // go to the main page and refresh to load user-specific data
-      navigate("/");
+      if (isAdminUser()) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate("/");
+      }
       window.location.reload();
     } catch (err) {
       const errorMsg = getErrorMessage(err, t("common.login_failed") || "Login failed");

@@ -302,6 +302,16 @@
     "system_health": "System Health",
     "storage_usage": "Storage Usage",
     "active_sessions": "Active Sessions",
-    "server_uptime": "Server Uptime"
+    "server_uptime": "Server Uptime",
+    "welcome_message": "Welcome to the admin dashboard. Here you can manage the application settings and monitor system status.",
+    "active_users": "Active Users",
+    "last_24h": "Last 24 hours",
+    "last_7_days": "Last 7 days",
+    "last_30_days": "Last 30 days",
+    "objects_distribution": "Objects Distribution",
+    "object_activity": "Object Activity (Last Week)",
+    "created": "Created",
+    "modified": "Modified",
+    "deleted": "Deleted"
   }
 }

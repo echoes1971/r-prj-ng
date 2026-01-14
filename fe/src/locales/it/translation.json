@@ -282,5 +282,29 @@
       "sign_in_with_google": "Accedi con Google",
         "sign_in_with_github": "Accedi con GitHub",
         "sign_in_with_telegram": "Accedi con Telegram"
+    },
+    "admin": {
+        "dashboard": "Dashboard",
+        "system_overview": "Panoramica Sistema",
+        "total_users": "Utenti Totali",
+        "total_groups": "Gruppi Totali",
+        "total_companies": "Aziende Totali",
+        "total_objects": "Oggetti Totali",
+        "recent_activity": "Attività Recente",
+        "user_registrations": "Registrazioni Utenti",
+        "system_health": "Salute del Sistema",
+        "storage_usage": "Utilizzo Storage",
+        "active_sessions": "Sessioni Attive",
+        "server_uptime": "Uptime Server",
+        "welcome_message": "Benvenuto nella dashboard di amministrazione. Qui puoi gestire le impostazioni dell'applicazione e monitorare lo stato del sistema.",
+        "active_users": "Utenti Attivi",
+        "last_24h": "Ultime 24 ore",
+        "last_7_days": "Ultimi 7 giorni",
+        "last_30_days": "Ultimi 30 giorni",
+        "objects_distribution": "Distribuzione Oggetti",
+        "object_activity": "Attività Oggetti (Ultima Settimana)",
+        "created": "Creati",
+        "modified": "Modificati",
+        "deleted": "Eliminati"
     }
 }
