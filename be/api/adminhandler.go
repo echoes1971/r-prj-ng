@@ -16,6 +16,7 @@ type DashboardResponse struct {
 	UsersCount  int                       `json:"users_count"`
 	UsersStats  map[string]int            `json:"users_stats"`
 	GroupsCount int                       `json:"groups_count"`
+	GroupsStats map[string]int            `json:"groups_stats"`
 	ObjectStats map[string]map[string]int `json:"object_stats"` // e.g., {"Project": {"count": 10, "deleted_count": 2}, ...}
 }
 
@@ -191,6 +192,31 @@ func groupStatistics(repo *dblayer.DBRepository, response *DashboardResponse) er
 		log.Print("groupStatistics: error parsing groups count:", err)
 		return err
 	}
+
+	// For each group, count number of users
+	groupStats := make(map[string]int)
+	// select g.name , u.user_id from rra_groups g join rra_users_groups u on g.id=u.group_id;
+	// select g.name, count(*) from rra_groups g join rra_users_groups u on g.id=u.group_id group by g.name;
+	results = repo.Select("DBObject", "select g.name as group_name, count(*) as user_count from "+repo.DbContext.Schema+"_groups g join "+repo.DbContext.Schema+"_users_groups u on g.id=u.group_id group by g.name")
+	for _, row := range results {
+		groupName := row.GetValue("group_name").(string)
+		userCountStr := row.GetValue("user_count").(string)
+		userCount := 0
+		_, err := fmt.Sscanf(userCountStr, "%d", &userCount)
+		if err != nil {
+			response.Success = false
+			response.Message = "Failed to parse user count for group " + groupName
+			log.Printf("groupStatistics: error parsing user count for group %s: %v\n", groupName, err)
+			return err
+		}
+		if userCount > 0 {
+			groupStats[groupName] = userCount
+		}
+		// For now, just log the group user counts
+		fmt.Printf("groupStatistics: group '%s' has %d users\n", groupName, userCount)
+	}
+
+	response.GroupsStats = groupStats
 
 	return nil
 }

@@ -303,6 +303,7 @@
         "last_30_days": "30 derniers jours",
         "objects_distribution": "Distribution des Objets",
         "object_activity": "Activité Objets (Dernière Semaine)",
+        "groups_distribution": "Distribution des Groupes (Utilisateurs par Groupe)",
         "created": "Créés",
         "modified": "Modifiés",
         "deleted": "Supprimés"

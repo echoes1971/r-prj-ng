@@ -66,60 +66,58 @@ export function AdminDashboard() {
         }
     ] : [];
 
+    // Prepara i dati per il pie chart dei gruppi (users per gruppo)
+    const groupsPieData = stats.groups_stats ? Object.keys(stats.groups_stats).map(groupName => ({
+        name: groupName,
+        value: stats.groups_stats[groupName] || 0
+    })).filter(item => item.value > 0) : [];
+
     return (
         <div className={`container mt-3 ${themeClass}`}>
           <h2 className={dark ? "text-light" : "text-dark"}>{t("admin.dashboard")}</h2>
             <p>{t("admin.welcome_message")}</p>
-            
-            <div className="row mb-4">
-                <div className="col-12 col-lg-6 mb-4 mb-lg-0">
-                        {t("admin.total_users")}: <strong>{stats.users_count}</strong>
-                </div>
-                <div className="col-12 col-lg-6 mb-4 mb-lg-0">
-                    {t("admin.total_groups")}: <strong>{stats.groups_count}</strong>
-                </div>
-            </div>
 
-            <div className="row mb-4">
-                {/* Active Users Cards */}
-                {stats.users_stats && (
-                    <div className="col-12 col-lg-6 mb-4 mb-lg-0">
-                        <div className="col-12 mb-3">
-                            <h4 className={dark ? "text-light" : "text-dark"}>{t("admin.active_users")}</h4>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                            <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
-                                <div className="card-body">
-                                    <h6 className="card-subtitle mb-2 text-muted">{t("admin.last_24h")}</h6>
-                                    <h2 className="card-title" style={{fontSize: '3rem', color: '#0088FE'}}>
-                                        {stats.users_stats.active_last_24h || 0}
-                                    </h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                            <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
-                                <div className="card-body">
-                                    <h6 className="card-subtitle mb-2 text-muted">{t("admin.last_7_days")}</h6>
-                                    <h2 className="card-title" style={{fontSize: '3rem', color: '#00C49F'}}>
-                                        {stats.users_stats.active_last_7_days || 0}
-                                    </h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                            <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
-                                <div className="card-body">
-                                    <h6 className="card-subtitle mb-2 text-muted">{t("admin.last_30_days")}</h6>
-                                    <h2 className="card-title" style={{fontSize: '3rem', color: '#FFBB28'}}>
-                                        {stats.users_stats.active_last_30_days || 0}
-                                    </h2>
-                                </div>
+            {/* Active Users Cards */}
+            {stats.users_stats && (
+                <div className="row mb-4">
+                    <div className="col-12 mb-3">
+                        <h4 className={dark ? "text-light" : "text-dark"}>{t("admin.active_users")}</h4>
+                    </div>
+                    <div className="col-md-4 mb-3">
+                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                            <div className="card-body">
+                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.last_24h")}</h6>
+                                <h2 className="card-title" style={{fontSize: '3rem', color: '#0088FE'}}>
+                                    {stats.users_stats.active_last_24h || 0}
+                                </h2>
                             </div>
                         </div>
                     </div>
-                )}
+                    <div className="col-md-4 mb-3">
+                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                            <div className="card-body">
+                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.last_7_days")}</h6>
+                                <h2 className="card-title" style={{fontSize: '3rem', color: '#00C49F'}}>
+                                    {stats.users_stats.active_last_7_days || 0}
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4 mb-3">
+                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                            <div className="card-body">
+                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.last_30_days")}</h6>
+                                <h2 className="card-title" style={{fontSize: '3rem', color: '#FFBB28'}}>
+                                    {stats.users_stats.active_last_30_days || 0}
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
+            {/* Bar Charts Row - Side by side on desktop */}
+            <div className="row mb-4">
                 {/* Pie Chart per distribuzione oggetti */}
                 {pieData.length > 0 && (
                     <div className="col-12 col-lg-6">
@@ -147,25 +145,6 @@ export function AdminDashboard() {
                         </div>
                     </div>
                 )}
-            </div>
-
-            {/* Bar Charts Row - Side by side on desktop */}
-            <div className="row mb-4">
-                {/* Active Users Bar Chart */}
-                {activeUsersData.length > 0 && (
-                    <div className="col-12 col-lg-6 mb-4 mb-lg-0">
-                        <h4 className={dark ? "text-light" : "text-dark"}>{t("admin.active_users")}</h4>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={activeUsersData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="period" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="users" fill="#0088FE" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
 
                 {/* Object Activity Bar Chart (Last Week) */}
                 {objectActivityData.length > 0 && (
@@ -182,6 +161,73 @@ export function AdminDashboard() {
                         </ResponsiveContainer>
                     </div>
                 )}
+            </div>
+
+            <div className="row mb-4">
+                {groupsPieData.length > 0 && (
+                    <div className="col-12 col-lg-6 mb-4 mb-lg-0">
+                        <h4 className={dark ? "text-light" : "text-dark"}>{t("admin.groups_distribution")}</h4>
+                        <ResponsiveContainer width="100%" height={400}>
+                            <PieChart>
+                                <Pie
+                                    data={groupsPieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    outerRadius={180}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                >
+                                    {groupsPieData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                )}
+
+                {/* Active Users Bar Chart */}
+                {activeUsersData.length > 0 && (
+                    <div className="col-12 col-lg-6 mb-4 mb-lg-0">
+                        <h4 className={dark ? "text-light" : "text-dark"}>{t("admin.active_users")}</h4>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={activeUsersData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="period" />
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="users" fill="#0088FE" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                )}
+            </div>
+
+            {/* Groups Distribution Pie Chart */}
+            <div className="row mb-4">
+                    <div className="col-md-4 mb-3">
+                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                            <div className="card-body">
+                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_users")}</h6>
+                                <h2 className="card-title" style={{fontSize: '3rem', color: '#0088FE'}}>
+                                    {stats.users_count || 0}
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4 mb-3">
+                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                            <div className="card-body">
+                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_groups")}</h6>
+                                <h2 className="card-title" style={{fontSize: '3rem', color: '#00C49F'}}>
+                                    {stats.groups_count || 0}
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
     );
