@@ -160,6 +160,7 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 
 	// Default search: AND all populated fields
 	for key, value := range dbe.getDictionary() {
+		log.Print("DBRepository::searchWithTx: processing key=", key, " value=", value)
 		if value == nil {
 			switch key {
 			case "father_id":
@@ -172,6 +173,20 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 		if key == "father_id" && value == "0" {
 			clauses = append(clauses, key+" = '0'")
 			// whereClauses = append(whereClauses, "("+key+" IS NULL OR "+key+" = '0')")
+			continue
+		}
+		log.Print("DBRepository::searchWithTx: key=", key, " value=", value)
+		if rangeSlice, ok := value.([]string); ok && len(rangeSlice) == 2 {
+			log.Print("DBRepository::searchWithTx: detected range for key=", key, " from=", rangeSlice[0], " to=", rangeSlice[1])
+			// Range search
+			if rangeSlice[0] != "" {
+				clauses = append(clauses, key+" >= ?")
+				args = append(args, rangeSlice[0])
+			}
+			if rangeSlice[1] != "" {
+				clauses = append(clauses, key+" <= ?")
+				args = append(args, rangeSlice[1])
+			}
 			continue
 		}
 		if valueStr, ok := value.(string); ok && valueStr == "" {
@@ -194,6 +209,7 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 			}
 		} else {
 			// Exact match
+			log.Print("DBRepository::searchWithTx: adding exact match for key=", key, " value=", value)
 			clauses = append(clauses, key+" = ?")
 			args = append(args, value)
 		}

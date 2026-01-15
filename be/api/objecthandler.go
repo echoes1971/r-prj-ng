@@ -800,7 +800,17 @@ func SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 			if strings.HasPrefix(key, "$") {
 				continue
 			}
-			searchInstance.SetValue(key, val)
+			// Check if val is a slice
+			if sliceVal, ok := val.([]interface{}); ok {
+				// Convert []interface{} to []string
+				strSlice := make([]string, len(sliceVal))
+				for i, v := range sliceVal {
+					strSlice[i] = fmt.Sprint(v)
+				}
+				searchInstance.SetValue(key, strSlice)
+			} else {
+				searchInstance.SetValue(key, val)
+			}
 		}
 	}
 

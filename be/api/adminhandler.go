@@ -92,16 +92,16 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) error {
 	// Count users
 	results := repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+"users")
-	fmt.Println("userStatistics: users count query result:", len(results))
+	// fmt.Println("userStatistics: users count query result:", len(results))
 	if len(results) == 0 {
 		response.Success = false
 		response.Message = "Failed to get dashboard data"
 		log.Print("userStatistics: error getting users count: no results")
 		return fmt.Errorf("no results for users count")
 	}
-	fmt.Println("userStatistics: users count =", results[0].GetValue("num"))
+	// fmt.Println("userStatistics: users count =", results[0].GetValue("num"))
 	tmpStr := results[0].GetValue("num").(string)
-	fmt.Print("userStatistics: users count string =", tmpStr, "\n")
+	// fmt.Print("userStatistics: users count string =", tmpStr, "\n")
 	_, err := fmt.Sscanf(tmpStr, "%d", &response.UsersCount)
 	if err != nil {
 		response.Success = false
@@ -115,10 +115,10 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 
 	// Users active last 24h
 	queryActiveLastDay := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 1 day"
-	fmt.Println("userStatistics: active users last 24h query:", queryActiveLastDay)
+	// fmt.Println("userStatistics: active users last 24h query:", queryActiveLastDay)
 	results = repo.Select("DBObject", queryActiveLastDay)
 	if len(results) == 1 {
-		fmt.Println("userStatistics: active users last 24h =", results[0].GetValue("num"))
+		// fmt.Println("userStatistics: active users last 24h =", results[0].GetValue("num"))
 		tmpStr := results[0].GetValue("num").(string)
 		tmpInt := 0
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
@@ -132,10 +132,10 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 	}
 	// Users active last 7 days
 	queryActiveLastWeek := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 7 day"
-	fmt.Println("userStatistics: active users last 7 days query:", queryActiveLastWeek)
+	// fmt.Println("userStatistics: active users last 7 days query:", queryActiveLastWeek)
 	results = repo.Select("DBObject", queryActiveLastWeek)
 	if len(results) == 1 {
-		fmt.Println("userStatistics: active users last 7 days =", results[0].GetValue("num"))
+		// fmt.Println("userStatistics: active users last 7 days =", results[0].GetValue("num"))
 		tmpStr := results[0].GetValue("num").(string)
 		tmpInt := 0
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
@@ -149,10 +149,10 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 	}
 	// Users active last 30 days
 	queryActiveLastMonth := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 30 day"
-	fmt.Println("userStatistics: active users last 30 days query:", queryActiveLastMonth)
+	// fmt.Println("userStatistics: active users last 30 days query:", queryActiveLastMonth)
 	results = repo.Select("DBObject", queryActiveLastMonth)
 	if len(results) == 1 {
-		fmt.Println("userStatistics: active users last 30 days =", results[0].GetValue("num"))
+		// fmt.Println("userStatistics: active users last 30 days =", results[0].GetValue("num"))
 		tmpStr := results[0].GetValue("num").(string)
 		tmpInt := 0
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
@@ -174,16 +174,13 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 func groupStatistics(repo *dblayer.DBRepository, response *DashboardResponse) error {
 	// **** Count groups
 	results := repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+"groups")
-	fmt.Println("groupStatistics: groups count query result:", len(results))
 	if len(results) == 0 {
 		response.Success = false
 		response.Message = "Failed to get dashboard data"
 		log.Print("groupStatistics: error getting groups count: no results")
 		return fmt.Errorf("no results for groups count")
 	}
-	fmt.Println("groupStatistics: groups count =", results[0].GetValue("num"))
 	tmpStr := results[0].GetValue("num").(string)
-	fmt.Print("groupStatistics: groups count string =", tmpStr, "\n")
 	// Convert string to int
 	_, err := fmt.Sscanf(tmpStr, "%d", &response.GroupsCount)
 	if err != nil {
@@ -212,8 +209,6 @@ func groupStatistics(repo *dblayer.DBRepository, response *DashboardResponse) er
 		if userCount > 0 {
 			groupStats[groupName] = userCount
 		}
-		// For now, just log the group user counts
-		fmt.Printf("groupStatistics: group '%s' has %d users\n", groupName, userCount)
 	}
 
 	response.GroupsStats = groupStats
@@ -238,7 +233,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 	// Count objects of this type
 	results := repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName)
 	if len(results) == 1 {
-		fmt.Printf("objectStatistics: %s count = %v\n", className, results[0].GetValue("num"))
+		// fmt.Printf("objectStatistics: %s count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
 		if err != nil {
@@ -254,7 +249,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 	// Count deleted objects of this type
 	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date is not null")
 	if len(results) == 1 {
-		fmt.Printf("objectStatistics: %s deleted count = %v\n", className, results[0].GetValue("num"))
+		// fmt.Printf("objectStatistics: %s deleted count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
 		if err != nil {
@@ -263,9 +258,9 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		objectStats["deleted_count"] = tmpInt
 	}
 	// Count created last week
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where creation_date >= NOW() - INTERVAL 7 day")
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where creation_date >= NOW() - INTERVAL 7 day and deleted_date is null")
 	if len(results) == 1 {
-		fmt.Printf("objectStatistics: %s created last week count = %v\n", className, results[0].GetValue("num"))
+		// fmt.Printf("objectStatistics: %s created last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
 		if err != nil {
@@ -274,9 +269,9 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		objectStats["created_last_week"] = tmpInt
 	}
 	// Count modified last week
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date > creation_date and last_modify_date >= NOW() - INTERVAL 7 day")
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date > creation_date and last_modify_date >= NOW() - INTERVAL 7 day and deleted_date is null")
 	if len(results) == 1 {
-		fmt.Printf("objectStatistics: %s modified last week count = %v\n", className, results[0].GetValue("num"))
+		// fmt.Printf("objectStatistics: %s modified last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
 		if err != nil {
@@ -287,7 +282,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 	// COunt deleted last week
 	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date >= NOW() - INTERVAL 7 day")
 	if len(results) == 1 {
-		fmt.Printf("objectStatistics: %s deleted last week count = %v\n", className, results[0].GetValue("num"))
+		// fmt.Printf("objectStatistics: %s deleted last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
 		_, err = fmt.Sscanf(tmpStr, "%d", &tmpInt)
 		if err != nil {

@@ -514,6 +514,8 @@ export function Files() {
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
     { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector" },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector" },
   ];
 
   const resultsColumns = [
@@ -523,6 +525,8 @@ export function Files() {
     { name: t("files.preview") || "File", attribute: "id", type: "imageView", hideOnSmall: true },
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
     { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector", hideOnSmall: true },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector", hideOnSmall: true },
   ];
   return (
     <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />

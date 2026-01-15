@@ -54,7 +54,9 @@
         "of": "di",
         "no_items_found": "Nessun elemento trovato",
         "no_matches": "Nessuna corrispondenza",
-        "load_more": "Carica di più"
+        "load_more": "Carica di più",
+      "from": "Da",
+      "to": "A"
     },
     "users": {
         "user_profile": "Profilo Utente",

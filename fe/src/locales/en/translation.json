@@ -54,7 +54,9 @@
     "of": "of",
     "no_items_found": "No items found",
     "no_matches": "No matches found",
-    "load_more": "Load More"
+    "load_more": "Load More",
+    "from": "From",
+    "to": "To"
   },
   "users": {
     "user_profile": "User Profile",

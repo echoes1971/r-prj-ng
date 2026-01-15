@@ -435,6 +435,46 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
     }));
   };
 
+  const handleDateRangeInputChange = (e) => {
+    const { name, value } = e.target;
+    console.log('handleDateRangeInputChange: name=', name, ' value=', value);
+    const baseName = name.replace(/^_from_/, '').replace(/^_to_/, '');
+    const prevData = searchFormData;
+    // Check that TO date is not before FROM date?
+    if (name.startsWith('_to_') && prevData[baseName]?.[0] && value>'' && value < prevData[baseName][0].slice(0,10)) {
+      // Invalid range, ignore or handle error
+      return prevData;
+    }
+    // Check that FROM date is not after TO date?
+    if (name.startsWith('_from_') && prevData[baseName]?.[1] && value>'' && value > prevData[baseName][1].slice(0,10)) {
+      // Invalid range, ignore or handle error
+      return prevData;
+    }
+
+    var _to = name.startsWith('_to_') ? value + " 23:59:59" : '';
+    var _from = name.startsWith('_from_') ? value + " 00:00:00" : ''; //prevData[baseName]?.[0] || '';
+
+    // if value is empty, clear
+    if (value === '') {
+        console.log('Clearing date range for', baseName, 'name:', name);
+      if (name.startsWith('_to_')) {
+        _to = '';
+      }
+      if (name.startsWith('_from_')) {
+        _from = '';
+      }
+    }
+    
+
+    setSearchFormData((prevData) => ({
+      ...prevData,
+      [baseName]: [
+        name.startsWith('_from_') ? _from : prevData[baseName]?.[0] || '',
+        name.startsWith('_to_') ? _to : prevData[baseName]?.[1] || '',
+      ],
+    }));
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     fetchObjects(searchFormData, searchOrderBy, 0);
@@ -517,6 +557,28 @@ export function ObjectSearch({searchClassname, searchColumns, resultsColumns, or
                         label={t('dbobjects.' + col.attribute)}
                         _type="search"
                     />
+                  </>
+                ) : col.type === "dateSelector" ? (
+                    <>
+                    <Form.Label>{col.name}</Form.Label>
+                    <Row className="g-2">
+                    <Form.Control
+                        type="date"
+                        name={'_from_' + col.attribute}
+                        value={searchFormData[col.attribute] ? searchFormData[col.attribute][0]?.slice(0,10) || '' : ''}
+                        title={t('common.from')}
+                        onChange={handleDateRangeInputChange}
+                        onSubmit={handleSearch}
+                    />
+                    <Form.Control
+                        type="date"
+                        name={'_to_' + col.attribute}
+                        value={searchFormData[col.attribute] ? searchFormData[col.attribute][1]?.slice(0,10) || '' : ''}
+                        title={t('common.to')}
+                        onChange={handleDateRangeInputChange}
+                        onSubmit={handleSearch}
+                    />
+                    </Row>
                   </>
                 ) : (
                   <>
@@ -687,12 +749,18 @@ export function Objects() {
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string" },
     { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector" },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector" },
+    { name: t("dbobjects.deleted") || "Deleted", attribute: "deleted_date", type: "dateSelector" },
   ];
 
   const resultsColumns = [
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },
     { name: t("dbobjects.description") || "Description", attribute: "description", type: "string", hideOnSmall: true },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector", hideOnSmall: true },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector", hideOnSmall: true },
+    { name: t("dbobjects.deleted") || "Deleted", attribute: "deleted_date", type: "dateSelector", hideOnSmall: true },
   ]
   return (
     <ObjectSearch searchClassname={searchClassname} searchColumns={searchColumns} resultsColumns={resultsColumns} dark={dark} themeClass={themeClass} />

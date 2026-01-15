@@ -276,10 +276,13 @@ export function Pages() {
     // { name: t("dbobjects.description") || "Description", attribute: "description", type: "string" },
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink" },
     { name: t("dbobjects.language") || "Language", attribute: "language", type: "languageSelector" },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector" },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector" },
   ];
 
   const resultsColumns = [
-    // { name: t("dbobjects.created") || "Created", attribute: "creator", type: "userLink", hideOnSmall: true },
+    { name: t("dbobjects.created") || "Created", attribute: "creation_date", type: "dateSelector", hideOnSmall: true },
+    { name: t("dbobjects.modified") || "Modified", attribute: "last_modify_date", type: "dateSelector", hideOnSmall: true },
     // { name: t("dbobjects.group") || "Group", attribute: "group_id", type: "groupLink", hideOnSmall: true },
     { name: t("dbobjects.parent") || "Parent", attribute: "father_id", type: "objectLink", hideOnSmall: true },
     { name: t("dbobjects.name") || "Name", attribute: "name", type: "string", hideOnSmall: false },

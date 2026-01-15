@@ -54,7 +54,9 @@
     "of": "von",
     "no_items_found": "Keine Elemente gefunden",
     "no_matches": "Keine Übereinstimmungen gefunden",
-    "load_more": "Mehr laden"
+    "load_more": "Mehr laden",
+    "from": "Von",
+    "to": "Bis"
   },
   "users": {
     "user_profile": "Benutzerprofil",
