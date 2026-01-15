@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Navbar, Nav, NavDropdown, Container, Button, Dropdown, NavItem } from "react-bootstrap";
+import { Navbar, Nav, NavDropdown, Container, Button, Dropdown, NavItem, Modal } from "react-bootstrap";
 import { ThemeContext } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
 import { app_cfg } from "../app.cfg";
@@ -17,6 +17,8 @@ export function AdminDashboard() {
     const { dark, themeClass } = useContext(ThemeContext);
 
     const [stats, setStats] = useState({});
+    const [showModal, setShowModal] = useState(false);
+    const [modalData, setModalData] = useState({ title: '', pieData: [] });
 
     useEffect(() => {
         // retrieve statistics from the API
@@ -72,6 +74,37 @@ export function AdminDashboard() {
         name: groupName,
         value: stats.groups_stats[groupName] || 0
     })).filter(item => item.value > 0) : [];
+
+    // Handler per il click sul bar chart Object Activity
+    const handleObjectActivityClick = (data) => {
+        if (!stats.object_stats) return;
+        
+        const action = data.action;
+        let fieldName = '';
+        let title = '';
+        
+        if (action === t('admin.created')) {
+            fieldName = 'created_last_week';
+            title = t('admin.created');
+        } else if (action === t('admin.modified')) {
+            fieldName = 'modified_last_week';
+            title = t('admin.modified');
+        } else if (action === t('admin.deleted')) {
+            fieldName = 'deleted_count';
+            title = t('admin.deleted');
+        }
+        
+        // Prepara dati per il pie chart del modal
+        const drillDownData = Object.keys(stats.object_stats)
+            .map(className => ({
+                name: className,
+                value: stats.object_stats[className]?.[fieldName] || 0
+            }))
+            .filter(item => item.value > 0);
+        
+        setModalData({ title, pieData: drillDownData });
+        setShowModal(true);
+    };
 
     return (
         <div className={`container mt-3 ${themeClass}`}>
@@ -157,7 +190,7 @@ export function AdminDashboard() {
                                 <XAxis dataKey="action" />
                                 <YAxis />
                                 <Tooltip />
-                                <Bar dataKey="count" />
+                                <Bar dataKey="count" onClick={handleObjectActivityClick} style={{ cursor: 'pointer' }} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -179,6 +212,8 @@ export function AdminDashboard() {
                                     outerRadius={180}
                                     fill="#8884d8"
                                     dataKey="value"
+
+                                    style={{ cursor: 'pointer' }}
 
                                     onClick={(data) => {
                                         console.log(data.payload);
@@ -235,6 +270,43 @@ export function AdminDashboard() {
                         </div>
                     </div>
             </div>
+
+            {/* Modal for drill-down */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+                <Modal.Header closeButton className={dark ? 'bg-dark text-light' : ''}>
+                    <Modal.Title>{modalData.title} - {t('admin.objects_distribution')}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className={dark ? 'bg-dark text-light' : ''}>
+                    {modalData.pieData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={400}>
+                            <PieChart>
+                                <Pie
+                                    data={modalData.pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                                    outerRadius={120}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                >
+                                    {modalData.pieData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <p>{t('common.no_results')}</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer className={dark ? 'bg-dark' : ''}>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        {t('common.cancel')}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

@@ -120,9 +120,7 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 		// Search Group by Name
 		group.SetValue("id", "")
 		group.SetValue("name", id)
-		repo.Verbose = true
 		foundGroups, err = repo.Search(group, false, true, "")
-		repo.Verbose = false
 		if err != nil {
 			RespondSimpleError(w, ErrInternalServer, "Failed to get group by name: "+err.Error(), http.StatusInternalServerError)
 			return
