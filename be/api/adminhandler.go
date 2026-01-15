@@ -262,7 +262,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		}
 		objectStats["deleted_count"] = tmpInt
 	}
-	// Count created last week and modified last week
+	// Count created last week
 	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where creation_date >= NOW() - INTERVAL 7 day")
 	if len(results) == 1 {
 		fmt.Printf("objectStatistics: %s created last week count = %v\n", className, results[0].GetValue("num"))
@@ -273,7 +273,8 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		}
 		objectStats["created_last_week"] = tmpInt
 	}
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date >= NOW() - INTERVAL 7 day")
+	// Count modified last week
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date > creation_date and last_modify_date >= NOW() - INTERVAL 7 day")
 	if len(results) == 1 {
 		fmt.Printf("objectStatistics: %s modified last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)

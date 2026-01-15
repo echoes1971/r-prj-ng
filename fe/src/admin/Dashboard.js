@@ -7,7 +7,7 @@ import { app_cfg } from "../app.cfg";
 import axios from "../axios";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
-// Colori per le slice della torta
+// Colors for the slices of the pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c'];
 
 export function AdminDashboard() {
@@ -37,12 +37,11 @@ export function AdminDashboard() {
         fetchStats();
     }, []);
 
-    // Prepara i dati per il pie chart: trasforma object_stats in array
+    // Prepare data for the pie chart: transform object_stats into an array
     const pieData = stats.object_stats ? Object.keys(stats.object_stats).map(className => ({
         name: className,
         value: stats.object_stats[className] !== null && stats.object_stats[className].count || 0
-    })).filter(item => item.value > 0) : []; // mostra solo tipi con almeno 1 oggetto
-
+    })).filter(item => item.value > 0) : []; // show only types with at least 1 object
     // Prepara i dati per active users bar chart
     const activeUsersData = stats.users_stats ? [
         { period: t('admin.last_24h'), users: stats.users_stats.active_last_24h || 0 },
@@ -64,18 +63,18 @@ export function AdminDashboard() {
         },
         {
             action: t('admin.deleted'),
-            count: Object.values(stats.object_stats).reduce((sum, obj) => sum + (obj?.deleted_count || 0), 0),
+            count: Object.values(stats.object_stats).reduce((sum, obj) => sum + (obj?.deleted_last_week || 0), 0),
             fill: '#FF8042' // rosso
         }
     ] : [];
 
-    // Prepara i dati per il pie chart dei gruppi (users per gruppo)
+    // Prepare data for the pie chart of groups (users per group)
     const groupsPieData = stats.groups_stats ? Object.keys(stats.groups_stats).map(groupName => ({
         name: groupName,
         value: stats.groups_stats[groupName] || 0
     })).filter(item => item.value > 0) : [];
 
-    // Handler per il click sul bar chart Object Activity
+    // Handler for click on the Object Activity bar chart
     const handleObjectActivityClick = (data) => {
         if (!stats.object_stats) return;
         
@@ -90,11 +89,11 @@ export function AdminDashboard() {
             fieldName = 'modified_last_week';
             title = t('admin.modified');
         } else if (action === t('admin.deleted')) {
-            fieldName = 'deleted_count';
+            fieldName = 'deleted_last_week';
             title = t('admin.deleted');
         }
         
-        // Prepara dati per il pie chart del modal
+        // Prepare data for the pie chart of the modal
         const drillDownData = Object.keys(stats.object_stats)
             .map(className => ({
                 name: className,
@@ -152,7 +151,7 @@ export function AdminDashboard() {
 
             {/* Bar Charts Row - Side by side on desktop */}
             <div className="row mb-4">
-                {/* Pie Chart per distribuzione oggetti */}
+                {/* Pie Chart for objects distribution */}
                 {pieData.length > 0 && (
                     <div className="col-12 col-lg-6">
                         <div className="col-12">
@@ -249,26 +248,26 @@ export function AdminDashboard() {
 
             {/* Groups Distribution Pie Chart */}
             <div className="row mb-4">
-                    <div className="col-md-4 mb-3">
-                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
-                            <div className="card-body">
-                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_users")}</h6>
-                                <h2 className="card-title" style={{fontSize: '3rem', color: '#0088FE'}}>
-                                    {stats.users_count || 0}
-                                </h2>
-                            </div>
+                <div className="col-md-4 mb-3">
+                    <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                        <div className="card-body">
+                            <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_users")}</h6>
+                            <h2 className="card-title" style={{fontSize: '3rem', color: '#0088FE'}}>
+                                {stats.users_count || 0}
+                            </h2>
                         </div>
                     </div>
-                    <div className="col-md-4 mb-3">
-                        <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
-                            <div className="card-body">
-                                <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_groups")}</h6>
-                                <h2 className="card-title" style={{fontSize: '3rem', color: '#00C49F'}}>
-                                    {stats.groups_count || 0}
-                                </h2>
-                            </div>
+                </div>
+                <div className="col-md-4 mb-3">
+                    <div className={`card text-center ${dark ? 'bg-dark text-light' : 'bg-light'}`}>
+                        <div className="card-body">
+                            <h6 className="card-subtitle mb-2 text-secondary">{t("admin.total_groups")}</h6>
+                            <h2 className="card-title" style={{fontSize: '3rem', color: '#00C49F'}}>
+                                {stats.groups_count || 0}
+                            </h2>
                         </div>
                     </div>
+                </div>
             </div>
 
             {/* Modal for drill-down */}
