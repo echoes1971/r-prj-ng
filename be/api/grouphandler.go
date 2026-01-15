@@ -117,8 +117,23 @@ func GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(foundGroups) == 0 {
-		RespondError(w, ErrGroupNotFound, "Group not found", map[string]string{"id": id}, http.StatusNotFound)
-		return
+		// Search Group by Name
+		group.SetValue("id", "")
+		group.SetValue("name", id)
+		repo.Verbose = true
+		foundGroups, err = repo.Search(group, false, true, "")
+		repo.Verbose = false
+		if err != nil {
+			RespondSimpleError(w, ErrInternalServer, "Failed to get group by name: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(foundGroups) == 0 {
+			RespondError(w, ErrGroupNotFound, "Group not found", map[string]string{"id": id}, http.StatusNotFound)
+			return
+		}
+		// RespondError(w, ErrGroupNotFound, "Group not found", map[string]string{"id": id}, http.StatusNotFound)
+		// return
+		id = foundGroups[0].GetValue("id").(string)
 	}
 	group = foundGroups[0]
 

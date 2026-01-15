@@ -12,6 +12,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 
 export function AdminDashboard() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState("");
     const { dark, themeClass } = useContext(ThemeContext);
 
@@ -178,6 +179,11 @@ export function AdminDashboard() {
                                     outerRadius={180}
                                     fill="#8884d8"
                                     dataKey="value"
+
+                                    onClick={(data) => {
+                                        console.log(data.payload);
+                                        navigate(`/groups/${data.payload.name}`);
+                                    }}
                                 >
                                     {groupsPieData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
