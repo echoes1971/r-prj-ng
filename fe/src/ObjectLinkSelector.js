@@ -106,7 +106,7 @@ function ObjectLinkSelector({ value, onChange, classname, fieldName, label, requ
                 params: {
                     classname: classname,
                     name: term,
-                    searchJson: JSON.stringify(searchJson),
+                    searchJson: searchJson ? JSON.stringify(searchJson) : '',
                     orderBy: orderBy,
                     offset: 0,
                     limit: 20,
