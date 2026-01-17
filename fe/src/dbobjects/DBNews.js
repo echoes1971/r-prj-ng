@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ThemeContext } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
-import { ObjectSearch } from "../DBObject";
+import { ObjectSearch } from "./DBObject";
 
 
 export function News() {

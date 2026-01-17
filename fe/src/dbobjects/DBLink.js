@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import ObjectLinkSelector from '../ObjectLinkSelector';
 import PermissionsEditor from '../PermissionsEditor';
 import { formatDescription } from '../sitenavigation_utils';
-import { ObjectSearch } from "../DBObject";
+import { ObjectSearch } from "./DBObject";
 
 
 /**

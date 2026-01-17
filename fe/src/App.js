@@ -19,7 +19,7 @@ import { Folders } from './dbobjects/DBFolders';
 import { Links } from './dbobjects/DBLink';
 import { News } from './dbobjects/DBNews';
 import { Notes } from './dbobjects/DBNote';
-import { Objects } from "./DBObject";
+import { Objects } from "./dbobjects/DBObject";
 import { Pages } from "./dbobjects/DBPage";
 import { People } from './dbobjects/DBPeople';
 import SiteNavigation from './SiteNavigation';

@@ -15,7 +15,7 @@ import {
     classname2bootstrapIcon,
 } from '../sitenavigation_utils';
 import axiosInstance from '../axios';
-import { ObjectSearch } from '../DBObject';
+import { ObjectSearch } from './DBObject';
 import { ThemeContext } from '../ThemeContext';
 
 

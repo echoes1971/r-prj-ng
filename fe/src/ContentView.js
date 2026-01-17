@@ -8,7 +8,7 @@ import { FileView } from './dbobjects/DBFile';
 import { FolderView } from './dbobjects/DBFolders';
 import { LinkView } from './dbobjects/DBLink';
 import { NoteView } from './dbobjects/DBNote';
-import { ObjectView } from './DBObject';
+import { ObjectView } from './dbobjects/DBObject';
 import { PageView } from './dbobjects/DBPage';
 import { PersonView } from './dbobjects/DBPeople';
 import axiosInstance from './axios';

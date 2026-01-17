@@ -6,7 +6,7 @@ import axiosInstance from '../axios';
 import ObjectLinkSelector from '../ObjectLinkSelector';
 import PermissionsEditor from '../PermissionsEditor';
 import { formatDescription } from '../sitenavigation_utils';
-import { ObjectSearch } from '../DBObject';
+import { ObjectSearch } from './DBObject';
 import { ThemeContext } from '../ThemeContext';
 
 // View for DBNote

@@ -10,7 +10,7 @@ import { FileEdit } from './dbobjects/DBFile';
 import { FolderEdit } from './dbobjects/DBFolders';
 import { LinkEdit } from './dbobjects/DBLink';
 import { NoteEdit } from './dbobjects/DBNote';
-import { ObjectEdit, ObjectFooterView } from './DBObject';
+import { ObjectEdit, ObjectFooterView } from './dbobjects/DBObject';
 import { PageEdit } from './dbobjects/DBPage';
 import { PersonEdit } from './dbobjects/DBPeople';
 import { ThemeContext } from './ThemeContext';

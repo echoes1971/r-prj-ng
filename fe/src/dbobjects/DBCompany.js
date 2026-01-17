@@ -3,7 +3,7 @@ import { Accordion, Card, Container, Form, Button, Spinner, Alert, ButtonGroup, 
 import { ThemeContext } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
 import ObjectLinkSelector from '../ObjectLinkSelector';
-import { ObjectSearch } from "../DBObject";
+import { ObjectSearch } from "./DBObject";
 import PermissionsEditor from '../PermissionsEditor';
 import { CountrySelector, CountryView } from '../ContentWidgets'
 

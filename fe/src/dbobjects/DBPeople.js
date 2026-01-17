@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "../ThemeContext";
 import { CountrySelector, CountryView, UserLinkView, ObjectLinkView } from '../ContentWidgets';
 import ObjectLinkSelector from '../ObjectLinkSelector';
-import { ObjectSearch } from "../DBObject";
+import { ObjectSearch } from "./DBObject";
 import PermissionsEditor from '../PermissionsEditor';
 
 

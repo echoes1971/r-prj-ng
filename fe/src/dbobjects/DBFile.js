@@ -10,7 +10,7 @@ import ObjectLinkSelector from '../ObjectLinkSelector';
 import PermissionsEditor from '../PermissionsEditor';
 import { formatDescription, formatObjectId } from '../sitenavigation_utils';
 import { ThemeContext } from '../ThemeContext';
-import { ObjectSearch } from '../DBObject';
+import { ObjectSearch } from './DBObject';
 
 
 export function FileDownload() {

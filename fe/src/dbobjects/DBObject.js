@@ -6,7 +6,7 @@ import {
     formateDateTimeString, 
     formatDescription, 
     classname2bootstrapIcon,
-} from './sitenavigation_utils';
+} from '../sitenavigation_utils';
 import {
   CountryView,
   CountrySelector,
@@ -16,13 +16,13 @@ import {
   LanguageView,
   ObjectLinkView,
   UserLinkView,
-} from './ContentWidgets';
-import ObjectLinkSelector from './ObjectLinkSelector'
-import PermissionsEditor from './PermissionsEditor';
-import { getErrorMessage } from "./errorHandler";
-import { HtmlView } from './ContentHtml';
-import axiosInstance from './axios';
-import { ThemeContext } from './ThemeContext';
+} from '../ContentWidgets';
+import ObjectLinkSelector from '../ObjectLinkSelector'
+import PermissionsEditor from '../PermissionsEditor';
+import { getErrorMessage } from "../errorHandler";
+import { HtmlView } from '../ContentHtml';
+import axiosInstance from '../axios';
+import { ThemeContext } from '../ThemeContext';
 
 
 export function ObjectHeaderView({ data, metadata, objectData, dark }) {

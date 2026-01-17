@@ -72,7 +72,7 @@ export function isTokenValid() {
     const expiresAt = localStorage.getItem("expires_at");
     if (!expiresAt) return false;
     const nowInSeconds = Math.floor(Date.now() / 1000);
-    console.log(`Token expiry check: now=${nowInSeconds}, expires_at=${expiresAt}`);
+    // console.log(`Token expiry check: now=${nowInSeconds}, expires_at=${expiresAt}`);
     if (nowInSeconds >= Number(expiresAt)) return false;
 
     // Optionally, you can implement further validation, e.g., check expiration

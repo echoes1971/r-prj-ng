@@ -3,7 +3,7 @@ import { Form, Button, Spinner, Alert, Row, Col, Tabs, Tab, Collapse } from 'rea
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from "../ThemeContext";
 import ObjectLinkSelector from '../ObjectLinkSelector';
-import { ObjectSearch } from "../DBObject";
+import { ObjectSearch } from "./DBObject";
 import PermissionsEditor from '../PermissionsEditor';
 import { formatDescription } from '../sitenavigation_utils';
 
