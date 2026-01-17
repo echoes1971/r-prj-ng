@@ -2,11 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import { Accordion, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "./ThemeContext";
-import { CountrySelector, CountryView, UserLinkView, ObjectLinkView } from './ContentWidgets';
-import ObjectLinkSelector from './ObjectLinkSelector';
-import { ObjectSearch } from "./DBObject";
-import PermissionsEditor from './PermissionsEditor';
+import { ThemeContext } from "../ThemeContext";
+import { CountrySelector, CountryView, UserLinkView, ObjectLinkView } from '../ContentWidgets';
+import ObjectLinkSelector from '../ObjectLinkSelector';
+import { ObjectSearch } from "../DBObject";
+import PermissionsEditor from '../PermissionsEditor';
 
 
 export function PersonView({ data, metadata, objectData, dark }) {

@@ -65,6 +65,20 @@ export function formateDateTimeString(dateTimeString) {
     return date.toLocaleString();
 }
 
+
+export function isTokenValid() {
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+    const expiresAt = localStorage.getItem("expires_at");
+    if (!expiresAt) return false;
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    console.log(`Token expiry check: now=${nowInSeconds}, expires_at=${expiresAt}`);
+    if (nowInSeconds >= Number(expiresAt)) return false;
+
+    // Optionally, you can implement further validation, e.g., check expiration
+    return true;
+}
+
 export function isAdminUser() {
     const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
     return groups.includes("-2");

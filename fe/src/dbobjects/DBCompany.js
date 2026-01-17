@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Accordion, Card, Container, Form, Button, Spinner, Alert, ButtonGroup, Overlay, Popover } from 'react-bootstrap';
-import { ThemeContext } from "./ThemeContext";
+import { ThemeContext } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
-import ObjectLinkSelector from './ObjectLinkSelector';
-import { ObjectSearch } from "./DBObject";
-import PermissionsEditor from './PermissionsEditor';
-import { CountrySelector, CountryView } from './ContentWidgets'
+import ObjectLinkSelector from '../ObjectLinkSelector';
+import { ObjectSearch } from "../DBObject";
+import PermissionsEditor from '../PermissionsEditor';
+import { CountrySelector, CountryView } from '../ContentWidgets'
 
 
 export function CompanyView({ data, metadata, objectData, dark }) {

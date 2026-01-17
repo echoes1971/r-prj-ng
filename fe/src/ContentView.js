@@ -2,15 +2,15 @@ import React, { use } from 'react';
 import { useState, useEffect } from 'react';
 import { Card } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { CompanyView } from './DBCompany';
-import { EventView } from './DBEvent';
-import { FileView } from './DBFile';
-import { FolderView } from './DBFolders';
-import { LinkView } from './DBLink';
-import { NoteView } from './DBNote';
+import { CompanyView } from './dbobjects/DBCompany';
+import { EventView } from './dbobjects/DBEvent';
+import { FileView } from './dbobjects/DBFile';
+import { FolderView } from './dbobjects/DBFolders';
+import { LinkView } from './dbobjects/DBLink';
+import { NoteView } from './dbobjects/DBNote';
 import { ObjectView } from './DBObject';
-import { PageView } from './DBPage';
-import { PersonView } from './DBPeople';
+import { PageView } from './dbobjects/DBPage';
+import { PersonView } from './dbobjects/DBPeople';
 import axiosInstance from './axios';
 
 

@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Accordion, Alert, Container, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { ThemeContext } from "./ThemeContext";
+import { ThemeContext } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
-import axiosInstance from './axios';
-import ObjectLinkSelector from './ObjectLinkSelector';
-import ObjectList from "./ObjectList";
-import { ObjectSearch } from "./DBObject";
-import { cleanTokensBeforeSave, HtmlEdit, HtmlView } from "./ContentHtml";
-import PermissionsEditor from './PermissionsEditor';
+import axiosInstance from '../axios';
+import ObjectLinkSelector from '../ObjectLinkSelector';
+import ObjectList from "../ObjectList";
+import { ObjectSearch } from "../DBObject";
+import { cleanTokensBeforeSave, HtmlEdit, HtmlView } from "../ContentHtml";
+import PermissionsEditor from '../PermissionsEditor';
 
 
 

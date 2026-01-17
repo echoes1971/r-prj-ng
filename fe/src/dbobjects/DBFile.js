@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import ReactDOM from 'react-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import axiosInstance from './axios';
-import ObjectLinkSelector from './ObjectLinkSelector';
-import PermissionsEditor from './PermissionsEditor';
-import { formatDescription, formatObjectId } from './sitenavigation_utils';
-import { ThemeContext } from './ThemeContext';
-import { ObjectSearch } from './DBObject';
+import axiosInstance from '../axios';
+import ObjectLinkSelector from '../ObjectLinkSelector';
+import PermissionsEditor from '../PermissionsEditor';
+import { formatDescription, formatObjectId } from '../sitenavigation_utils';
+import { ThemeContext } from '../ThemeContext';
+import { ObjectSearch } from '../DBObject';
 
 
 export function FileDownload() {
