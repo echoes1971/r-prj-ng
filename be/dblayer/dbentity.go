@@ -34,6 +34,7 @@ type Column struct {
 type DBEntityInterface interface {
 	NewInstance() DBEntityInterface
 	GetColumnType(columnName string) string
+	GetColumnDefinitions() map[string]Column
 	GetTypeName() string
 	GetTableName() string
 	GetKeys() []string
@@ -111,6 +112,9 @@ func (dbEntity *DBEntity) GetColumnType(columnName string) string {
 		return col.Type
 	}
 	return ""
+}
+func (dbEntity *DBEntity) GetColumnDefinitions() map[string]Column {
+	return dbEntity.columns
 }
 func (dbEntity *DBEntity) GetTypeName() string {
 	return dbEntity.typename
@@ -340,7 +344,8 @@ func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
 		fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", fk.Column, fk.RefTable, fk.RefColumn)
 		columnDefs = append(columnDefs, fkDef)
 	}
-	createTableSQL := fmt.Sprintf("CREATE TABLE %s_%s (\n%s\n);", dbSchema, dbEntity.tablename, strings.Join(columnDefs, ",\n"))
+	// IF NOT EXISTS is redundant as we check for table existence before calling this method: but it's kept for future use cases
+	createTableSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s_%s (\n%s\n);", dbSchema, dbEntity.tablename, strings.Join(columnDefs, ",\n"))
 	return createTableSQL
 }
 
