@@ -1,12 +1,18 @@
 package dblayer
 
 import (
+	"flag"
 	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"rprj/be/models"
 	"testing"
+)
+
+// go test -v ./dblayer -run TestXXX -config ../config.json
+var (
+	configFile = flag.String("config", "../config.json", "Path to configuration file")
 )
 
 func TestMain(m *testing.M) {
@@ -19,8 +25,9 @@ func TestMain(m *testing.M) {
 	// 	RootDirectory:  ".",
 	// 	FilesDirectory: "files",
 	// }
+	flag.Parse()
 	var config models.Config
-	err := models.LoadConfig("../config.json", &config)
+	err := models.LoadConfig(*configFile, &config)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
@@ -28,10 +35,12 @@ func TestMain(m *testing.M) {
 	InitDBLayer(config)
 
 	// Esegui i test
-	m.Run()
+	exitCode := m.Run()
 
 	// Teardown: chiudi la connessione
 	CloseDBConnection()
+
+	os.Exit(exitCode)
 }
 
 /* ***** Helper functions for tests ***** */
