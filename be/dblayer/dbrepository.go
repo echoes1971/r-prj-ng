@@ -53,6 +53,15 @@ func NewDBRepository(dbContext *DBContext, factory *DBEFactory, dbConnection *sq
 	}
 }
 
+// placeholder returns the correct SQL placeholder for the given parameter index
+// PostgreSQL uses $1, $2, $3..., while MySQL/SQLite use ?
+func (dbr *DBRepository) placeholder(index int) string {
+	if strings.Contains(dbEngine, "postgres") {
+		return fmt.Sprintf("$%d", index)
+	}
+	return "?"
+}
+
 func (dbr *DBRepository) GetDBVersion() int {
 	search := dbr.GetInstanceByTableName("dbversion")
 	if search == nil {
@@ -148,7 +157,7 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 				// log.Print("DBRepository::searchWithTx: OR condMap =", condMap)
 				for column, expr := range condMap {
 					for operator, value := range expr.(map[string]interface{}) {
-						clauseString := column + " " + operator[1:] + " ?"
+						clauseString := column + " " + operator[1:] + " " + dbr.placeholder(len(argsOr)+1)
 						log.Print("DBRepository::searchWithTx: OR clauseString =", clauseString, " value=", value)
 						clausesOr = append(clausesOr, "("+clauseString+")")
 						argsOr = append(argsOr, value)
@@ -160,7 +169,9 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 
 	// Default search: AND all populated fields
 	for key, value := range dbe.getDictionary() {
-		log.Print("DBRepository::searchWithTx: processing key=", key, " value=", value)
+		if dbr.Verbose {
+			log.Print("DBRepository::searchWithTx: processing key=", key, " value=", value)
+		}
 		if value == nil {
 			switch key {
 			case "father_id":
@@ -175,16 +186,20 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 			// whereClauses = append(whereClauses, "("+key+" IS NULL OR "+key+" = '0')")
 			continue
 		}
-		log.Print("DBRepository::searchWithTx: key=", key, " value=", value)
+		if dbr.Verbose {
+			log.Print("DBRepository::searchWithTx: key=", key, " value=", value)
+		}
 		if rangeSlice, ok := value.([]string); ok && len(rangeSlice) == 2 {
-			log.Print("DBRepository::searchWithTx: detected range for key=", key, " from=", rangeSlice[0], " to=", rangeSlice[1])
+			if dbr.Verbose {
+				log.Print("DBRepository::searchWithTx: detected range for key=", key, " from=", rangeSlice[0], " to=", rangeSlice[1])
+			}
 			// Range search
 			if rangeSlice[0] != "" {
-				clauses = append(clauses, key+" >= ?")
+				clauses = append(clauses, key+" >= "+dbr.placeholder(len(args)+1))
 				args = append(args, rangeSlice[0])
 			}
 			if rangeSlice[1] != "" {
-				clauses = append(clauses, key+" <= ?")
+				clauses = append(clauses, key+" <= "+dbr.placeholder(len(args)+1))
 				args = append(args, rangeSlice[1])
 			}
 			continue
@@ -196,21 +211,23 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 			// For strings: LIKE '%value%'
 			if strings.Contains(dbe.GetColumnType(key), "varchar") || dbe.GetColumnType(key) == "text" {
 				if caseSensitive {
-					clauses = append(clauses, key+" LIKE ?")
+					clauses = append(clauses, key+" LIKE "+dbr.placeholder(len(args)+1))
 					args = append(args, "%"+fmt.Sprint(value)+"%")
 				} else {
-					clauses = append(clauses, "LOWER("+key+") LIKE LOWER(?)")
+					clauses = append(clauses, "LOWER("+key+") LIKE LOWER("+dbr.placeholder(len(args)+1)+")")
 					args = append(args, "%"+fmt.Sprint(value)+"%")
 				}
 			} else {
 				// Per numeri/date: exact match
-				clauses = append(clauses, key+" = ?")
+				clauses = append(clauses, key+" = "+dbr.placeholder(len(args)+1))
 				args = append(args, value)
 			}
 		} else {
 			// Exact match
-			log.Print("DBRepository::searchWithTx: adding exact match for key=", key, " value=", value)
-			clauses = append(clauses, key+" = ?")
+			if dbr.Verbose {
+				log.Print("DBRepository::searchWithTx: adding exact match for key=", key, " value=", value)
+			}
+			clauses = append(clauses, key+" = "+dbr.placeholder(len(args)+1))
 			args = append(args, value)
 		}
 	}
@@ -373,9 +390,16 @@ func (dbr *DBRepository) insertWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	placeholders := make([]string, 0)
 	args := make([]interface{}, 0)
 
+	paramIndex := 1
 	for key, value := range dbe.getDictionary() {
 		columns = append(columns, key)
-		placeholders = append(placeholders, "?")
+		// Use $1, $2, $3... for PostgreSQL, ? for MySQL/SQLite
+		if strings.Contains(dbEngine, "postgres") {
+			placeholders = append(placeholders, fmt.Sprintf("$%d", paramIndex))
+			paramIndex++
+		} else {
+			placeholders = append(placeholders, "?")
+		}
 		args = append(args, value)
 	}
 
@@ -389,6 +413,11 @@ func (dbr *DBRepository) insertWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 		strings.Join(columns, ", "),
 		strings.Join(placeholders, ", "))
 
+	// IF the engine is PostgreSQL, add ; at the end of the query
+	if strings.Contains(dbEngine, "postgres") {
+		query += ";"
+	}
+
 	if dbr.Verbose {
 		log.Print("DBRepository::insertWithTx: query=", query, " args=", args)
 	}
@@ -397,7 +426,11 @@ func (dbr *DBRepository) insertWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	result, err := tx.Exec(query, args...)
 	if err != nil {
 		log.Print("DBRepository::insertWithTx: Exec error:", err)
-		log.Print("DBRepository::insertWithTx: Error - query=", query, " args=", args)
+		argsString := make([]string, len(args))
+		for i, a := range args {
+			argsString[i] = "'" + fmt.Sprint(a) + "',"
+		}
+		log.Print("DBRepository::insertWithTx: Error - query=", query, " args=", argsString)
 		return nil, err
 	}
 
@@ -460,8 +493,8 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 				return nil, err
 			}
 			// Build UPDATE query dynamicallyto set deleted_date and deleted_by
-			query := fmt.Sprintf("UPDATE %s SET deleted_date = ?, deleted_by = ? WHERE id='%s'",
-				dbr.buildTableName(dbe), dbe.GetValue("id"))
+			query := fmt.Sprintf("UPDATE %s SET deleted_date = %s, deleted_by = %s WHERE id='%s'",
+				dbr.buildTableName(dbe), dbr.placeholder(1), dbr.placeholder(2), dbe.GetValue("id"))
 			if dbr.Verbose {
 				log.Print("DBRepository::deleteWithTx: Soft delete query=", query)
 			}
@@ -493,7 +526,7 @@ func (dbr *DBRepository) deleteWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 
 	for _, key := range dbe.GetKeys() {
 		value := dbe.GetValue(key)
-		whereClauses = append(whereClauses, key+" = ?")
+		whereClauses = append(whereClauses, key+" = "+dbr.placeholder(len(args)+1))
 		args = append(args, value)
 	}
 
@@ -580,7 +613,7 @@ func (dbr *DBRepository) updateWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	// Build SET clause with non-primary-key fields
 	for key, value := range dbe.getDictionary() {
 		if !primaryKeys[key] {
-			setClauses = append(setClauses, key+" = ?")
+			setClauses = append(setClauses, key+" = "+dbr.placeholder(len(args)+1))
 			args = append(args, value)
 		}
 	}
@@ -593,7 +626,7 @@ func (dbr *DBRepository) updateWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	whereClauses := make([]string, 0)
 	for _, key := range dbe.GetKeys() {
 		value := dbe.GetValue(key)
-		whereClauses = append(whereClauses, key+" = ?")
+		whereClauses = append(whereClauses, key+" = "+dbr.placeholder(len(args)+1))
 		args = append(args, value)
 	}
 

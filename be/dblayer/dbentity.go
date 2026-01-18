@@ -339,11 +339,22 @@ func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
 		pkDef := fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(dbEntity.keys, ", "))
 		columnDefs = append(columnDefs, pkDef)
 	}
-	// Add foreign key constraints
-	for _, fk := range dbEntity.foreignKeys {
-		fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", fk.Column, fk.RefTable, fk.RefColumn)
-		columnDefs = append(columnDefs, fkDef)
-	}
+	// TODO: is it worth it as I have fields pointing to multiple tables?
+	// // Add foreign key constraints
+	// for _, fk := range dbEntity.foreignKeys {
+	// 	// TODO: remove this exception when implementing project entities
+	// 	notExistingTables := []string{"projects", "tasks"}
+	// 	if slices.Contains(notExistingTables, fk.RefTable) {
+	// 		continue
+	// 	}
+	// 	// TODO: with Postgresql, we should skip FK to objects table
+	// 	if fk.RefTable == "objects" {
+	// 		continue
+	// 	}
+
+	// 	fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s_%s(%s)", fk.Column, dbSchema, fk.RefTable, fk.RefColumn)
+	// 	columnDefs = append(columnDefs, fkDef)
+	// }
 	// IF NOT EXISTS is redundant as we check for table existence before calling this method: but it's kept for future use cases
 	createTableSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s_%s (\n%s\n);", dbSchema, dbEntity.tablename, strings.Join(columnDefs, ",\n"))
 	return createTableSQL

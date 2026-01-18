@@ -22,8 +22,10 @@ func TestCreateTableStrings(t *testing.T) {
 	}
 }
 
-// func TestEnsureDBSchema(t *testing.T) {
-// 	InitDBLayer("mysql", "root:mysecret@tcp(localhost:3306)/rproject", "rprj")
-// 	// Call EnsureDBSchema to test table creation logic
-// 	EnsureDBSchema()
-// }
+// go test -v ./dblayer -run TestEnsureDBSchema -config ../config_test.json
+func TestEnsureDBSchema(t *testing.T) {
+	// Call EnsureDBSchema to test table creation logic
+	EnsureDBSchema()
+
+	InitDBData()
+}

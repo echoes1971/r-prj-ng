@@ -26,7 +26,7 @@ type DBVersion struct {
 func NewDBVersion() *DBVersion {
 	columns := []Column{
 		{Name: "model_name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
-		{Name: "version", Type: "int(11)", Constraints: []string{"NOT NULL"}},
+		{Name: "version", Type: "int", Constraints: []string{"NOT NULL"}},
 	}
 	keys := []string{"model_name"}
 	return &DBVersion{
@@ -63,7 +63,7 @@ type OAuthToken struct {
 
 func NewOAuthToken() *OAuthToken {
 	columns := []Column{
-		{Name: "token_id", Type: "varchar(512)", Constraints: []string{"PRIMARY KEY"}},
+		{Name: "token_id", Type: "varchar(512)", Constraints: []string{}},
 		{Name: "user_id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "access_token", Type: "text", Constraints: []string{"NOT NULL"}},
 		{Name: "refresh_token", Type: "text", Constraints: []string{}},
@@ -200,24 +200,26 @@ func (dbUser *DBUser) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 		return fmt.Errorf("user with login '%s' already exists", dbUser.GetValue("login"))
 	}
 
-	// 3. Generate IDs
-	userID, _ := uuid16HexGo()
-	groupID, _ := uuid16HexGo()
-
-	// Create personal group
-	group := NewDBGroup()
-	group.SetValue("id", groupID)
-	group.SetValue("name", dbUser.GetValue("login").(string)+"'s group")
-	group.SetValue("description", "Personal group for "+dbUser.GetValue("login").(string))
-	_, err = dbr.insertWithTx(group, tx)
-	if err != nil {
-		log.Print("DBUser::beforeInsert: error inserting group:", err)
-		return err
+	// 3. Create personal group, IF group_id is not already set
+	if dbUser.GetValue("group_id") == nil || dbUser.GetValue("group_id") == "" {
+		groupID, _ := uuid16HexGo()
+		group := NewDBGroup()
+		group.SetValue("id", groupID)
+		group.SetValue("name", dbUser.GetValue("login").(string)+"'s group")
+		group.SetValue("description", "Personal group for "+dbUser.GetValue("login").(string))
+		_, err = dbr.insertWithTx(group, tx)
+		if err != nil {
+			log.Print("DBUser::beforeInsert: error inserting group:", err)
+			return err
+		}
+		dbUser.SetValue("group_id", groupID)
 	}
 
-	// 3. Set user ID and group ID
-	dbUser.SetValue("id", userID)
-	dbUser.SetValue("group_id", groupID)
+	// 4. Set user ID IF not already set
+	if dbUser.GetValue("id") == nil || dbUser.GetValue("id") == "" {
+		userID, _ := uuid16HexGo()
+		dbUser.SetValue("id", userID)
+	}
 
 	return nil
 }
@@ -537,7 +539,7 @@ func NewDBLog() *DBLog {
 		{Name: "ip", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "data", Type: "date", Constraints: []string{"NOT NULL"}},
 		{Name: "ora", Type: "time", Constraints: []string{"NOT NULL"}},
-		{Name: "count", Type: "int(11)", Constraints: []string{"NOT NULL"}},
+		{Name: "count", Type: "int", Constraints: []string{"NOT NULL"}},
 		{Name: "url", Type: "varchar(255)", Constraints: []string{}},
 		{Name: "note", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "note2", Type: "text", Constraints: []string{"NOT NULL"}},
@@ -716,7 +718,10 @@ func (dbObject *DBObject) CanExecute(kind string) bool {
 }
 func (dbObject *DBObject) SetDefaultValues(repo *DBRepository) {
 	user := repo.GetCurrentUser()
-	userID := user.GetValue("id").(string)
+	userID := ""
+	if user != nil {
+		userID = user.GetValue("id").(string)
+	}
 	if userID != "" {
 		if !dbObject.HasValue("owner") {
 			dbObject.SetValue("owner", userID)

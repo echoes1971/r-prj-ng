@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // The database can be mysql, sqlite, postgres, etc.
@@ -93,6 +95,7 @@ func InitDBConnection() {
 func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 	// Check if table exists
 	tableName := DbSchema + "_" + dbe.GetTableName()
+	log.Print("Checking table: ", tableName)
 	// This is internal code, so we can build the query directly
 	query := "show tables like '" + tableName + "'"
 	var existingTable string
@@ -106,22 +109,187 @@ func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 		// Table does not exist, create it
 		// Compose the create table SQL using the DBEntity's information about columns, types, keys, etc.
 		createTableSQL := dbe.GetCreateTableSQL(DbSchema)
-		log.Printf("Creating table with SQL: %s", createTableSQL)
-		_, err := DbConnection.Exec(createTableSQL)
-		if err != nil {
-			return err
-		}
-		log.Printf("Created table %s", tableName)
+		log.Printf(" Creating table with SQL: %s", createTableSQL)
+		// _, err := DbConnection.Exec(createTableSQL)
+		// if err != nil {
+		// 	return err
+		// }
+		// log.Printf(" Created table %s", tableName)
 	} else {
 		// Table exists, check for schema updates
 		// For simplicity, we will not implement schema migration logic here
-		log.Printf("Table %s already exists", tableName)
+		log.Printf(" Table %s exists", tableName)
+		// Fetch table schema from MariaDB and compare with DBEntity definition
+		rows, err := DbConnection.Query("DESCRIBE " + tableName)
+		if err != nil {
+			log.Printf("Error describing table %s: %v", tableName, err)
+			return err
+		}
+		defer rows.Close()
+		columnsInDB := make(map[string]map[string]string)
+		for rows.Next() {
+			var field, colType, null, key, extra string
+			var defaultValue any
+			if err := rows.Scan(&field, &colType, &null, &key, &defaultValue, &extra); err != nil {
+				log.Printf("Error scanning row for table %s: %v", tableName, err)
+				return err
+			}
+			// log.Print("field=", field, " colType=", colType, " null=", null, " key=", key, " defaultValue=", defaultValue, " extra=", extra)
+			// convert defaultValue to string
+			defaultValueStr := ""
+			if defaultValue != nil {
+				defaultValueStr = fmt.Sprintf("%v", defaultValue)
+			}
+			columnsInDB[field] = map[string]string{
+				"Type":    colType,
+				"Null":    null,
+				"Key":     key,
+				"Default": defaultValueStr,
+				"Extra":   extra,
+			}
+		}
+
+		// Compare columnsInDB with dbe.GetColumnDefinitions() and identify differences
+		columnDefs := dbe.GetColumnDefinitions()
+		for colName, colDef := range columnDefs {
+			if dbColDef, exists := columnsInDB[colName]; exists {
+				// Column exists, check for differences
+				if !strings.EqualFold(dbColDef["Type"], colDef.Type) {
+					log.Printf(" Column %s type mismatch: DB=%s, Expected=%s", colName, dbColDef["Type"], colDef.Type)
+					alterTableSQL := fmt.Sprintf("ALTER TABLE %s MODIFY COLUMN %s %s", tableName, colName, colDef.Type)
+					log.Printf(" Alter column with: %s", alterTableSQL)
+					// Implement ALTER TABLE to modify column type if needed
+				}
+				// Check other attributes as needed (Null, Key, Default, Extra)
+			} else {
+				// Column does not exist, add it
+				addColumnSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", tableName, colName, colDef.Type)
+				log.Printf("Adding missing column with SQL: %s", addColumnSQL)
+				// _, err := DbConnection.Exec(addColumnSQL)
+				// if err != nil {
+				// 	log.Printf("Error adding column %s to table %s: %v", colName, tableName, err)
+				// 	return err
+				// }
+				log.Printf("Added column %s to table %s", colName, tableName)
+			}
+		}
+		// Implement schema comparison and migration logic as needed
+		// This can be complex and is often handled by dedicated migration tools
+
 	}
 
 	return nil
 }
 func ensureTableExistsAndUpdatedForSqlite(dbe DBEntityInterface) error {
 	// TODO: Implement for Sqlite
+	return nil
+}
+func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface) error {
+	// Check if table exists
+	tableName := DbSchema + "_" + dbe.GetTableName()
+	log.Print("Checking table: ", tableName)
+	// This is internal code, so we can build the query directly
+	query := "SELECT to_regclass('" + tableName + "')"
+	var existingTable sql.NullString
+	err := DbConnection.QueryRow(query).Scan(&existingTable)
+	if err != nil {
+		log.Printf("Error checking existence of table %s: %v", tableName, err)
+		return err
+	}
+
+	if !existingTable.Valid {
+		// Table does not exist, create it
+		// Compose the create table SQL using the DBEntity's information about columns, types, keys, etc.
+		createTableSQL := dbe.GetCreateTableSQL(DbSchema)
+		// replace datetime with timestamp in createTableSQL for Postgres
+		createTableSQL = strings.ReplaceAll(createTableSQL, " DATETIME", " TIMESTAMP")
+		createTableSQL = strings.ReplaceAll(createTableSQL, " datetime", " TIMESTAMP")
+		log.Printf(" Creating table with SQL: %s", createTableSQL)
+		_, err := DbConnection.Exec(createTableSQL)
+		if err != nil {
+			return err
+		}
+		log.Printf(" Created table %s", tableName)
+	} else {
+		// Table exists, check for schema updates
+		// For simplicity, we will not implement schema migration logic here
+		log.Printf(" Table %s exists", tableName)
+		// Fetch table schema from Postgres and compare with DBEntity definition
+		// err := DbConnection.QueryRow("SELECT to_regclass('" + tableName + "')").Scan(&existingTable)
+		// if err != nil {
+		// 	log.Printf("Error describing table %s: %v", tableName, err)
+		// 	return err
+		// }
+		rows, err := DbConnection.Query("SELECT column_name, data_type, is_nullable, column_default, character_maximum_length FROM information_schema.columns WHERE table_name = $1", tableName)
+		if err != nil {
+			log.Printf("Error describing table %s: %v", tableName, err)
+			return err
+		}
+
+		defer rows.Close()
+		columnsInDB := make(map[string]map[string]string)
+		for rows.Next() {
+			var columnName, dataType, isNullable string
+			var columnDefault sql.NullString
+			var charMaxLength sql.NullInt64
+			if err := rows.Scan(&columnName, &dataType, &isNullable, &columnDefault, &charMaxLength); err != nil {
+				log.Printf("Error scanning row for table %s: %v", tableName, err)
+				return err
+			}
+			// log.Print("columnName=", columnName, " dataType=", dataType, " isNullable=", isNullable, " columnDefault=", columnDefault, " charMaxLength=", charMaxLength)
+			defaultValueStr := ""
+			if columnDefault.Valid {
+				defaultValueStr = columnDefault.String
+			}
+			columnsInDB[columnName] = map[string]string{
+				"Type":    dataType,
+				"Null":    isNullable,
+				"Default": defaultValueStr,
+				"MaxLen":  fmt.Sprintf("%d", charMaxLength.Int64),
+			}
+		}
+
+		// Compare columnsInDB with dbe.GetColumnDefinitions() and identify differences
+		columnDefs := dbe.GetColumnDefinitions()
+		for colName, colDef := range columnDefs {
+			colNameLowerCase := strings.ToLower(colName)
+			if dbColDef, exists := columnsInDB[colNameLowerCase]; exists {
+				// Column exists, check for differences
+				db_type := dbColDef["Type"]
+				db_type = strings.ToLower(db_type)
+				db_type = strings.ReplaceAll(db_type, "character varying", "varchar")
+				db_type = strings.ReplaceAll(db_type, "character", "char")
+				db_type = strings.ReplaceAll(db_type, "timestamp without time zone", "datetime")
+				db_type = strings.ReplaceAll(db_type, "timestamp", "datetime")
+				db_type = strings.ReplaceAll(db_type, "time without time zone", "time")
+				db_type = strings.ReplaceAll(db_type, "integer", "int")
+				if MaxLen, ok := dbColDef["MaxLen"]; ok && MaxLen != "0" {
+					db_type += fmt.Sprintf("(%s)", MaxLen)
+				}
+				if !strings.EqualFold(db_type, colDef.Type) {
+					log.Printf(" Column %s type mismatch: DB=%s, Expected=%s", colName, dbColDef["Type"], colDef.Type)
+					alterTableSQL := fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s", tableName, colName, colDef.Type)
+					log.Printf(" Alter column with: %s", alterTableSQL)
+					// Implement ALTER TABLE to modify column type if needed
+				}
+				// Check other attributes as needed (Null, Key, Default, Extra)
+			} else {
+				// Column does not exist, add it
+				addColumnSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", tableName, colName, colDef.Type)
+				log.Printf("Adding missing column with SQL: %s", addColumnSQL)
+				// _, err := DbConnection.Exec(addColumnSQL)
+				// if err != nil {
+				// 	log.Printf("Error adding column %s to table %s: %v", colName, tableName, err)
+				// 	return err
+				// }
+				log.Printf("Added column %s to table %s", colName, tableName)
+			}
+		}
+		// Implement schema comparison and migration logic as needed
+		// This can be complex and is often handled by dedicated migration tools
+
+	}
+
 	return nil
 }
 
@@ -138,83 +306,221 @@ func InitDBData() {
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false
-	// Check for "Guests" group
-	guestGroup := repo.GetInstanceByTableName("groups")
-	guestGroup.SetValue("name", "Guests")
-	results, err := repo.Search(guestGroup, false, false, "")
-	if err != nil {
-		log.Printf(" Failed to find or create 'Guests' group: %v\n", err)
+
+	// country list
+	results, err, shouldReturn := populateTable(repo, "countrylist", countryListColumns, countryListData)
+	if shouldReturn {
 		return
 	}
-	var guestGroupID string
-	if len(results) == 1 {
-		guestGroupID = results[0].GetValue("id").(string)
-		log.Printf(" Found existing 'Guests' group with ID %s\n", guestGroupID)
-	} else {
-		// Create the group
-		newGroup := repo.GetInstanceByTableName("groups")
-		newGroup.SetValue("name", "Guests")
-		newGroup.SetValue("description", "Default group for anonymous users")
-		created, err := repo.Insert(newGroup)
-		if err != nil {
-			log.Printf(" Failed to create 'Guests' group: %v\n", err)
-			return
-		}
-		guestGroupID = created.GetValue("id").(string)
-		log.Printf(" Created 'Guests' group with ID %s\n", guestGroupID)
+
+	// Groups
+	results, err, shouldReturn = populateTable(repo, "groups", groupsColumns, groupsData)
+	if shouldReturn {
+		return
 	}
+
+	// Users
+	results, err, shouldReturn = populateTable(repo, "users", usersColumns, usersData)
+	if shouldReturn {
+		return
+	}
+
+	// Users-Groups
+	results, err, shouldReturn = populateTable(repo, "users_groups", usersGroupsColumns, usersGroupsData)
+	if shouldReturn {
+		return
+	}
+
+	// Folders
+	results, err, shouldReturn = populateTable(repo, "folders", foldersColumns, foldersData)
+	if shouldReturn {
+		return
+	}
+
+	// Pages
+	results, err, shouldReturn = populateTable(repo, "pages", pagesColumns, pagesData)
+	if shouldReturn {
+		return
+	}
+
+	// Check for "Guests" group
+	// guestGroup := repo.GetInstanceByTableName("groups")
+	// guestGroup.SetValue("name", "Guests")
+	// results, err = repo.Search(guestGroup, false, false, "")
+	// if err != nil {
+	// 	log.Printf(" Failed to find or create 'Guests' group: %v\n", err)
+	// 	return
+	// }
+	// var guestGroupID string
+	// if len(results) == 1 {
+	// 	guestGroupID = results[0].GetValue("id").(string)
+	// 	log.Printf(" Found existing 'Guests' group with ID %s\n", guestGroupID)
+	// } else {
+	// 	// Create the group
+	// 	newGroup := repo.GetInstanceByTableName("groups")
+	// 	newGroup.SetValue("name", "Guests")
+	// 	newGroup.SetValue("description", "Default group for anonymous users")
+	// 	created, err := repo.Insert(newGroup)
+	// 	if err != nil {
+	// 		log.Printf(" Failed to create 'Guests' group: %v\n", err)
+	// 		return
+	// 	}
+	// 	guestGroupID = created.GetValue("id").(string)
+	// 	log.Printf(" Created 'Guests' group with ID %s\n", guestGroupID)
+	// }
 
 	// Check for anonymous user
-	anonUser := repo.GetInstanceByTableName("users")
-	anonUser.SetValue("login", "anonymous")
-	results, err = repo.Search(anonUser, false, false, "")
-	if err != nil {
-		log.Printf(" Failed to find or create 'anonymous' user: %v\n", err)
-		return
-	}
-	if len(results) == 1 {
-		log.Printf(" Found existing 'anonymous' user with ID %s\n", results[0].GetValue("id").(string))
-	} else {
-		// Create the user
-		newUser := repo.GetInstanceByTableName("users")
-		newUser.SetValue("id", "-7")
-		newUser.SetValue("login", "anonymous")
-		newUser.SetValue("pwd", "") // No password for anonymous user
-		newUser.SetValue("fullname", "Anonymous User")
-		newUser.SetMetadata("group_ids", []string{guestGroupID})
-		created, err := repo.Insert(newUser)
-		if err != nil {
-			log.Printf(" Failed to create 'anonymous' user: %v\n", err)
-			return
-		}
-		log.Printf(" Created 'anonymous' user with ID %s\n", created.GetValue("id").(string))
-	}
+	// anonUser := repo.GetInstanceByTableName("users")
+	// anonUser.SetValue("login", "anonymous")
+	// results, err = repo.Search(anonUser, false, false, "")
+	// if err != nil {
+	// 	log.Printf(" Failed to find or create 'anonymous' user: %v\n", err)
+	// 	return
+	// }
+	// if len(results) == 1 {
+	// 	log.Printf(" Found existing 'anonymous' user with ID %s\n", results[0].GetValue("id").(string))
+	// } else {
+	// 	// Create the user
+	// 	newUser := repo.GetInstanceByTableName("users")
+	// 	newUser.SetValue("id", "-7")
+	// 	newUser.SetValue("login", "anonymous")
+	// 	newUser.SetValue("pwd", "") // No password for anonymous user
+	// 	newUser.SetValue("fullname", "Anonymous User")
+	// 	newUser.SetMetadata("group_ids", []string{"-4"})
+	// 	created, err := repo.Insert(newUser)
+	// 	if err != nil {
+	// 		log.Printf(" Failed to create 'anonymous' user: %v\n", err)
+	// 		return
+	// 	}
+	// 	log.Printf(" Created 'anonymous' user with ID %s\n", created.GetValue("id").(string))
+	// }
 
 	// Check for default folder "Root"
-	rootFolder := repo.GetInstanceByTableName("folders")
-	rootFolder.SetValue("id", "0")
-	results, err = repo.Search(rootFolder, false, false, "")
+	// rootFolder := repo.GetInstanceByTableName("folders")
+	// rootFolder.SetValue("id", "0")
+	// results, err = repo.Search(rootFolder, false, false, "")
+	// if err != nil {
+	// 	log.Printf(" Failed to find or create 'Root' folder: %v\n", err)
+	// 	return
+	// }
+	// if len(results) == 1 {
+	// 	log.Printf(" Found existing 'Root' folder with ID %s\n", results[0].GetValue("id").(string))
+	// } else {
+	// 	// Create the folder
+	// 	newFolder := repo.GetInstanceByTableName("folders")
+	// 	newFolder.SetValue("id", "0")
+	// 	newFolder.SetValue("name", "root")
+	// 	newFolder.SetValue("description", "Default root folder")
+	// 	newFolder.SetValue("permissions", "rwxrw-r--") // Everyone can read
+	// 	created, err := repo.Insert(newFolder)
+	// 	if err != nil {
+	// 		log.Printf(" Failed to create 'Root' folder: %v\n", err)
+	// 		return
+	// 	}
+	// 	log.Printf(" Created 'Root' folder with ID %s\n", created.GetValue("id").(string))
+	// }
+
+	// DBVersion
+	dbVersion := repo.GetInstanceByTableName("dbversion")
+	results, err = repo.Search(dbVersion, false, false, "")
 	if err != nil {
-		log.Printf(" Failed to find or create 'Root' folder: %v\n", err)
+		log.Printf(" Failed to find or create DB version entry: %v\n", err)
 		return
 	}
-	if len(results) == 1 {
-		log.Printf(" Found existing 'Root' folder with ID %s\n", results[0].GetValue("id").(string))
-	} else {
-		// Create the folder
-		newFolder := repo.GetInstanceByTableName("folders")
-		newFolder.SetValue("id", "0")
-		newFolder.SetValue("name", "root")
-		newFolder.SetValue("description", "Default root folder")
-		newFolder.SetValue("permissions", "rwxrw-r--") // Everyone can read
-		created, err := repo.Insert(newFolder)
+	if len(results) == 0 {
+		newVersion := repo.GetInstanceByTableName("dbversion")
+		newVersion.SetValue("model_name", "rprj")
+		newVersion.SetValue("version", 2)
+		_, err := repo.Insert(newVersion)
 		if err != nil {
-			log.Printf(" Failed to create 'Root' folder: %v\n", err)
+			log.Printf(" Failed to create DB version entry: %v\n", err)
 			return
 		}
-		log.Printf(" Created 'Root' folder with ID %s\n", created.GetValue("id").(string))
+		log.Printf(" Created DB version entry.\n")
+	} else {
+		log.Printf(" DB version entry exists with version %s.\n", results[0].GetValue("version").(string))
+		// log.Printf(" DB version entry exists with version %d.\n", results[0].GetValue("version").(int))
 	}
+
 	log.Print("DB data initialization completed.")
+}
+
+func populateTable(repo *DBRepository, tablename string, listColumns []string, listData [][]string) ([]DBEntityInterface, error, bool) {
+	dbe := repo.GetInstanceByTableName(tablename)
+	results, err := repo.Search(dbe, false, false, "")
+	if err != nil {
+		log.Printf(" Failed to find or create %s: %v\n", tablename, err)
+		return nil, nil, true
+	}
+	log.Println(" Found ", len(results), " existing entries in ", tablename)
+	if len(results) == 0 {
+		// Populate table
+		log.Printf(" Populating %s...\n", tablename)
+		for _, entryData := range listData {
+			newEntry := repo.GetInstanceByTableName(tablename)
+			for i, columnName := range listColumns {
+				if entryData[i] == "" || entryData[i] == "NULL" {
+					continue
+				}
+				newEntry.SetValue(columnName, entryData[i])
+			}
+			if tablename == "folders" {
+				log.Println(" newEntry:", newEntry.ToJSON())
+			}
+			log.Printf(" Inserting entry: %s\n", entryData[0])
+			_, err := repo.Insert(newEntry)
+			if err != nil {
+				for _, col := range listColumns {
+					log.Printf("  %s = %v\n", col, newEntry.GetValue(col))
+				}
+				log.Printf(" Failed to insert data: %v\n", err)
+				return nil, nil, true
+			}
+		}
+	} else if tablename == "users_groups" && len(results) < len(listData) {
+		for _, entryData := range listData {
+			newEntry := repo.GetInstanceByTableName(tablename)
+			for i, columnName := range listColumns {
+				newEntry.SetValue(columnName, entryData[i])
+			}
+			log.Printf(" Inserting missing entry: %s\n", newEntry.ToJSON())
+			_, err := repo.Insert(newEntry)
+			if err != nil {
+				log.Printf(" Failed to insert data: %v\n", err)
+			}
+		}
+	} else if len(results) < len(listData) {
+		// Populate missing entries
+		log.Printf(" Populating missing entries in %s...\n", tablename)
+		existingEntries := make(map[string]bool)
+		for _, res := range results {
+			name := res.GetValue("id").(string)
+			existingEntries[name] = true
+		}
+		for _, entryData := range listData {
+			entryID := entryData[0]
+			if _, exists := existingEntries[entryID]; !exists {
+				newEntry := repo.GetInstanceByTableName(tablename)
+				for i, columnName := range listColumns {
+					if entryData[i] == "" || entryData[i] == "NULL" {
+						continue
+					}
+					newEntry.SetValue(columnName, entryData[i])
+				}
+				log.Printf(" Inserting missing entry: %s %s\n", entryID, entryData[1])
+				_, err := repo.Insert(newEntry)
+				if err != nil {
+					for _, col := range listColumns {
+						log.Printf("  %s = %v\n", col, newEntry.GetValue(col))
+					}
+					log.Printf(" Failed to insert data: %v\n", err)
+					return nil, nil, true
+				}
+			}
+		}
+	}
+	log.Printf(" %s initialized with %d entries.\n", tablename, len(listData))
+	return results, err, false
 }
 
 // Iterate over all registered DBEntity types and create tables if they do not exist or update their schema
@@ -232,12 +538,12 @@ func EnsureDBSchema() {
 	visited := make(map[string]bool)
 	temp := make(map[string]bool)
 
-	var visit func(DBEntityInterface) bool
-	visit = func(dbe DBEntityInterface) bool {
+	var visit func(DBEntityInterface, string) bool
+	visit = func(dbe DBEntityInterface, prefix string) bool {
 		className := dbe.GetTypeName()
 		if temp[className] {
 			// Circular dependency detected
-			log.Printf("Warning: Circular dependency detected for %s", className)
+			log.Printf(prefix+"- Warning: Circular dependency detected for %s", className)
 			return false
 		}
 		if visited[className] {
@@ -247,11 +553,18 @@ func EnsureDBSchema() {
 		temp[className] = true
 		// Get foreign key dependencies
 		foreignKeys := dbe.GetForeignKeys()
+		currentTableName := dbe.GetTableName()
 		for _, fk := range foreignKeys {
+			// Skip self-referencing foreign keys (e.g., DBObject.parent_id -> DBObject.id)
+			if fk.RefTable == currentTableName {
+				log.Printf(prefix+"- Skipping self-referencing FK: %s.%s -> %s.%s", currentTableName, fk.Column, fk.RefTable, fk.RefColumn)
+				continue
+			}
 			// Find the referenced table's DBEntity
 			for _, depDbe := range classInstances {
 				if depDbe.GetTableName() == fk.RefTable {
-					if !visit(depDbe) {
+					// log.Printf(prefix+"- %s depends on %s via FK %s -> %s", className, depDbe.GetTypeName(), fk.Column, fk.RefColumn)
+					if !visit(depDbe, prefix+"  ") {
 						return false
 					}
 					break
@@ -265,9 +578,14 @@ func EnsureDBSchema() {
 	}
 
 	for _, dbe := range classInstances {
+		// log.Print("Processing ", dbe.GetTypeName())
 		if !visited[dbe.GetTypeName()] {
-			visit(dbe)
+			// log.Printf("- Visiting %s for topological sort", dbe.GetTypeName())
+			visit(dbe, "  ")
 		}
+		// visitedJSON, _ := json.Marshal(visited)
+		// visitedJSON, _ := json.MarshalIndent(visited, "  ", "  ")
+		// log.Print(" Visited:", string(visitedJSON))
 	}
 	// reverse sorted to get correct order
 	// for i, j := 0, len(sorted)-1; i < j; i, j = i+1, j-1 {
@@ -276,13 +594,13 @@ func EnsureDBSchema() {
 	// slices.Reverse(sorted)
 
 	// Print sorted class names for debugging
-	log.Print("DB Entities creation order:")
-	for _, dbe := range sorted {
-		log.Printf(" - %s\n", dbe.GetTableName())
-		for _, fk := range dbe.GetForeignKeys() {
-			log.Printf("    FK: %s -> %s(%s)\n", fk.Column, fk.RefTable, fk.RefColumn)
-		}
-	}
+	// log.Print("DB Entities creation order:")
+	// for _, dbe := range sorted {
+	// 	log.Printf(" - %s\n", dbe.GetTableName())
+	// 	for _, fk := range dbe.GetForeignKeys() {
+	// 		log.Printf("    FK: %s -> %s(%s)\n", fk.Column, fk.RefTable, fk.RefColumn)
+	// 	}
+	// }
 
 	classInstances = sorted
 
@@ -294,6 +612,8 @@ func EnsureDBSchema() {
 			err = ensureTableExistsAndUpdatedForMysql(dbe)
 		case "sqlite":
 			err = ensureTableExistsAndUpdatedForSqlite(dbe)
+		case "postgres":
+			err = ensureTableExistsAndUpdatedForPostgres(dbe)
 		default:
 			log.Fatal("Unsupported dbEngine:", dbEngine)
 		}
