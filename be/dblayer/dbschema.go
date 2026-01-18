@@ -63,7 +63,7 @@ type OAuthToken struct {
 
 func NewOAuthToken() *OAuthToken {
 	columns := []Column{
-		{Name: "token_id", Type: "varchar(64)", Constraints: []string{"PRIMARY KEY"}},
+		{Name: "token_id", Type: "varchar(512)", Constraints: []string{"PRIMARY KEY"}},
 		{Name: "user_id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "access_token", Type: "text", Constraints: []string{"NOT NULL"}},
 		{Name: "refresh_token", Type: "text", Constraints: []string{}},
@@ -618,7 +618,7 @@ func NewDBObject() *DBObject {
 		{Name: "id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "owner", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "group_id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "permissions", Type: "varchar(9)", Constraints: []string{"NOT NULL"}},
+		{Name: "permissions", Type: "char(9)", Constraints: []string{"NOT NULL"}},
 		{Name: "creator", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
 		{Name: "creation_date", Type: "datetime", Constraints: []string{}},
 		{Name: "last_modify", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
