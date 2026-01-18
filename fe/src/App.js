@@ -26,15 +26,15 @@ import SiteNavigation from './SiteNavigation';
 import ContentEdit from './ContentEdit';
 import Search from './Search';
 import { AppFooter } from './Footer';
-import { isTokenValid } from './sitenavigation_utils';
+import { isAdminUser, isWebmasterUser, isGuestUser, isTokenValid } from './sitenavigation_utils';
 
 function App() {
   // const token = localStorage.getItem("token");
-  const validToken = isTokenValid();
+  const isValidToken = isTokenValid();
   // console.log("App: token present: " + (token ? "yes" : "no") + ", valid: " + (validToken ? "yes" : "no"));
   const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
-  const isAdmin = groups.includes("-2");
-  const isWebmaster = groups.includes(app_cfg.webmaster_group_id);
+  const isAdmin = isAdminUser();
+  const isWebmaster = isWebmasterUser();
   
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -57,37 +57,37 @@ function App() {
             <Route path="/f/:objectId/download" element={<FileDownload />} />
 
             {/* Content Edit - edit object by ID (requires authentication) */}
-            <Route path="/e/:id" element={validToken ? <ContentEdit /> : <Navigate to={`/c/${window.location.pathname.split('/').pop()}`} replace />} />
+            <Route path="/e/:id" element={isValidToken ? <ContentEdit /> : <Navigate to={`/c/${window.location.pathname.split('/').pop()}`} replace />} />
 
             {/* User profile - accessible by the user themselves or admins */}
-            <Route path="/users/:userId" element={validToken ? <UserProfile /> : <Navigate to="/login" />} />
+            <Route path="/users/:userId" element={isValidToken ? <UserProfile /> : <Navigate to="/login" />} />
 
             {/* Group profile - only for admins */}
-            <Route path="/groups/:groupId" element={validToken ? <GroupProfile /> : <Navigate to="/" />} />
+            <Route path="/groups/:groupId" element={isValidToken ? <GroupProfile /> : <Navigate to="/" />} />
 
             {/* **** Webmaster **** */}
-            <Route path="/folders" element={validToken && isWebmaster ? <Folders /> : <Navigate to="/" />} />
-            <Route path="/pages"   element={validToken && isWebmaster ?   <Pages /> : <Navigate to="/" />} />
-            <Route path="/news"    element={validToken && isWebmaster ?    <News /> : <Navigate to="/" />} />
-            <Route path="/files"   element={validToken && isWebmaster ?   <Files /> : <Navigate to="/" />} />
-            <Route path="/links"   element={validToken && isWebmaster ?   <Links /> : <Navigate to="/" />} />
-            <Route path="/events"  element={validToken && isWebmaster ?  <Events /> : <Navigate to="/" />} />
+            <Route path="/folders" element={isValidToken && isWebmaster ? <Folders /> : <Navigate to="/" />} />
+            <Route path="/pages"   element={isValidToken && isWebmaster ?   <Pages /> : <Navigate to="/" />} />
+            <Route path="/news"    element={isValidToken && isWebmaster ?    <News /> : <Navigate to="/" />} />
+            <Route path="/files"   element={isValidToken && isWebmaster ?   <Files /> : <Navigate to="/" />} />
+            <Route path="/links"   element={isValidToken && isWebmaster ?   <Links /> : <Navigate to="/" />} />
+            <Route path="/events"  element={isValidToken && isWebmaster ?  <Events /> : <Navigate to="/" />} />
 
             {/* **** Contacts **** */}
-            <Route path="/companies" element={validToken ? <Companies /> : <Navigate to="/" />} />
-            <Route path="/people"    element={validToken ?    <People /> : <Navigate to="/" />} />
+            <Route path="/companies" element={isValidToken ? <Companies /> : <Navigate to="/" />} />
+            <Route path="/people"    element={isValidToken ?    <People /> : <Navigate to="/" />} />
             {/* **** User menu **** */}
-            <Route path="/notes"    element={validToken ?    <Notes /> : <Navigate to="/" />} />
+            <Route path="/notes"    element={isValidToken ?    <Notes /> : <Navigate to="/" />} />
 
             {/* **** Admin **** */}
 
             {/* Protected routes - only for admins (group -2) */}
-            <Route path="/admin/dashboard" element={validToken && isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
+            <Route path="/admin/dashboard" element={isValidToken && isAdmin ? <AdminDashboard /> : <Navigate to="/" />} />
 
-            <Route path="/users" element={validToken && isAdmin ? <Users /> : <Navigate to="/" />} />
-            <Route path="/groups" element={validToken && isAdmin ? <Groups /> : <Navigate to="/" />} />
+            <Route path="/users" element={isValidToken && isAdmin ? <Users /> : <Navigate to="/" />} />
+            <Route path="/groups" element={isValidToken && isAdmin ? <Groups /> : <Navigate to="/" />} />
 
-            <Route path="/objects"    element={validToken ?    <Objects /> : <Navigate to="/" />} />
+            <Route path="/objects"    element={isValidToken ?    <Objects /> : <Navigate to="/" />} />
 
             {/* Default -> redirect to / */}
             <Route path="*" element={<Navigate to="/default" />} />

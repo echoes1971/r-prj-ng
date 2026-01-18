@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from './axios';
+import { app_cfg } from './app.cfg';
 
 // Format object ID: if 16 chars, format as xxxx-xxxxxxxx-xxxx
 export function formatObjectId(objId) {
@@ -86,7 +87,8 @@ export function isAdminUser() {
 
 export function isWebmasterUser() {
     const groups = localStorage.getItem("groups") ? JSON.parse(localStorage.getItem("groups")) : [];
-    const webmasterGroupId = process.env.REACT_APP_WEBMASTER_GROUP_ID || "-3";
+    const webmasterGroupId = app_cfg.webmaster_group_id || "-3"; 
+    //process.env.REACT_APP_WEBMASTER_GROUP_ID || "-3";
     return groups.includes(webmasterGroupId);
 }
 
