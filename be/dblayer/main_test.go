@@ -78,7 +78,7 @@ func setupTestRepo(t *testing.T) *DBRepository {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false

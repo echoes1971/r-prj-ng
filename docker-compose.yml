@@ -48,6 +48,7 @@ services:
       - "1971"
     environment:
       # Fill these in for production with your OAuth credentials
+      - DB_ENGINE=mysql
       - DB_URL=root:mysecret@tcp(mysql:3306)/rproject
       - GOOGLE_CLIENT_ID=
       - GOOGLE_CLIENT_SECRET=

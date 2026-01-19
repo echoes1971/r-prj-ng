@@ -310,6 +310,15 @@ var usersGroupsData = [][]string{
 	{"-7", "-4"},
 }
 
+var objectsColumns = []string{
+	"id", "owner", "group_id", "permissions",
+	"creator", "creation_date", "last_modify", "last_modify_date",
+	"deleted_by", "deleted_date",
+	"father_id", "name",
+	"description",
+}
+var objectsData = [][]string{}
+
 var foldersColumns = []string{
 	"id", "owner", "group_id", "permissions",
 	"creator", "creation_date", "last_modify", "last_modify_date",

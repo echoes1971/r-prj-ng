@@ -17,7 +17,7 @@ func TestCreateTableStrings(t *testing.T) {
 	// Loop through all registered entities and print their CREATE TABLE strings
 	for _, className := range factory.GetAllClassNames() {
 		entity := factory.GetInstanceByClassName(className)
-		createTableSQL := entity.GetCreateTableSQL("rprj")
+		createTableSQL := GetCreateTableSQL(entity, "rprj")
 		log.Printf("CREATE TABLE SQL for %s:\n%s\n", className, createTableSQL)
 	}
 }

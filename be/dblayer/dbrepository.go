@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 )
 
 type DBContext struct {
@@ -276,6 +277,8 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 		return nil, err
 	}
 
+	isPostgres := dbEngine == "postgres"
+
 	for rows.Next() {
 		// Create a new instance of the DBEntity
 		resultEntity := dbe.NewInstance()
@@ -296,6 +299,25 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 		// Map column values to the result entity's dictionary
 		for i, colName := range columns {
 			val := columnValues[i]
+
+			// Special handling for PostgreSQL bytea fields
+			if isPostgres {
+				// Check if the column type is []uint8 (bytea)
+				switch v := val.(type) {
+				case []uint8:
+					dbe.SetValue(colName, string(v))
+					continue
+				case time.Time:
+					// IF is datetime, convert to time.Time
+					// log.Print("DBRepository::Select: column ", colName, " is time.Time with value ", v)
+					dbe.SetValue(colName, v)
+					continue
+				// Add other special types as needed
+				default:
+					// log.Printf("DBRepository::Select: column %s has type %T", colName, v)
+				}
+			}
+
 			if b, ok := val.([]byte); ok {
 				resultEntity.SetValue(colName, string(b))
 			} else if val != nil {
@@ -702,10 +724,9 @@ func (dbr *DBRepository) ObjectByID(objectID string, ignoreDeleted bool) DBEntit
 	var queries []string
 
 	for _, className := range registeredTypes {
-		// TODO: enable this once we have subclasses
-		// if className == "DBObject" {
-		// 	continue
-		// }
+		if dbEngine == "postgres" && className == "DBObject" {
+			continue
+		}
 		dbe := dbr.GetInstanceByClassName(className)
 		if dbe == nil {
 			continue
@@ -980,6 +1001,8 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 		return nil
 	}
 
+	isPostgres := dbEngine == "postgres"
+
 	for rows.Next() {
 		// Read classname first
 		// var className string
@@ -1026,6 +1049,23 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 			if val == nil {
 				// dbe.SetValue(colName, nil)
 				continue
+			}
+			// Special handling for PostgreSQL bytea fields
+			if isPostgres {
+				// Check if the column type is []uint8 (bytea)
+				switch v := val.(type) {
+				case []uint8:
+					dbe.SetValue(colName, string(v))
+					continue
+				case time.Time:
+					// IF is datetime, convert to time.Time
+					// log.Print("DBRepository::Select: column ", colName, " is time.Time with value ", v)
+					dbe.SetValue(colName, v)
+					continue
+				// Add other special types as needed
+				default:
+					// log.Printf("DBRepository::Select: column %s has type %T", colName, v)
+				}
 			}
 			if b, ok := val.([]byte); ok {
 				dbe.SetValue(colName, string(b))

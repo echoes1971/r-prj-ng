@@ -136,6 +136,14 @@ func main() {
 		AppConfig.TablePrefix = tablePrefix
 	}
 
+	// Override DB settings from environment variables if present
+	if dbEngine := os.Getenv("DB_ENGINE"); dbEngine != "" {
+		AppConfig.DBEngine = dbEngine
+	}
+	if dbURL := os.Getenv("DB_URL"); dbURL != "" {
+		AppConfig.DBUrl = dbURL
+	}
+
 	// Override Ollama settings from environment variables if present
 	if ollamaURL := os.Getenv("OLLAMA_URL"); ollamaURL != "" {
 		AppConfig.OllamaURL = ollamaURL

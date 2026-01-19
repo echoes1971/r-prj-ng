@@ -63,7 +63,6 @@ type DBEntityInterface interface {
 	IsDBObject() bool
 	ToString() string
 	ToJSON() string
-	GetCreateTableSQL(dbSchema string) string
 
 	getDictionary() map[string]any
 	beforeInsert(dbRepository *DBRepository, tx *sql.Tx) error
@@ -323,41 +322,6 @@ func (dbEntity *DBEntity) ToJSON() string {
 		return "{}"
 	}
 	return string(jsonBytes)
-}
-
-func (dbEntity *DBEntity) GetCreateTableSQL(dbSchema string) string {
-	columnDefs := []string{}
-	for _, col := range dbEntity.columns {
-		colDef := fmt.Sprintf(" %s %s", col.Name, col.Type)
-		if len(col.Constraints) > 0 {
-			colDef += " " + strings.Join(col.Constraints, " ")
-		}
-		columnDefs = append(columnDefs, colDef)
-	}
-	// Add primary key constraint
-	if len(dbEntity.keys) > 0 {
-		pkDef := fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(dbEntity.keys, ", "))
-		columnDefs = append(columnDefs, pkDef)
-	}
-	// TODO: is it worth it as I have fields pointing to multiple tables?
-	// // Add foreign key constraints
-	// for _, fk := range dbEntity.foreignKeys {
-	// 	// TODO: remove this exception when implementing project entities
-	// 	notExistingTables := []string{"projects", "tasks"}
-	// 	if slices.Contains(notExistingTables, fk.RefTable) {
-	// 		continue
-	// 	}
-	// 	// TODO: with Postgresql, we should skip FK to objects table
-	// 	if fk.RefTable == "objects" {
-	// 		continue
-	// 	}
-
-	// 	fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s_%s(%s)", fk.Column, dbSchema, fk.RefTable, fk.RefColumn)
-	// 	columnDefs = append(columnDefs, fkDef)
-	// }
-	// IF NOT EXISTS is redundant as we check for table existence before calling this method: but it's kept for future use cases
-	createTableSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s_%s (\n%s\n);", dbSchema, dbEntity.tablename, strings.Join(columnDefs, ",\n"))
-	return createTableSQL
 }
 
 func (dbEntity *DBEntity) beforeInsert(dbRepository *DBRepository, tx *sql.Tx) error {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"rprj/be/models"
+	"slices"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -25,6 +26,7 @@ var dbFiles_dest_directory string = "files"
 
 func InitDBLayer(config models.Config) {
 	dbEngine = config.DBEngine
+	log.Print("DB Engine:", dbEngine)
 	dbUrl = config.DBUrl
 	DbSchema = strings.ReplaceAll(config.TablePrefix, "_", "")
 	log.Print("DB Schema:", DbSchema)
@@ -91,6 +93,55 @@ func InitDBConnection() {
 	}
 }
 
+// GetCreateTableSQL generates CREATE TABLE SQL for the given entity
+// This is a standalone function to properly use polymorphism with IsDBObject()
+func GetCreateTableSQL(dbe DBEntityInterface, dbSchema string) string {
+	columnDefs := []string{}
+
+	isDBObject := dbe.IsDBObject()
+	log.Print("isDBObject=", isDBObject, " typename=", dbe.GetTypeName())
+	isDBObjectChild := isDBObject && dbe.GetTypeName() != "DBObject"
+
+	for _, col := range dbe.GetColumnDefinitions() {
+		if dbEngine == "postgres" && isDBObjectChild && slices.Contains(objectsColumns, col.Name) {
+			continue
+		}
+		colDef := fmt.Sprintf(" %s %s", col.Name, col.Type)
+		if len(col.Constraints) > 0 {
+			colDef += " " + strings.Join(col.Constraints, " ")
+		}
+		columnDefs = append(columnDefs, colDef)
+	}
+	// Add primary key constraint
+	if len(dbe.GetKeys()) > 0 {
+		pkDef := fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(dbe.GetKeys(), ", "))
+		columnDefs = append(columnDefs, pkDef)
+	}
+	// TODO: is it worth it as I have fields pointing to multiple tables?
+	// // Add foreign key constraints
+	// for _, fk := range dbEntity.foreignKeys {
+	// 	// TODO: remove this exception when implementing project entities
+	// 	notExistingTables := []string{"projects", "tasks"}
+	// 	if slices.Contains(notExistingTables, fk.RefTable) {
+	// 		continue
+	// 	}
+	// 	// TODO: with Postgresql, we should skip FK to objects table
+	// 	if fk.RefTable == "objects" {
+	// 		continue
+	// 	}
+
+	// 	fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s_%s(%s)", fk.Column, dbSchema, fk.RefTable, fk.RefColumn)
+	// 	columnDefs = append(columnDefs, fkDef)
+	// }
+	// IF NOT EXISTS is redundant as we check for table existence before calling this method: but it's kept for future use cases
+	inheritanceClause := ""
+	if dbEngine == "postgres" && isDBObjectChild {
+		inheritanceClause = fmt.Sprintf(" INHERITS (%s_%s)", dbSchema, "objects")
+	}
+	createTableSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s_%s (\n%s\n)%s;", dbSchema, dbe.GetTableName(), strings.Join(columnDefs, ",\n"), inheritanceClause)
+	return createTableSQL
+}
+
 // The database can be mysql, sqlite, postgres, etc.
 func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 	// Check if table exists
@@ -108,7 +159,7 @@ func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 	if existingTable == "" {
 		// Table does not exist, create it
 		// Compose the create table SQL using the DBEntity's information about columns, types, keys, etc.
-		createTableSQL := dbe.GetCreateTableSQL(DbSchema)
+		createTableSQL := GetCreateTableSQL(dbe, DbSchema)
 		log.Printf(" Creating table with SQL: %s", createTableSQL)
 		// _, err := DbConnection.Exec(createTableSQL)
 		// if err != nil {
@@ -200,7 +251,7 @@ func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface) error {
 	if !existingTable.Valid {
 		// Table does not exist, create it
 		// Compose the create table SQL using the DBEntity's information about columns, types, keys, etc.
-		createTableSQL := dbe.GetCreateTableSQL(DbSchema)
+		createTableSQL := GetCreateTableSQL(dbe, DbSchema)
 		// replace datetime with timestamp in createTableSQL for Postgres
 		createTableSQL = strings.ReplaceAll(createTableSQL, " DATETIME", " TIMESTAMP")
 		createTableSQL = strings.ReplaceAll(createTableSQL, " datetime", " TIMESTAMP")
