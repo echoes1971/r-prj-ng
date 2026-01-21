@@ -1,0 +1,10 @@
+{
+  "server_port": 1971,
+  "db_engine": "sqlite",
+  "db_url": "file:rhobee_test.db",
+  "table_prefix": "rho",
+  "jwt_secret": "myjwtsecretkeyforsqlite",
+  "log_level": "debug",
+  "ollama_model": "",
+  "ollama_url": ""
+}

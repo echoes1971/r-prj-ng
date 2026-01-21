@@ -754,6 +754,10 @@ func (dbObject *DBObject) SetDefaultValues(repo *DBRepository) {
 			dbObject.SetValue("permissions", father.GetValue("permissions"))
 		}
 	}
+
+	if !dbObject.HasValue("permissions") {
+		dbObject.SetValue("permissions", "rwx------")
+	}
 }
 
 func (dbObject *DBObject) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {

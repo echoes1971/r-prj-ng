@@ -10,7 +10,7 @@ import (
 
 // go test -v ./api -run TestAdminDashboardHandler
 func TestAdminDashboardHandler(t *testing.T) {
-	// repo := SetupTestRepo(t, "-1", []string{"-2"}, "rprj")
+	// repo := SetupTestRepo(t, "-1", []string{"-2"}, DbSchema)
 
 	// First, log in to get a token
 	token := ApiTestDoLogin(t, testAdminLogin, testAdminPwd)

@@ -305,12 +305,12 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 				// Check if the column type is []uint8 (bytea)
 				switch v := val.(type) {
 				case []uint8:
-					dbe.SetValue(colName, string(v))
+					resultEntity.SetValue(colName, string(v))
 					continue
 				case time.Time:
 					// IF is datetime, convert to time.Time
 					// log.Print("DBRepository::Select: column ", colName, " is time.Time with value ", v)
-					dbe.SetValue(colName, v)
+					resultEntity.SetValue(colName, v)
 					continue
 				// Add other special types as needed
 				default:
@@ -763,6 +763,7 @@ func (dbr *DBRepository) FullObjectById(objectID string, ignoreDeleted bool) DBE
 	if obj == nil {
 		return nil
 	}
+
 	dbObj, ok := obj.(*DBObject)
 	if !ok {
 		return nil

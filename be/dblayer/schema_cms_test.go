@@ -11,7 +11,7 @@ func TestDBFolderDefaultValues(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	fk_obj_id_value := "-10"

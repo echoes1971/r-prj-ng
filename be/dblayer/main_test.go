@@ -31,8 +31,17 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
+	config.RootDirectory, err = filepath.Abs(config.RootDirectory)
+	if err != nil {
+		log.Fatalf("Error getting absolute path of root directory: %v", err)
+	}
+	log.Printf("Using root directory: %s", config.RootDirectory)
+	config.FilesDirectory = "test_files"
+	log.Printf("Using files directory: %s", config.FilesDirectory)
 
 	InitDBLayer(config)
+	EnsureDBSchema(true)
+	InitDBData()
 
 	// Esegui i test
 	exitCode := m.Run()
@@ -98,6 +107,7 @@ func SetupTestRepo(t *testing.T, user_id string, group_ids []string, schema stri
 // prepareTestFile copies a test file from testdata to upload directory
 func prepareTestFile(t *testing.T, srcPath, destFilename string) string {
 	uploadDir := dbFiles_root_directory + "/" + dbFiles_dest_directory
+	log.Print("Preparing test file. Source:", srcPath, " Destination dir:", uploadDir)
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		t.Fatalf("Failed to create upload directory: %v", err)
 	}
@@ -134,7 +144,7 @@ func createTestObject(t *testing.T, repo *DBRepository, tableName string, values
 }
 
 // createTestFile creates a DBFile with automatic file preparation
-// Usage: createTestFile(t, repo, "testdata/images/test.jpg", map[string]any{"name": "Test Image"})
+// Usage: createTestFile(t, repo, "dblayer/dblayer/testdata/images/test.jpg", map[string]any{"name": "Test Image"})
 func createTestFile(t *testing.T, repo *DBRepository, srcPath string, values map[string]any, metadata map[string]any) *DBFile {
 	// Generate unique filename
 	filename := filepath.Base(srcPath)

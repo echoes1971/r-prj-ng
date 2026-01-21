@@ -58,12 +58,86 @@ func InitDBLayer(config models.Config) {
 	// Process foreign keys after all registrations
 	Factory.ProcessForeignKeys()
 
+	InitDBConnection()
+	// log.Print("Initializing DB connection...")
+	// var err error
+	// DbConnection, err = sql.Open(dbEngine, dbUrl)
+	// if err != nil {
+	// 	log.Fatal("Error opening DB connection:", err)
+	// }
+	// err = DbConnection.Ping()
+	// if err != nil {
+	// 	log.Print("Error pinging DB:", err)
+	// }
+
+	// // TODO: make this configurable
+	// // Configure connection pool to handle concurrent operations
+	// DbConnection.SetMaxOpenConns(25)   // Maximum number of open connections to the database
+	// DbConnection.SetMaxIdleConns(10)   // Maximum number of connections in the idle connection pool
+	// DbConnection.SetConnMaxLifetime(0) // Maximum amount of time a connection may be reused (0 = unlimited)
+
+}
+
+func InitDBConnection() {
+	if DbConnection != nil {
+		return
+	}
 	log.Print("Initializing DB connection...")
 	var err error
-	DbConnection, err = sql.Open(dbEngine, dbUrl)
-	if err != nil {
-		log.Fatal("Error opening DB connection:", err)
+	// DbConnection, err = sql.Open(dbEngine, dbUrl)
+	// if err != nil {
+	// 	log.Print(" InitDBConnection: Error opening DB connection:", err)
+	// }
+
+	log.Print(" DB Engine: ", dbEngine, " DB URL:", dbUrl)
+	dbName := ""
+	switch dbEngine {
+	case "mysql":
+		parts := strings.Split(dbUrl, "/")
+		if len(parts) > 1 {
+			dbName = strings.Split(parts[1], "?")[0]
+		}
+	case "postgres":
+		parts := strings.Split(dbUrl, "/")
+		log.Print(" DB URL parts:", parts)
+		if len(parts) > 1 {
+			dbName = strings.Split(parts[len(parts)-1], "?")[0]
+		}
 	}
+	log.Print(" DB Name:", dbName)
+	dbUrlNoDB := ""
+	if dbName != "" {
+		dbUrlNoDB = strings.ReplaceAll(dbUrl, "/"+dbName, "/")
+	}
+	log.Print(" DB URL without DB:", dbUrlNoDB)
+
+	DbConnection, err = sql.Open(dbEngine, dbUrlNoDB)
+	if err != nil {
+		log.Fatal(" InitDBConnection: Error opening DB connection:", err)
+	}
+
+	// Create DB if not exists (for sqlite, the DB file is created automatically)
+	sqlCreateDB := ""
+	switch dbEngine {
+	case "mysql":
+		sqlCreateDB = "CREATE DATABASE IF NOT EXISTS " + dbName + ";"
+	case "postgres":
+		sqlCreateDB = "CREATE DATABASE " + dbName + ";"
+	}
+	if sqlCreateDB != "" {
+		log.Print("Creating DB if not exists with SQL:", sqlCreateDB)
+		_, err = DbConnection.Exec(sqlCreateDB)
+		if err != nil {
+			log.Print(" Error creating DB:", err)
+		}
+		// Close and reopen connection to the specific DB
+		DbConnection.Close()
+		DbConnection, err = sql.Open(dbEngine, dbUrl)
+		if err != nil {
+			log.Fatal(" InitDBConnection: Error reopening DB connection:", err)
+		}
+	}
+
 	err = DbConnection.Ping()
 	if err != nil {
 		log.Fatal("Error pinging DB:", err)
@@ -74,23 +148,6 @@ func InitDBLayer(config models.Config) {
 	DbConnection.SetMaxOpenConns(25)   // Maximum number of open connections to the database
 	DbConnection.SetMaxIdleConns(10)   // Maximum number of connections in the idle connection pool
 	DbConnection.SetConnMaxLifetime(0) // Maximum amount of time a connection may be reused (0 = unlimited)
-
-}
-
-func InitDBConnection() {
-	if DbConnection != nil {
-		return
-	}
-	log.Print("Initializing DB connection...")
-	var err error
-	DbConnection, err = sql.Open(dbEngine, dbUrl)
-	if err != nil {
-		log.Fatal("InitDBConnection: Error opening DB connection:", err)
-	}
-	err = DbConnection.Ping()
-	if err != nil {
-		log.Fatal("Error pinging DB:", err)
-	}
 }
 
 // GetCreateTableSQL generates CREATE TABLE SQL for the given entity

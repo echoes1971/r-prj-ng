@@ -296,8 +296,9 @@ rwxrw-r--
 func TestGetCreatableTypesHandler(t *testing.T) {
 	token := ApiTestDoLogin(t, testAdminLogin, testAdminPwd)
 
-	claims := ApiTestDecodeAccessToken(t, token)
-	log.Printf("Decoded token claims: %+v", claims)
+	// claims := ApiTestDecodeAccessToken(t, token)
+	// claimsJSON, _ := json.Marshal(claims)
+	// log.Printf("Decoded token claims: %+v", string(claimsJSON))
 
 	// Create a folder
 	repo := SetupTestRepo(t,
@@ -305,11 +306,12 @@ func TestGetCreatableTypesHandler(t *testing.T) {
 		[]string{testUser.GetValue("group_id").(string)},
 		AppConfig.TablePrefix)
 
+	// folder, err := repo.CreateObject("folders", map[string]any{"name": "testfolder", "permissions": "rwxrw----"}, map[string]any{})
 	folder, err := repo.CreateObject("folders", map[string]any{"name": "testfolder"}, map[string]any{})
 	if err != nil {
 		t.Fatalf("Failed to create folder: %v", err)
 	}
-	// log.Printf("Created folder: %+v", folder.ToJSON())
+	log.Printf("Created folder: %s %+v", folder.GetValue("id").(string), folder.ToJSON())
 
 	// Test the GetCreatableTypesHandler
 	// req := httptest.NewRequest(http.MethodGet, "/object/creatable_types?father_id=515", nil)
@@ -321,13 +323,14 @@ func TestGetCreatableTypesHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
+		log.Print("Response body:", rr.Body.String())
 		t.Fatalf("Expected status OK, got %v", rr.Code)
 	}
 
 	var response map[string]any
 	log.Print("Response body:", rr.Body.String())
 	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	log.Print("Response:", response)
+	// log.Print("Response:", response)
 	if err != nil {
 		t.Fatalf("Failed to parse response JSON: %v", err)
 	}

@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"log"
 	"math/rand"
 	"net/http"
@@ -19,16 +20,22 @@ var AppConfig models.Config
 var testAdminLogin string
 var testAdminPwd string
 var testUser dblayer.DBEntityInterface
+var (
+	configFile = flag.String("config", "../config.json", "Path to configuration file")
+)
 
 // TestMain is executed before running tests
 func TestMain(m *testing.M) {
 
-	err := models.LoadConfig("../config.json", &AppConfig)
+	flag.Parse()
+	err := models.LoadConfig(*configFile, &AppConfig)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
 
 	dblayer.InitDBLayer(AppConfig)
+	dblayer.EnsureDBSchema(true)
+	dblayer.InitDBData()
 	log.Println("DB initialized for tests")
 
 	repo := SetupTestRepo(nil, "-1", []string{"-2"}, AppConfig.TablePrefix)
@@ -51,16 +58,19 @@ func TestMain(m *testing.M) {
 			"pwd":      testAdminPwd,
 			"fullname": "Test User " + randomDigits,
 		}, map[string]any{
-			"group_ids": []string{"-1"}, // Admin group
+			"group_ids": []string{"-1", "-6"}, // Admin group
 		})
 		if err != nil {
 			log.Fatalf("Failed to create test admin user: %v", err)
 		}
+		// An encrypted pwd is returned, so we set the clear one for tests
+		testUser.SetValue("pwd", testAdminPwd)
 		log.Printf("Created test admin user: login='%s' pwd='%s'\n", testUser.GetValue("login"), "pass"+randomDigits)
 	} else {
 		log.Printf("Test admin user '%s' already exists, using existing user\n", testAdminLogin)
 		testUser = foundUsers[0]
 	}
+	log.Print("Test admin user=", testUser.ToString())
 
 	// Run tests
 	code := m.Run()
@@ -122,6 +132,7 @@ func ApiTestDoLogin(t *testing.T, login, pwd string) string {
 		Pwd:   pwd,
 	}
 	body, _ := json.Marshal(creds)
+	log.Print("Logging in with: ", string(body))
 
 	req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -131,6 +142,7 @@ func ApiTestDoLogin(t *testing.T, login, pwd string) string {
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
+		log.Print("Response body: ", rr.Body.String())
 		t.Fatalf("DoLogin: wrong status code: got %v, want %v", rr.Code, http.StatusOK)
 	}
 

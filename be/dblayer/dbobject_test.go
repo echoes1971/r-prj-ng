@@ -118,7 +118,7 @@ func TestObjectById(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
@@ -167,7 +167,7 @@ func TestFullObjectById(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)

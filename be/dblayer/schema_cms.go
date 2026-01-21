@@ -589,6 +589,10 @@ func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	if dbFile.IsImage() {
 		dbFile.createThumbnail(fullpath)
 	}
+	// alt_link must not be null
+	if dbFile.GetValue("alt_link") == nil {
+		dbFile.SetValue("alt_link", "")
+	}
 	return nil
 }
 

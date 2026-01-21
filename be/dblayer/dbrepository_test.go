@@ -24,7 +24,7 @@ func TestSearchUserByLogin(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	// Step 2: Create a new DBEntity of type "users"
@@ -61,7 +61,7 @@ func TestInsertUser(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
@@ -127,7 +127,7 @@ func TestConcurrentMayhem(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
@@ -263,7 +263,7 @@ func TestCRUDUser(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
@@ -358,7 +358,7 @@ func TestCRUDMayhem(t *testing.T) {
 	dbContext := &DBContext{
 		UserID:   "-1",
 		GroupIDs: []string{"-2"},
-		Schema:   "rprj",
+		Schema:   DbSchema,
 	}
 
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
