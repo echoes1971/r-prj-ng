@@ -193,7 +193,7 @@ func main() {
 	}
 
 	dblayer.InitDBLayer(AppConfig)
-	dblayer.EnsureDBSchema()
+	dblayer.EnsureDBSchema(true)
 	dblayer.InitDBData()
 
 	api.InitAPI(AppConfig)

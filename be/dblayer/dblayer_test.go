@@ -25,7 +25,7 @@ func TestCreateTableStrings(t *testing.T) {
 // go test -v ./dblayer -run TestEnsureDBSchema -config ../config_test.json
 func TestEnsureDBSchema(t *testing.T) {
 	// Call EnsureDBSchema to test table creation logic
-	EnsureDBSchema()
+	EnsureDBSchema(true)
 
 	InitDBData()
 }

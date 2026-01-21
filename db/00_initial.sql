@@ -1393,11 +1393,11 @@ DROP TABLE IF EXISTS `rprj_users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rprj_users` (
   `id` varchar(16) NOT NULL,
-  `login` varchar(255) NOT NULL,
+  `login` varchar(255) UNIQUE NOT NULL,
   `pwd` varchar(255) NOT NULL,
   `pwd_salt` varchar(4) DEFAULT '',
   `fullname` text DEFAULT NULL,
-  `email` text DISTINCT DEFAULT NULL,
+  `email` text UNIQUE DEFAULT NULL,
   `group_id` varchar(16) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `rprj_users_0` (`id`),
@@ -1412,7 +1412,7 @@ CREATE TABLE `rprj_users` (
 LOCK TABLES `rprj_users` WRITE;
 /*!40000 ALTER TABLE `rprj_users` DISABLE KEYS */;
 INSERT INTO `rprj_users` VALUES
-('-1','adm','mysecretpass','','Administrator','-2');
+('-1','adm','mysecretpass','','Administrator','admin@rhobee','-2');
 /*!40000 ALTER TABLE `rprj_users` ENABLE KEYS */;
 UNLOCK TABLES;
 

@@ -143,10 +143,12 @@ func GetCreateTableSQL(dbe DBEntityInterface, dbSchema string) string {
 }
 
 // The database can be mysql, sqlite, postgres, etc.
-func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
+func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface, Verbose bool) error {
 	// Check if table exists
 	tableName := DbSchema + "_" + dbe.GetTableName()
-	log.Print("Checking table: ", tableName)
+	if Verbose {
+		log.Print("Checking table: ", tableName)
+	}
 	// This is internal code, so we can build the query directly
 	query := "show tables like '" + tableName + "'"
 	var existingTable string
@@ -160,16 +162,22 @@ func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 		// Table does not exist, create it
 		// Compose the create table SQL using the DBEntity's information about columns, types, keys, etc.
 		createTableSQL := GetCreateTableSQL(dbe, DbSchema)
-		log.Printf(" Creating table with SQL: %s", createTableSQL)
-		// _, err := DbConnection.Exec(createTableSQL)
-		// if err != nil {
-		// 	return err
-		// }
-		// log.Printf(" Created table %s", tableName)
+		if Verbose {
+			log.Printf(" Creating table with SQL: %s", createTableSQL)
+		}
+		_, err := DbConnection.Exec(createTableSQL)
+		if err != nil {
+			return err
+		}
+		if Verbose {
+			log.Printf(" Created table %s", tableName)
+		}
 	} else {
 		// Table exists, check for schema updates
 		// For simplicity, we will not implement schema migration logic here
-		log.Printf(" Table %s exists", tableName)
+		if Verbose {
+			log.Printf(" Table %s exists", tableName)
+		}
 		// Fetch table schema from MariaDB and compare with DBEntity definition
 		rows, err := DbConnection.Query("DESCRIBE " + tableName)
 		if err != nil {
@@ -231,14 +239,16 @@ func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface) error {
 
 	return nil
 }
-func ensureTableExistsAndUpdatedForSqlite(dbe DBEntityInterface) error {
+func ensureTableExistsAndUpdatedForSqlite(dbe DBEntityInterface, Verbose bool) error {
 	// TODO: Implement for Sqlite
 	return nil
 }
-func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface) error {
+func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface, Verbose bool) error {
 	// Check if table exists
 	tableName := DbSchema + "_" + dbe.GetTableName()
-	log.Print("Checking table: ", tableName)
+	if Verbose {
+		log.Print("Checking table: ", tableName)
+	}
 	// This is internal code, so we can build the query directly
 	query := "SELECT to_regclass('" + tableName + "')"
 	var existingTable sql.NullString
@@ -575,7 +585,7 @@ func populateTable(repo *DBRepository, tablename string, listColumns []string, l
 }
 
 // Iterate over all registered DBEntity types and create tables if they do not exist or update their schema
-func EnsureDBSchema() {
+func EnsureDBSchema(Verbose bool) {
 	var classInstances []DBEntityInterface
 	for _, className := range Factory.GetAllClassNames() {
 		dbe := Factory.GetInstanceByClassName(className)
@@ -645,14 +655,15 @@ func EnsureDBSchema() {
 	// slices.Reverse(sorted)
 
 	// Print sorted class names for debugging
-	// log.Print("DB Entities creation order:")
-	// for _, dbe := range sorted {
-	// 	log.Printf(" - %s\n", dbe.GetTableName())
-	// 	for _, fk := range dbe.GetForeignKeys() {
-	// 		log.Printf("    FK: %s -> %s(%s)\n", fk.Column, fk.RefTable, fk.RefColumn)
-	// 	}
-	// }
-
+	if Verbose {
+		log.Print("DB Entities creation order:")
+		for _, dbe := range sorted {
+			log.Printf(" - %s\n", dbe.GetTableName())
+			for _, fk := range dbe.GetForeignKeys() {
+				log.Printf("    FK: %s -> %s(%s)\n", fk.Column, fk.RefTable, fk.RefColumn)
+			}
+		}
+	}
 	classInstances = sorted
 
 	for _, dbe := range classInstances {
@@ -660,11 +671,11 @@ func EnsureDBSchema() {
 		className := dbe.GetTypeName()
 		switch dbEngine {
 		case "mysql":
-			err = ensureTableExistsAndUpdatedForMysql(dbe)
+			err = ensureTableExistsAndUpdatedForMysql(dbe, Verbose)
 		case "sqlite":
-			err = ensureTableExistsAndUpdatedForSqlite(dbe)
+			err = ensureTableExistsAndUpdatedForSqlite(dbe, Verbose)
 		case "postgres":
-			err = ensureTableExistsAndUpdatedForPostgres(dbe)
+			err = ensureTableExistsAndUpdatedForPostgres(dbe, Verbose)
 		default:
 			log.Fatal("Unsupported dbEngine:", dbEngine)
 		}
