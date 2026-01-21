@@ -126,7 +126,7 @@ func TestObjectHandlerSearchObjectGroup(t *testing.T) {
 	}
 
 	var response map[string]any
-	log.Print("Response body:", rr.Body.String())
+	log.Print(" Response body:", rr.Body.String())
 	err := json.Unmarshal(rr.Body.Bytes(), &response)
 	log.Print("Response:", response)
 	if err != nil {
