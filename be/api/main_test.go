@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"rprj/be/dblayer"
 	"rprj/be/models"
 	"testing"
@@ -32,19 +33,27 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
+	AppConfig.RootDirectory, err = filepath.Abs(AppConfig.RootDirectory)
+	if err != nil {
+		log.Fatalf("Error getting absolute path of root directory: %v", err)
+	}
+	log.Printf("Using root directory: %s", AppConfig.RootDirectory)
+	AppConfig.FilesDirectory = "test_files"
+	log.Printf("Using files directory: %s", AppConfig.FilesDirectory)
 
+	// 1. Initialize DB
 	dblayer.InitDBLayer(AppConfig)
 	dblayer.EnsureDBSchema(true)
 	dblayer.InitDBData()
 	log.Println("DB initialized for tests")
 
 	repo := SetupTestRepo(nil, "-1", []string{"-2"}, AppConfig.TablePrefix)
-	// Create test admin user if not exists: test0000 / pass0000 with 4 random digits
+	// 1.1 Create test admin user if not exists: test0000 / pass0000 with 4 random digits
 	randomDigits := Random4digits()
 	testAdminLogin = "test" + randomDigits
 	testAdminPwd = "pass" + randomDigits
 
-	// Search for existing user with the same login
+	// 1.2 Search for existing user with the same login
 	searchUser := repo.GetInstanceByTableName("users")
 	searchUser.SetValue("login", testAdminLogin)
 	foundUsers, err := repo.Search(searchUser, false, false, "")
@@ -71,6 +80,9 @@ func TestMain(m *testing.M) {
 		testUser = foundUsers[0]
 	}
 	log.Print("Test admin user=", testUser.ToString())
+
+	// 2. Initialize API with config
+	InitAPI(AppConfig)
 
 	// Run tests
 	code := m.Run()

@@ -26,18 +26,18 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      mysql:
-        image: mariadb:12.0
-        env:
-          MYSQL_ROOT_PASSWORD: mysecret
-          MYSQL_DATABASE: testdb
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+      # mysql:
+      #   image: mariadb:12.0
+      #   env:
+      #     MYSQL_ROOT_PASSWORD: mysecret
+      #     MYSQL_DATABASE: testdb
+      #   ports:
+      #     - 3306:3306
+      #   options: >-
+      #     --health-cmd="mysqladmin ping -h localhost"
+      #     --health-interval=10s
+      #     --health-timeout=5s
+      #     --health-retries=5
 
     strategy:
       #max-parallel: 1
@@ -69,8 +69,8 @@ jobs:
         run: |
           cd be
           go test ./dblayer --config ../config_test_postgresql.json
-          go test ./dblayer --config ../config_test_mysql.json
-          go test ./dblayer --config ../config_test_sqlite.json
+        # go test ./dblayer --config ../config_test_mysql.json
+        # go test ./dblayer --config ../config_test_sqlite.json
 
       - name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
         run: |

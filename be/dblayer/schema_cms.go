@@ -522,7 +522,12 @@ func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	}
 	err := dbFile.DBObject.beforeInsert(dbr, tx)
 	if err != nil {
+		log.Print("DBFile.beforeInsert: error in parent beforeInsert:", err)
 		return err
+	}
+	// alt_link must not be null
+	if dbFile.GetValue("alt_link") == nil || !dbFile.HasValue("alt_link") {
+		dbFile.SetValue("alt_link", "")
 	}
 	// This seems redundant with SetDefaultValues, but keeping it for compatibility
 	// I don't know, it seems to hide the effects of SetDefaultValues... maybe it should be removed?
@@ -551,6 +556,7 @@ func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 		new_filename := dbFile.generateFilename(dbFile.GetValue("id"), filepath.Base(dbFile.GetValue("filename").(string)))
 		err := os.Rename(from_dir+"/"+dbFile.GetValue("filename").(string), dest_dir+"/"+new_filename)
 		if err != nil {
+			log.Print("DBFile.beforeInsert: error renaming file:", err)
 			return err
 		}
 		if dbFile.GetValue("name") == nil || dbFile.GetValue("name").(string) == "" {
@@ -559,8 +565,10 @@ func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 		dbFile.SetValue("filename", new_filename)
 	}
 	if dbFile.GetValue("filename") == nil || strings.TrimSpace(dbFile.GetValue("filename").(string)) == "" {
-		// return fmt.Errorf("filename cannot be empty after processing")
+		// NOTE: it's fine, as we can create a record in files without an actual file
+		log.Print("DBFile.beforeInsert: filename is empty after processing, setting to empty string")
 		dbFile.SetValue("filename", "")
+		// return fmt.Errorf("filename cannot be empty after processing")
 		return nil
 	}
 	// Checksum
@@ -588,10 +596,6 @@ func (dbFile *DBFile) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	// Image
 	if dbFile.IsImage() {
 		dbFile.createThumbnail(fullpath)
-	}
-	// alt_link must not be null
-	if dbFile.GetValue("alt_link") == nil {
-		dbFile.SetValue("alt_link", "")
 	}
 	return nil
 }
@@ -783,7 +787,9 @@ func (dbFile *DBFile) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
 			return err
 		}
 		dbFile.SetValue("checksum", checksum)
+		log.Print("DBFile.beforeUpdate: updated checksum to ", checksum)
 	} else {
+		log.Print("DBFile.beforeUpdate: file not found for checksum calculation: ", fullpath)
 		dbFile.SetValue("checksum", "File '"+dbFile.GetValue("filename").(string)+"' not found!")
 	}
 	// Mime type
