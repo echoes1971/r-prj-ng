@@ -28,8 +28,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      mariadb:
-        image: mariadb:12.0
+      mysql:
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: mysecret
           MYSQL_DATABASE: testdb
@@ -39,7 +39,7 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=25
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
