@@ -6,6 +6,50 @@ import (
 	"testing"
 )
 
+func TestGetObjectByID(t *testing.T) {
+	// Setup
+	dbContext := &DBContext{
+		UserID:   "-1",
+		GroupIDs: []string{"-2"},
+		Schema:   DbSchema,
+	}
+
+	parent_id_value := "-10"
+
+	repo := NewDBRepository(dbContext, Factory, DbConnection)
+	repo.Verbose = false
+
+	// Create parent folder
+	testFolder := repo.GetInstanceByTableName("folders")
+	if testFolder == nil {
+		t.Fatal("Failed to create DBFolder instance")
+	}
+	testFolder.SetValue("name", "Parent Folder")
+	testFolder.SetValue("fk_obj_id", parent_id_value)
+	// repo.Verbose = true
+	createdFolder, err := repo.Insert(testFolder)
+	repo.Verbose = false
+	if err != nil {
+		t.Fatalf("Failed to create parent folder: %v", err)
+	}
+	log.Print("Created parent folder: ", createdFolder.ToString())
+
+	// Retrieve folder by ID
+	retrievedObj := repo.ObjectByID(createdFolder.GetValue("id").(string), true)
+	if retrievedObj == nil {
+		t.Fatal("Retrieved object is nil")
+	}
+
+	log.Print("Retrieved folder: ", retrievedObj.ToString())
+
+	// Cleanup
+	err = hardDeleteForTests(repo, createdFolder.(DBObjectInterface))
+	if err != nil {
+		t.Fatalf("Failed to hard delete parent folder: %v", err)
+	}
+
+}
+
 func TestDBFolderDefaultValues(t *testing.T) {
 	// Setup
 	dbContext := &DBContext{
