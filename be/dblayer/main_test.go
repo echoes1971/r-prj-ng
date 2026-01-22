@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 	log.Printf("Using files directory: %s", config.FilesDirectory)
 
 	InitDBLayer(config)
-	EnsureDBSchema(true)
+	EnsureDBSchema(false)
 	InitDBData()
 
 	// Esegui i test

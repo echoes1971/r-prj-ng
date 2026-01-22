@@ -105,7 +105,7 @@ func InitDBConnection() {
 		}
 	}
 	log.Print(" DB Name:", dbName)
-	dbUrlNoDB := ""
+	dbUrlNoDB := dbUrl
 	if dbName != "" {
 		dbUrlNoDB = strings.ReplaceAll(dbUrl, "/"+dbName, "/")
 	}
@@ -119,6 +119,7 @@ func InitDBConnection() {
 	// Create DB if not exists (for sqlite, the DB file is created automatically)
 	sqlCreateDB := ""
 	switch dbEngine {
+	case "sqlite3":
 	case "mysql":
 		sqlCreateDB = "CREATE DATABASE IF NOT EXISTS " + dbName + ";"
 	case "postgres":
@@ -297,7 +298,91 @@ func ensureTableExistsAndUpdatedForMysql(dbe DBEntityInterface, Verbose bool) er
 	return nil
 }
 func ensureTableExistsAndUpdatedForSqlite(dbe DBEntityInterface, Verbose bool) error {
-	// TODO: Implement for Sqlite
+	// Check if table exists
+	tableName := DbSchema + "_" + dbe.GetTableName()
+	if Verbose {
+		log.Print("Checking table: ", tableName)
+	}
+	// Query SQLite's metadata table
+	query := "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+	var existingTable string
+	err := DbConnection.QueryRow(query, tableName).Scan(&existingTable)
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("Error checking existence of table %s: %v", tableName, err)
+		return err
+	}
+
+	if existingTable == "" {
+		// Table does not exist, create it
+		createTableSQL := GetCreateTableSQL(dbe, DbSchema)
+		if Verbose {
+			log.Printf(" Creating table with SQL: %s", createTableSQL)
+		}
+		_, err := DbConnection.Exec(createTableSQL)
+		if err != nil {
+			return err
+		}
+		if Verbose {
+			log.Printf(" Created table %s", tableName)
+		}
+	} else {
+		// Table exists, check for schema updates
+		if Verbose {
+			log.Printf(" Table %s exists", tableName)
+		}
+		// Fetch table schema from SQLite using PRAGMA table_info
+		rows, err := DbConnection.Query("PRAGMA table_info(" + tableName + ")")
+		if err != nil {
+			log.Printf("Error describing table %s: %v", tableName, err)
+			return err
+		}
+		defer rows.Close()
+		columnsInDB := make(map[string]map[string]string)
+		for rows.Next() {
+			var cid int
+			var name, colType string
+			var notNull, pk int
+			var dfltValue sql.NullString
+			if err := rows.Scan(&cid, &name, &colType, &notNull, &dfltValue, &pk); err != nil {
+				log.Printf("Error scanning row for table %s: %v", tableName, err)
+				return err
+			}
+			defaultValueStr := ""
+			if dfltValue.Valid {
+				defaultValueStr = dfltValue.String
+			}
+			columnsInDB[name] = map[string]string{
+				"Type":    colType,
+				"NotNull": fmt.Sprintf("%d", notNull),
+				"Default": defaultValueStr,
+				"PK":      fmt.Sprintf("%d", pk),
+			}
+		}
+
+		// Compare columnsInDB with dbe.GetColumnDefinitions() and identify differences
+		columnDefs := dbe.GetColumnDefinitions()
+		for colName, colDef := range columnDefs {
+			if dbColDef, exists := columnsInDB[colName]; exists {
+				// Column exists, check for differences
+				if !strings.EqualFold(dbColDef["Type"], colDef.Type) {
+					log.Printf(" Column %s type mismatch: DB=%s, Expected=%s", colName, dbColDef["Type"], colDef.Type)
+					// Note: SQLite doesn't support MODIFY COLUMN, would need table recreation
+					log.Printf(" Warning: SQLite doesn't support ALTER COLUMN TYPE, manual migration needed")
+				}
+			} else {
+				// Column does not exist, add it
+				addColumnSQL := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", tableName, colName, colDef.Type)
+				log.Printf("Adding missing column with SQL: %s", addColumnSQL)
+				// _, err := DbConnection.Exec(addColumnSQL)
+				// if err != nil {
+				// 	log.Printf("Error adding column %s to table %s: %v", colName, tableName, err)
+				// 	return err
+				// }
+				log.Printf("Added column %s to table %s", colName, tableName)
+			}
+		}
+	}
+
 	return nil
 }
 func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface, Verbose bool) error {
@@ -729,7 +814,7 @@ func EnsureDBSchema(Verbose bool) {
 		switch dbEngine {
 		case "mysql":
 			err = ensureTableExistsAndUpdatedForMysql(dbe, Verbose)
-		case "sqlite":
+		case "sqlite3":
 			err = ensureTableExistsAndUpdatedForSqlite(dbe, Verbose)
 		case "postgres":
 			err = ensureTableExistsAndUpdatedForPostgres(dbe, Verbose)

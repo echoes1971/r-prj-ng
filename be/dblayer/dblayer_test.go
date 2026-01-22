@@ -26,6 +26,15 @@ func TestCreateTableStrings(t *testing.T) {
 func TestEnsureDBSchema(t *testing.T) {
 	// Call EnsureDBSchema to test table creation logic
 	EnsureDBSchema(true)
-
 	InitDBData()
+
+	// IF db engine is sqlite3, use sqlite3 mechanism to know where is the db file via DbConnection.Exec
+	if dbEngine == "sqlite3" {
+		var dbPath string
+		err := DbConnection.QueryRow("PRAGMA database_list;").Scan(new(interface{}), new(interface{}), &dbPath)
+		if err != nil {
+			t.Fatalf("Error getting SQLite database path: %v", err)
+		}
+		log.Printf("SQLite database file path: %s", dbPath)
+	}
 }
