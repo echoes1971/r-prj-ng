@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - "be/**"
+      - ".github/workflows/go_server.yml"
 
 jobs:
-  build:
+  test:
+    name: Quality Checks
     runs-on: ubuntu-latest
 
     services:
@@ -26,21 +28,42 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      # mysql:
-      #   image: mariadb:12.0
-      #   env:
-      #     MYSQL_ROOT_PASSWORD: mysecret
-      #     MYSQL_DATABASE: testdb
-      #   ports:
-      #     - 3306:3306
-      #   options: >-
-      #     --health-cmd="mysqladmin ping -h localhost"
-      #     --health-interval=10s
-      #     --health-timeout=5s
-      #     --health-retries=5
+      mariadb:
+        image: mariadb:12.0
+        env:
+          MYSQL_ROOT_PASSWORD: mysecret
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Run Tests for PostgreSQL, MariaDB, and SQLite
+        env:
+          DB_TYPE: postgres,mysql,sqlite
+        run: |
+          cd be
+          go test ./dblayer --config ../config_test_postgresql.json
+          go test ./dblayer --config ../config_test_mysql.json
+          go test ./dblayer --config ../config_test_sqlite.json
+
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    needs: test
 
     strategy:
-      #max-parallel: 1
       matrix:
         include:
           - goos: linux
@@ -62,15 +85,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.25'
-
-      - name: Run Tests for PostgreSQL, MySQL, and SQLite
-        env:
-          DB_TYPE: postgres,mysql,sqlite
-        run: |
-          cd be
-          go test ./dblayer --config ../config_test_postgresql.json
-        # go test ./dblayer --config ../config_test_mysql.json
-        # go test ./dblayer --config ../config_test_sqlite.json
 
       - name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
         run: |
