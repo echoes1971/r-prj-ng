@@ -1,6 +1,6 @@
 {
   "server_port": 1971,
-  "db_engine": "sqlite",
+  "db_engine": "sqlite3",
   "db_url": "file:rhobee_test.db",
   "table_prefix": "rho",
   "jwt_secret": "myjwtsecretkeyforsqlite",
