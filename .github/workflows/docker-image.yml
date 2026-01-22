@@ -73,7 +73,8 @@ jobs:
           go test ./dblayer --config ../config_test_sqlite.json
 
   build:
-    needs: test
+    # Apparently this "needs: test" blocks the build job if the test job is skipped (no changes in "be/")
+    #needs: test
     runs-on: ubuntu-latest
 
     steps:
