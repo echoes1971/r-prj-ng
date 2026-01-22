@@ -26,8 +26,8 @@
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/r-prj-ng.git
-   cd r-prj-ng
+   git clone https://github.com/your-repo/rhobee.git
+   cd rhobee
    ```
 
 2. Start the services:
