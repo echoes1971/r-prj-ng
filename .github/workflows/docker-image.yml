@@ -25,7 +25,8 @@ jobs:
   test:
     name: BE Quality Checks
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'be/') || contains(github.event.head_commit.added, 'be/')
+    # TODO: this IF doesn't seem to work as expected, the test job is always skipped
+    # if: contains(github.event.head_commit.modified, 'be/') || contains(github.event.head_commit.added, 'be/')
 
     services:
       postgres:
