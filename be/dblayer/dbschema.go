@@ -566,6 +566,34 @@ func (logEntry *DBLog) SetValue(columnName string, value any) {
 	logEntry.DBEntity.SetValue(columnName, value)
 }
 
+/**
+ *	An association between two DBEntities
+ *  It MUST have 2 foreign keys: from_table_id and to_table_id
+ */
+type DBAssociationInterface interface {
+	GetFromTableName() string
+	GetToTableName() string
+}
+
+type DBAssociation struct {
+	DBEntity
+}
+
+func GetFromTableName(dbAssoc *DBAssociation) (string, error) {
+	// The first foreign key represents the "from" table
+	if len(dbAssoc.foreignKeys) < 2 {
+		return "", fmt.Errorf("DBAssociation::GetFromTableName: not enough foreign keys")
+	}
+	return dbAssoc.DBEntity.foreignKeys[0].RefTable, nil
+}
+func GetToTableName(dbAssoc *DBAssociation) (string, error) {
+	// The second foreign key represents the "to" table
+	if len(dbAssoc.foreignKeys) < 2 {
+		return "", fmt.Errorf("DBAssociation::GetToTableName: not enough foreign keys")
+	}
+	return dbAssoc.DBEntity.foreignKeys[1].RefTable, nil
+}
+
 type DBObjectInterface interface {
 	DBEntityInterface
 	IsDBObject() bool
