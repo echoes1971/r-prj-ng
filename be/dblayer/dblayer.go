@@ -151,6 +151,8 @@ func InitDBConnection() {
 	DbConnection.SetConnMaxLifetime(0) // Maximum amount of time a connection may be reused (0 = unlimited)
 }
 
+var objectsColumns = []string{"id", "owner", "group_id", "permissions", "creator", "creation_date", "last_modify", "last_modify_date", "deleted_by", "deleted_date", "father_id", "name", "description"}
+
 // GetCreateTableSQL generates CREATE TABLE SQL for the given entity
 // This is a standalone function to properly use polymorphism with IsDBObject()
 func GetCreateTableSQL(dbe DBEntityInterface, dbSchema string) string {
@@ -498,7 +500,7 @@ func ensureTableExistsAndUpdatedForPostgres(dbe DBEntityInterface, Verbose bool)
 
 func InitDBData() {
 	log.Print("Initializing DB data...")
-	// Check if the anonymous user exists, if not create it and associate it to the group "Guests"
+
 	// Setup
 	dbContext := &DBContext{
 		UserID:   "-1",
@@ -510,122 +512,28 @@ func InitDBData() {
 	repo := NewDBRepository(dbContext, Factory, DbConnection)
 	repo.Verbose = false
 
-	// country list
-	results, err, shouldReturn := populateTable(repo, "countrylist", countryListColumns, countryListData)
-	if shouldReturn {
+	// Load initial data from JSON
+	initialData, err := LoadInitialData()
+	if err != nil {
+		log.Printf("Failed to load initial data: %v\n", err)
 		return
 	}
 
-	// Groups
-	results, err, shouldReturn = populateTable(repo, "groups", groupsColumns, groupsData)
-	if shouldReturn {
-		return
+	// Import tables in order (preserves foreign key constraints)
+	for _, table := range initialData.Tables {
+		log.Printf("Populating table '%s' with %d rows...\n", table.Name, len(table.Data))
+		results, err, shouldReturn := populateTable(repo, table.Name, table.Columns, table.Data)
+		if shouldReturn {
+			return
+		}
+		if err == nil && len(results) > 0 {
+			log.Printf(" Successfully populated '%s'\n", table.Name)
+		}
 	}
-
-	// Users
-	results, err, shouldReturn = populateTable(repo, "users", usersColumns, usersData)
-	if shouldReturn {
-		return
-	}
-
-	// Users-Groups
-	results, err, shouldReturn = populateTable(repo, "users_groups", usersGroupsColumns, usersGroupsData)
-	if shouldReturn {
-		return
-	}
-
-	// Folders
-	results, err, shouldReturn = populateTable(repo, "folders", foldersColumns, foldersData)
-	if shouldReturn {
-		return
-	}
-
-	// Pages
-	results, err, shouldReturn = populateTable(repo, "pages", pagesColumns, pagesData)
-	if shouldReturn {
-		return
-	}
-
-	// Check for "Guests" group
-	// guestGroup := repo.GetInstanceByTableName("groups")
-	// guestGroup.SetValue("name", "Guests")
-	// results, err = repo.Search(guestGroup, false, false, "")
-	// if err != nil {
-	// 	log.Printf(" Failed to find or create 'Guests' group: %v\n", err)
-	// 	return
-	// }
-	// var guestGroupID string
-	// if len(results) == 1 {
-	// 	guestGroupID = results[0].GetValue("id").(string)
-	// 	log.Printf(" Found existing 'Guests' group with ID %s\n", guestGroupID)
-	// } else {
-	// 	// Create the group
-	// 	newGroup := repo.GetInstanceByTableName("groups")
-	// 	newGroup.SetValue("name", "Guests")
-	// 	newGroup.SetValue("description", "Default group for anonymous users")
-	// 	created, err := repo.Insert(newGroup)
-	// 	if err != nil {
-	// 		log.Printf(" Failed to create 'Guests' group: %v\n", err)
-	// 		return
-	// 	}
-	// 	guestGroupID = created.GetValue("id").(string)
-	// 	log.Printf(" Created 'Guests' group with ID %s\n", guestGroupID)
-	// }
-
-	// Check for anonymous user
-	// anonUser := repo.GetInstanceByTableName("users")
-	// anonUser.SetValue("login", "anonymous")
-	// results, err = repo.Search(anonUser, false, false, "")
-	// if err != nil {
-	// 	log.Printf(" Failed to find or create 'anonymous' user: %v\n", err)
-	// 	return
-	// }
-	// if len(results) == 1 {
-	// 	log.Printf(" Found existing 'anonymous' user with ID %s\n", results[0].GetValue("id").(string))
-	// } else {
-	// 	// Create the user
-	// 	newUser := repo.GetInstanceByTableName("users")
-	// 	newUser.SetValue("id", "-7")
-	// 	newUser.SetValue("login", "anonymous")
-	// 	newUser.SetValue("pwd", "") // No password for anonymous user
-	// 	newUser.SetValue("fullname", "Anonymous User")
-	// 	newUser.SetMetadata("group_ids", []string{"-4"})
-	// 	created, err := repo.Insert(newUser)
-	// 	if err != nil {
-	// 		log.Printf(" Failed to create 'anonymous' user: %v\n", err)
-	// 		return
-	// 	}
-	// 	log.Printf(" Created 'anonymous' user with ID %s\n", created.GetValue("id").(string))
-	// }
-
-	// Check for default folder "Root"
-	// rootFolder := repo.GetInstanceByTableName("folders")
-	// rootFolder.SetValue("id", "0")
-	// results, err = repo.Search(rootFolder, false, false, "")
-	// if err != nil {
-	// 	log.Printf(" Failed to find or create 'Root' folder: %v\n", err)
-	// 	return
-	// }
-	// if len(results) == 1 {
-	// 	log.Printf(" Found existing 'Root' folder with ID %s\n", results[0].GetValue("id").(string))
-	// } else {
-	// 	// Create the folder
-	// 	newFolder := repo.GetInstanceByTableName("folders")
-	// 	newFolder.SetValue("id", "0")
-	// 	newFolder.SetValue("name", "root")
-	// 	newFolder.SetValue("description", "Default root folder")
-	// 	newFolder.SetValue("permissions", "rwxrw-r--") // Everyone can read
-	// 	created, err := repo.Insert(newFolder)
-	// 	if err != nil {
-	// 		log.Printf(" Failed to create 'Root' folder: %v\n", err)
-	// 		return
-	// 	}
-	// 	log.Printf(" Created 'Root' folder with ID %s\n", created.GetValue("id").(string))
-	// }
 
 	// DBVersion
 	dbVersion := repo.GetInstanceByTableName("dbversion")
-	results, err = repo.Search(dbVersion, false, false, "")
+	results, err := repo.Search(dbVersion, false, false, "")
 	if err != nil {
 		log.Printf(" Failed to find or create DB version entry: %v\n", err)
 		return
@@ -642,7 +550,6 @@ func InitDBData() {
 		log.Printf(" Created DB version entry.\n")
 	} else {
 		log.Printf(" DB version entry exists with version %s.\n", results[0].GetValue("version").(string))
-		// log.Printf(" DB version entry exists with version %d.\n", results[0].GetValue("version").(int))
 	}
 
 	log.Print("DB data initialization completed.")
