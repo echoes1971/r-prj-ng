@@ -138,7 +138,9 @@ func TestObjectById(t *testing.T) {
 	objID := createdObj.GetValue("id").(string)
 
 	// Test GetObjectById
+	repo.Verbose = true
 	retrievedObj := repo.ObjectByID(objID, true)
+	repo.Verbose = false
 	if retrievedObj == nil {
 		t.Fatalf("ObjectByID returned nil for ID %s", objID)
 	}

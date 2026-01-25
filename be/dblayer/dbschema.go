@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -484,7 +483,7 @@ CREATE TABLE IF NOT EXISTS `rra_users_groups` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 */
 type UserGroup struct {
-	DBEntity
+	DBAssociation
 }
 
 func NewUserGroup() *UserGroup {
@@ -494,24 +493,26 @@ func NewUserGroup() *UserGroup {
 	}
 	keys := []string{"user_id", "group_id"}
 	return &UserGroup{
-		DBEntity: *NewDBEntity(
-			"UserGroup",
-			"users_groups",
-			columns,
-			keys,
-			[]ForeignKey{},
-			make(map[string]any),
-		),
+		DBAssociation: DBAssociation{
+			DBEntity: *NewDBEntity(
+				"UserGroup",
+				"users_groups",
+				columns,
+				keys,
+				[]ForeignKey{},
+				make(map[string]any),
+			),
+		},
 	}
 }
 func (dbUserGroup *UserGroup) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
 	return nil
 }
 func (dbUserGroup *UserGroup) GetValue(columnName string) any {
-	return dbUserGroup.DBEntity.GetValue(columnName)
+	return dbUserGroup.DBAssociation.GetValue(columnName)
 }
 func (dbUserGroup *UserGroup) SetValue(columnName string, value any) {
-	dbUserGroup.DBEntity.SetValue(columnName, value)
+	dbUserGroup.DBAssociation.SetValue(columnName, value)
 }
 
 /*
@@ -564,264 +565,4 @@ func (logEntry *DBLog) GetValue(columnName string) any {
 }
 func (logEntry *DBLog) SetValue(columnName string, value any) {
 	logEntry.DBEntity.SetValue(columnName, value)
-}
-
-/**
- *	An association between two DBEntities
- *  It MUST have 2 foreign keys: from_table_id and to_table_id
- */
-type DBAssociationInterface interface {
-	GetFromTableName() string
-	GetToTableName() string
-}
-
-type DBAssociation struct {
-	DBEntity
-}
-
-func GetFromTableName(dbAssoc *DBAssociation) (string, error) {
-	// The first foreign key represents the "from" table
-	if len(dbAssoc.foreignKeys) < 2 {
-		return "", fmt.Errorf("DBAssociation::GetFromTableName: not enough foreign keys")
-	}
-	return dbAssoc.DBEntity.foreignKeys[0].RefTable, nil
-}
-func GetToTableName(dbAssoc *DBAssociation) (string, error) {
-	// The second foreign key represents the "to" table
-	if len(dbAssoc.foreignKeys) < 2 {
-		return "", fmt.Errorf("DBAssociation::GetToTableName: not enough foreign keys")
-	}
-	return dbAssoc.DBEntity.foreignKeys[1].RefTable, nil
-}
-
-type DBObjectInterface interface {
-	DBEntityInterface
-	IsDBObject() bool
-	HasDeletedDate() bool
-	CanRead(kind string) bool
-	CanWrite(kind string) bool
-	CanExecute(kind string) bool
-	SetDefaultValues(repo *DBRepository)
-	beforeInsert(dbr *DBRepository, tx *sql.Tx) error
-	beforeUpdate(dbr *DBRepository, tx *sql.Tx) error
-	beforeDelete(dbr *DBRepository, tx *sql.Tx) error
-}
-
-/*
-CREATE TABLE IF NOT EXISTS `rra_objects` (
-
-	`id` varchar(16) NOT NULL DEFAULT '',
-	`owner` varchar(16) NOT NULL DEFAULT '',
-	`group_id` varchar(16) NOT NULL DEFAULT '',
-	`permissions` varchar(9) NOT NULL DEFAULT 'rwx------',
-	`creator` varchar(16) NOT NULL DEFAULT '',
-	`creation_date` datetime DEFAULT NULL,
-	`last_modify` varchar(16) NOT NULL DEFAULT '',
-	`last_modify_date` datetime DEFAULT NULL,
-	`father_id` varchar(16) DEFAULT NULL,
-	`name` varchar(255) NOT NULL DEFAULT '',
-	`description` text,
-	`deleted_by` varchar(16) DEFAULT NULL,
-	`deleted_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-	PRIMARY KEY (`id`),
-	KEY `rra_objects_idx1` (`id`),
-	KEY `rra_objects_idx2` (`owner`),
-	KEY `rra_objects_idx3` (`name`),
-	KEY `rra_objects_idx4` (`creator`),
-	KEY `rra_objects_idx5` (`last_modify`),
-	KEY `rra_objects_idx6` (`father_id`),
-	KEY `rra_timetracks_idx1` (`id`),
-	KEY `rra_timetracks_idx2` (`owner`),
-	KEY `rra_timetracks_idx3` (`name`),
-	KEY `rra_timetracks_idx4` (`creator`),
-	KEY `rra_timetracks_idx5` (`last_modify`),
-	KEY `rra_timetracks_idx6` (`father_id`)
-
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-*/
-type DBObject struct {
-	DBEntity
-}
-
-func NewDBObject() *DBObject {
-	columns := []Column{
-		{Name: "id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "owner", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "group_id", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "permissions", Type: "char(9)", Constraints: []string{"NOT NULL"}},
-		{Name: "creator", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "creation_date", Type: "datetime", Constraints: []string{}},
-		{Name: "last_modify", Type: "varchar(16)", Constraints: []string{"NOT NULL"}},
-		{Name: "last_modify_date", Type: "datetime", Constraints: []string{}},
-		{Name: "deleted_by", Type: "varchar(16)", Constraints: []string{}},
-		{Name: "deleted_date", Type: "datetime", Constraints: []string{}},
-		{Name: "father_id", Type: "varchar(16)", Constraints: []string{}},
-		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
-		{Name: "description", Type: "text", Constraints: []string{}},
-	}
-	keys := []string{"id"}
-	foreignKeys := []ForeignKey{
-		{Column: "owner", RefTable: "users", RefColumn: "id"},
-		{Column: "group_id", RefTable: "groups", RefColumn: "id"},
-		{Column: "creator", RefTable: "users", RefColumn: "id"},
-		{Column: "last_modify", RefTable: "users", RefColumn: "id"},
-		{Column: "deleted_by", RefTable: "users", RefColumn: "id"},
-		{Column: "father_id", RefTable: "objects", RefColumn: "id"},
-	}
-	return &DBObject{
-		DBEntity: *NewDBEntity(
-			"DBObject",
-			"objects",
-			columns,
-			keys,
-			foreignKeys,
-			make(map[string]any),
-		),
-	}
-}
-func (dbObject *DBObject) NewInstance() DBEntityInterface {
-	return NewDBObject()
-}
-func CurrentDateTimeString() string {
-	now := time.Now()
-	return fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d",
-		now.Year(), now.Month(), now.Day(),
-		now.Hour(), now.Minute(), now.Second())
-}
-
-func (dbObject *DBObject) IsDBObject() bool {
-	return true
-}
-
-func (dbObject *DBObject) HasDeletedDate() bool {
-	if !dbObject.HasValue("deleted_date") {
-		return false
-	}
-	deletedDate := dbObject.GetValue("deleted_date")
-	// NULL = not deleted, any value = deleted
-	return deletedDate != nil
-}
-
-func (dbObject *DBObject) CanRead(kind string) bool {
-	permissions := dbObject.GetValue("permissions").(string)
-	if len(permissions) != 9 {
-		return false
-	}
-	switch kind {
-	case "U": // User
-		return permissions[0] == 'r'
-	case "G": // Group
-		return permissions[3] == 'r'
-	default: // Others
-		return permissions[6] == 'r'
-	}
-}
-func (dbObject *DBObject) CanWrite(kind string) bool {
-	permissions := dbObject.GetValue("permissions").(string)
-	if len(permissions) != 9 {
-		return false
-	}
-	switch kind {
-	case "U": // User
-		return permissions[1] == 'w'
-	case "G": // Group
-		return permissions[4] == 'w'
-	default: // Others
-		return permissions[7] == 'w'
-	}
-}
-func (dbObject *DBObject) CanExecute(kind string) bool {
-	permissions := dbObject.GetValue("permissions").(string)
-	if len(permissions) != 9 {
-		return false
-	}
-	switch kind {
-	case "U": // User
-		return permissions[2] == 'x'
-	case "G": // Group
-		return permissions[5] == 'x'
-	default: // Others
-		return permissions[8] == 'x'
-	}
-}
-func (dbObject *DBObject) SetDefaultValues(repo *DBRepository) {
-	user := repo.GetCurrentUser()
-	userID := ""
-	if user != nil {
-		userID = user.GetValue("id").(string)
-	}
-	if userID != "" {
-		if !dbObject.HasValue("owner") {
-			dbObject.SetValue("owner", userID)
-		}
-		if !dbObject.HasValue("group_id") {
-			dbObject.SetValue("group_id", user.GetValue("group_id").(string))
-		}
-		dbObject.SetValue("creator", userID)
-		dbObject.SetValue("last_modify", userID)
-	}
-	dbObject.SetValue("creation_date", CurrentDateTimeString())
-	dbObject.SetValue("last_modify_date", CurrentDateTimeString())
-	// dbObject.SetValue("deleted_date", nil) // NULL = not deleted
-
-	if !dbObject.HasValue("father_id") {
-		dbObject.SetValue("father_id", nil)
-
-		if dbObject.HasValue("fk_obj_id") && dbObject.GetValue("fk_obj_id") != nil {
-			fkobj := repo.ObjectByID(dbObject.GetValue("fk_obj_id").(string), true)
-			if fkobj != nil {
-				dbObject.SetValue("group_id", fkobj.GetValue("group_id"))
-				dbObject.SetValue("permissions", fkobj.GetValue("permissions"))
-				dbObject.SetValue("father_id", fkobj.GetValue("id"))
-			}
-		}
-	} else {
-		father := repo.ObjectByID(dbObject.GetValue("father_id").(string), true)
-		if father != nil {
-			dbObject.SetValue("group_id", father.GetValue("group_id"))
-			dbObject.SetValue("permissions", father.GetValue("permissions"))
-		}
-	}
-
-	if !dbObject.HasValue("permissions") {
-		dbObject.SetValue("permissions", "rwx------")
-	}
-}
-
-func (dbObject *DBObject) beforeInsert(dbr *DBRepository, tx *sql.Tx) error {
-	if !dbObject.HasValue("id") {
-		objectID, _ := uuid16HexGo()
-		dbObject.SetValue("id", objectID)
-	}
-	dbObject.SetDefaultValues(dbr)
-	if dbr.Verbose {
-		log.Println("DBObject.beforeInsert: values=", dbObject.ToJSON())
-	}
-	return nil
-}
-
-func (dbObject *DBObject) beforeUpdate(dbr *DBRepository, tx *sql.Tx) error {
-	user := dbr.GetCurrentUser()
-	userID := user.GetValue("id").(string)
-	if userID != "" {
-		dbObject.SetValue("last_modify", userID)
-	}
-	dbObject.SetValue("last_modify_date", CurrentDateTimeString())
-	return nil
-}
-
-func (dbObject *DBObject) beforeDelete(dbr *DBRepository, tx *sql.Tx) error {
-	if dbObject.HasDeletedDate() {
-		return nil // Already deleted
-	}
-	user := dbr.GetCurrentUser()
-	userID := user.GetValue("id").(string)
-	if userID != "" {
-		dbObject.SetValue("deleted_by", userID)
-	}
-	dbObject.SetValue("deleted_date", CurrentDateTimeString())
-	if dbr.Verbose {
-		log.Println("DBObject.beforeDelete: values=", dbObject.ToJSON())
-	}
-	return nil
 }

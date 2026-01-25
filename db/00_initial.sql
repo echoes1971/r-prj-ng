@@ -695,8 +695,6 @@ CREATE TABLE `rprj_log` (
 
 LOCK TABLES `rprj_log` WRITE;
 /*!40000 ALTER TABLE `rprj_log` DISABLE KEYS */;
-INSERT INTO `rprj_log` VALUES
-('172.18.0.1','2025-11-10','10:44:30',4,NULL,'','10:43:59-/main.php?skin=ami\n10:44:03-/main.php?obj_id=-11\n10:44:04-/main.php?obj_id=-12\n10:44:30-/main.php');
 /*!40000 ALTER TABLE `rprj_log` ENABLE KEYS */;
 UNLOCK TABLES;
 

@@ -55,6 +55,18 @@ func InitDBLayer(config models.Config) {
 	Factory.Register(NewDBNote())
 	Factory.Register(NewDBPage())
 	Factory.Register(NewDBNews())
+	// Projects
+	Factory.Register(NewDBProject())
+	Factory.Register(NewDBProjectCompanyRole())
+	Factory.Register(NewDBProjectCompany())
+	Factory.Register(NewDBProjectPeopleRole())
+	Factory.Register(NewDBProjectPeople())
+	Factory.Register(NewDBProjectProjectsRole())
+	Factory.Register(NewDBProjectProjects())
+	Factory.Register(NewDBTimeTrack())
+	Factory.Register(NewDBTodo())
+	Factory.Register(NewDBTodoTipo())
+
 	// Process foreign keys after all registrations
 	Factory.ProcessForeignKeys()
 
