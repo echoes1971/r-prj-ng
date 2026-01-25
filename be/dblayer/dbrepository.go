@@ -57,7 +57,7 @@ func NewDBRepository(dbContext *DBContext, factory *DBEFactory, dbConnection *sq
 // placeholder returns the correct SQL placeholder for the given parameter index
 // PostgreSQL uses $1, $2, $3..., while MySQL/SQLite use ?
 func (dbr *DBRepository) placeholder(index int) string {
-	if strings.Contains(dbEngine, "postgres") {
+	if strings.Contains(DbEngine, "postgres") {
 		return fmt.Sprintf("$%d", index)
 	}
 	return "?"
@@ -277,7 +277,7 @@ func (dbr *DBRepository) searchWithTx(dbe DBEntityInterface, useLike bool, caseS
 		return nil, err
 	}
 
-	isPostgres := dbEngine == "postgres"
+	isPostgres := DbEngine == "postgres"
 
 	for rows.Next() {
 		// Create a new instance of the DBEntity
@@ -416,7 +416,7 @@ func (dbr *DBRepository) insertWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 	for key, value := range dbe.getDictionary() {
 		columns = append(columns, key)
 		// Use $1, $2, $3... for PostgreSQL, ? for MySQL/SQLite
-		if strings.Contains(dbEngine, "postgres") {
+		if strings.Contains(DbEngine, "postgres") {
 			placeholders = append(placeholders, fmt.Sprintf("$%d", paramIndex))
 			paramIndex++
 		} else {
@@ -436,7 +436,7 @@ func (dbr *DBRepository) insertWithTx(dbe DBEntityInterface, tx *sql.Tx) (DBEnti
 		strings.Join(placeholders, ", "))
 
 	// IF the engine is PostgreSQL, add ; at the end of the query
-	if strings.Contains(dbEngine, "postgres") {
+	if strings.Contains(DbEngine, "postgres") {
 		query += ";"
 	}
 
@@ -724,7 +724,7 @@ func (dbr *DBRepository) ObjectByID(objectID string, ignoreDeleted bool) DBEntit
 	var queries []string
 
 	for _, className := range registeredTypes {
-		if dbEngine == "postgres" && className == "DBObject" {
+		if DbEngine == "postgres" && className == "DBObject" {
 			continue
 		}
 		dbe := dbr.GetInstanceByClassName(className)
@@ -991,6 +991,8 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 	rows, err := dbr.DbConnection.Query(sqlString, args...)
 	if err != nil {
 		log.Print("DBRepository::Select: Query error:", err)
+		log.Print("DBRepository::Select: Error - sqlString=", sqlString, " args=", args)
+		// TODO: this SHOULD NOT be ignored!!!!
 		return nil
 	}
 	defer rows.Close()
@@ -1002,7 +1004,7 @@ func (dbr *DBRepository) Select(returnedClassName string, sqlString string, args
 		return nil
 	}
 
-	isPostgres := dbEngine == "postgres"
+	isPostgres := DbEngine == "postgres"
 
 	for rows.Next() {
 		// Read classname first

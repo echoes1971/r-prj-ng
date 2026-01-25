@@ -113,8 +113,22 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 	// **** users stats
 	userStats := make(map[string]int)
 
+	lastDayClause := "NOW() - INTERVAL 1 day"
+	lastWeekClause := "NOW() - INTERVAL 7 day"
+	lastMonthClause := "NOW() - INTERVAL 30 day"
+	if dblayer.DbEngine == "sqlite3" {
+		lastDayClause = "date('now','-1 day')"
+		lastWeekClause = "date('now','-7 days')"
+		lastMonthClause = "date('now','-30 days')"
+	}
+	if dblayer.DbEngine == "postgres" {
+		lastDayClause = "NOW() - INTERVAL '1 days'"
+		lastWeekClause = "NOW() - INTERVAL '7 days'"
+		lastMonthClause = "NOW() - INTERVAL '30 days'"
+	}
+
 	// Users active last 24h
-	queryActiveLastDay := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 1 day"
+	queryActiveLastDay := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from " + repo.DbContext.Schema + "_users) and created_at >= " + lastDayClause
 	// fmt.Println("userStatistics: active users last 24h query:", queryActiveLastDay)
 	results = repo.Select("DBObject", queryActiveLastDay)
 	if len(results) == 1 {
@@ -131,7 +145,7 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 		userStats["active_last_24h"] = tmpInt
 	}
 	// Users active last 7 days
-	queryActiveLastWeek := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 7 day"
+	queryActiveLastWeek := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from " + repo.DbContext.Schema + "_users) and created_at >= " + lastWeekClause
 	// fmt.Println("userStatistics: active users last 7 days query:", queryActiveLastWeek)
 	results = repo.Select("DBObject", queryActiveLastWeek)
 	if len(results) == 1 {
@@ -148,7 +162,7 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 		userStats["active_last_7_days"] = tmpInt
 	}
 	// Users active last 30 days
-	queryActiveLastMonth := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from rra_users) and created_at >= NOW() - INTERVAL 30 day"
+	queryActiveLastMonth := "select count(distinct user_id) as num from " + repo.DbContext.Schema + "_" + "oauth_tokens where user_id in (select id from " + repo.DbContext.Schema + "_users) and created_at >= " + lastMonthClause
 	// fmt.Println("userStatistics: active users last 30 days query:", queryActiveLastMonth)
 	results = repo.Select("DBObject", queryActiveLastMonth)
 	if len(results) == 1 {
@@ -166,7 +180,7 @@ func userStatistics(repo *dblayer.DBRepository, response *DashboardResponse) err
 	}
 	response.UsersStats = userStats
 
-	// select user_id, max(created_at) from rra_oauth_tokens where user_id in (select id from rra_users) group by user_id;
+	// select user_id, max(created_at) from " + repo.DbContext.Schema + "_oauth_tokens where user_id in (select id from " + repo.DbContext.Schema + "_users) group by user_id;
 
 	return nil
 }
@@ -257,8 +271,17 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		}
 		objectStats["deleted_count"] = tmpInt
 	}
+
+	lastWeekClause := "NOW() - INTERVAL 7 day"
+	if dblayer.DbEngine == "sqlite3" {
+		lastWeekClause = "date('now','-7 days')"
+	}
+	if dblayer.DbEngine == "postgres" {
+		lastWeekClause = "NOW() - INTERVAL '7 days'"
+	}
+
 	// Count created last week
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where creation_date >= NOW() - INTERVAL 7 day and deleted_date is null")
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where creation_date >= "+lastWeekClause+" and deleted_date is null")
 	if len(results) == 1 {
 		// fmt.Printf("objectStatistics: %s created last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
@@ -269,7 +292,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		objectStats["created_last_week"] = tmpInt
 	}
 	// Count modified last week
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date > creation_date and last_modify_date >= NOW() - INTERVAL 7 day and deleted_date is null")
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where last_modify_date > creation_date and last_modify_date >= "+lastWeekClause+" and deleted_date is null")
 	if len(results) == 1 {
 		// fmt.Printf("objectStatistics: %s modified last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)
@@ -280,7 +303,7 @@ func objectStatistics(className string, repo *dblayer.DBRepository, response *Da
 		objectStats["modified_last_week"] = tmpInt
 	}
 	// COunt deleted last week
-	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date >= NOW() - INTERVAL 7 day")
+	results = repo.Select("DBObject", "select count(*) as num from "+repo.DbContext.Schema+"_"+tableName+" where deleted_date >= "+lastWeekClause)
 	if len(results) == 1 {
 		// fmt.Printf("objectStatistics: %s deleted last week count = %v\n", className, results[0].GetValue("num"))
 		tmpStr = results[0].GetValue("num").(string)

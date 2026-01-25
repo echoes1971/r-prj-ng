@@ -29,7 +29,7 @@ func TestEnsureDBSchema(t *testing.T) {
 	InitDBData()
 
 	// IF db engine is sqlite3, use sqlite3 mechanism to know where is the db file via DbConnection.Exec
-	if dbEngine == "sqlite3" {
+	if DbEngine == "sqlite3" {
 		var dbPath string
 		err := DbConnection.QueryRow("PRAGMA database_list;").Scan(new(interface{}), new(interface{}), &dbPath)
 		if err != nil {

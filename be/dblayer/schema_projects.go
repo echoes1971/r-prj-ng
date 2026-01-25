@@ -134,7 +134,7 @@ func NewDBProjectCompanyRole() *DBProjectCompanyRole {
 		{Name: "father_id", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "order_position", Type: "int(11)", Constraints: []string{"DEFAULT 0"}},
+		{Name: "order_position", Type: "int", Constraints: []string{"DEFAULT 0"}},
 	}
 	keys := []string{"id"}
 	foreignKeys := []ForeignKey{
@@ -254,7 +254,7 @@ CREATE TABLE `rprj_projects_people_roles` (
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
-  `order_position` int(11) DEFAULT 0,
+  `order_position` int DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `rprj_projects_people_roles_0` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -281,7 +281,7 @@ func NewDBProjectPeopleRole() *DBProjectPeopleRole {
 		{Name: "father_id", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "order_position", Type: "int(11)", Constraints: []string{"DEFAULT 0"}},
+		{Name: "order_position", Type: "int", Constraints: []string{"DEFAULT 0"}},
 	}
 	keys := []string{"id"}
 	foreignKeys := []ForeignKey{
@@ -398,7 +398,7 @@ CREATE TABLE `rprj_projects_projects_roles` (
   `father_id` varchar(16) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
-  `order_position` int(11) DEFAULT 0,
+  `order_position` int DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `rprj_projects_projects_roles_0` (`id`),
   KEY `rprj_projects_projects_roles_1` (`owner`),
@@ -431,7 +431,7 @@ func NewDBProjectProjectsRole() *DBProjectProjectsRole {
 		{Name: "father_id", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "order_position", Type: "int(11)", Constraints: []string{"DEFAULT 0"}},
+		{Name: "order_position", Type: "int", Constraints: []string{"DEFAULT 0"}},
 	}
 	keys := []string{"id"}
 	foreignKeys := []ForeignKey{
@@ -554,9 +554,9 @@ CREATE TABLE `rprj_timetracks` (
   `alle_ore` datetime DEFAULT NULL,
   `ore_intervento` datetime DEFAULT NULL,
   `ore_viaggio` datetime DEFAULT NULL,
-  `km_viaggio` int(11) NOT NULL DEFAULT 0,
-  `luogo_di_intervento` int(11) NOT NULL DEFAULT 0,
-  `stato` int(11) NOT NULL DEFAULT 0,
+  `km_viaggio` int NOT NULL DEFAULT 0,
+  `luogo_di_intervento` int NOT NULL DEFAULT 0,
+  `stato` int NOT NULL DEFAULT 0,
   `costo_per_ora` float NOT NULL DEFAULT 0,
   `costo_valuta` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -608,9 +608,9 @@ func NewDBTimeTrack() *DBTimeTrack {
 		{Name: "alle_ore", Type: "datetime", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "ore_intervento", Type: "datetime", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "ore_viaggio", Type: "datetime", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "km_viaggio", Type: "int(11)", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
-		{Name: "luogo_di_intervento", Type: "int(11)", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
-		{Name: "stato", Type: "int(11)", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
+		{Name: "km_viaggio", Type: "int", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
+		{Name: "luogo_di_intervento", Type: "int", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
+		{Name: "stato", Type: "int", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
 		{Name: "costo_per_ora", Type: "float", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
 		{Name: "costo_valuta", Type: "varchar(255)", Constraints: []string{"DEFAULT NULL"}},
 	}
@@ -663,14 +663,14 @@ CREATE TABLE `rprj_todo` (
 	`father_id` varchar(16) DEFAULT NULL,
 	`name` varchar(255) NOT NULL,
 	`description` text DEFAULT NULL,
-	`priority` int(11) NOT NULL DEFAULT 0,
+	`priority` int NOT NULL DEFAULT 0,
 	`data_segnalazione` datetime DEFAULT NULL,
 	`fk_segnalato_da` varchar(16) DEFAULT NULL,
 	`fk_cliente` varchar(16) DEFAULT NULL,
 	`fk_progetto` varchar(16) DEFAULT NULL,
 	`fk_funzionalita` varchar(16) DEFAULT NULL,
 	`fk_tipo` varchar(16) DEFAULT NULL,
-	`stato` int(11) NOT NULL DEFAULT 0,
+	`stato` int NOT NULL DEFAULT 0,
 	`descrizione` text NOT NULL,
 	`intervento` text NOT NULL,
 	`data_chiusura` datetime DEFAULT NULL,
@@ -716,14 +716,14 @@ func NewDBTodo() *DBTodo {
 		{Name: "father_id", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "priority", Type: "int(11)", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
+		{Name: "priority", Type: "int", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
 		{Name: "data_segnalazione", Type: "datetime", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "fk_segnalato_da", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "fk_cliente", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "fk_progetto", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "fk_funzionalita", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "fk_tipo", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "stato", Type: "int(11)", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
+		{Name: "stato", Type: "int", Constraints: []string{"NOT NULL", "DEFAULT 0"}},
 		{Name: "descrizione", Type: "text", Constraints: []string{"NOT NULL"}},
 		{Name: "intervento", Type: "text", Constraints: []string{"NOT NULL"}},
 		{Name: "data_chiusura", Type: "datetime", Constraints: []string{"DEFAULT NULL"}},
@@ -875,7 +875,7 @@ CREATE TABLE `rprj_todo_tipo` (
 	`father_id` varchar(16) DEFAULT NULL,
 	`name` varchar(255) NOT NULL,
 	`description` text DEFAULT NULL,
-	`order_position` int(11) DEFAULT 0,
+	`order_position` int DEFAULT 0,
 	PRIMARY KEY (`id`),
 	KEY `rprj_todo_tipo_0` (`id`),
 	KEY `rprj_todo_tipo_1` (`owner`),
@@ -906,7 +906,7 @@ func NewDBTodoTipo() *DBTodoTipo {
 		{Name: "father_id", Type: "varchar(16)", Constraints: []string{"DEFAULT NULL"}},
 		{Name: "name", Type: "varchar(255)", Constraints: []string{"NOT NULL"}},
 		{Name: "description", Type: "text", Constraints: []string{"DEFAULT NULL"}},
-		{Name: "order_position", Type: "int(11)", Constraints: []string{"DEFAULT 0"}},
+		{Name: "order_position", Type: "int", Constraints: []string{"DEFAULT 0"}},
 	}
 	keys := []string{"id"}
 	foreignKeys := []ForeignKey{
